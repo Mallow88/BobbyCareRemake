@@ -3,9 +3,9 @@ session_start();
 require_once __DIR__ . '/../config/database.php';
 
 // แก้ให้ตรงกับ LINE Channel ของคุณ
-$client_id = 'YOUR_LINE_CHANNEL_ID';
-$client_secret = 'YOUR_LINE_CHANNEL_SECRET';
-$redirect_uri = 'http://localhost/bobbycare_remake/line/line_callback.php';
+$client_id = '2006057645';
+$client_secret = '685fc53d7769bac865285d91f7b467f3';
+$redirect_uri = 'http://localhost/BobbyCareRemake/line/line_callback.php';
 
 // รับ code ที่ LINE ส่งกลับมา
 $code = $_GET['code'] ?? '';
@@ -62,6 +62,11 @@ $profile = json_decode(file_get_contents($profile_url, false, $context), true);
 
 $line_id = $profile['userId'] ?? null;
 $name = $profile['displayName'] ?? '';
+$_SESSION['line_id'] = $profile['userId'];
+$_SESSION['display_name'] = $profile['displayName'];
+$_SESSION['picture_url'] = $profile['pictureUrl']; // ถ้ามี 
+
+
 
 if (!$line_id) {
     die("ไม่สามารถดึงข้อมูล LINE ID ได้");
@@ -73,10 +78,26 @@ $stmt->execute([$line_id]);
 $user = $stmt->fetch();
 
 if ($user) {
-    // ถ้ามีแล้ว → login เข้า session และไปหน้า dashboard
+    // ถ้ามีแล้ว → login เข้า session และไปหน้าเฉพาะตาม role
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['name'] = $user['name'];
-    header("Location: ../dashboard.php");
+    $_SESSION['role'] = $user['role']; // ต้องมี role จากฐานข้อมูล
+
+$role = trim(strtolower($user['role']));
+
+switch ($role) {
+    case 'assignor':
+        header("Location: ../assignor/index.php");
+        break;
+    case 'divmgr':
+        header("Location: ../div_mgr/index.php");
+        break;
+    default:
+        header("Location: ../dashboard.php");
+        break;
+}
+
+
     exit();
 } else {
     // ถ้ายังไม่มี → ส่งไป register เพื่อกรอกชื่อ-นามสกุล
@@ -85,4 +106,5 @@ if ($user) {
     header("Location: ../register/index.php");
     exit();
 }
+
 ?>

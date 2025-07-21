@@ -6,6 +6,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 ?>
 
+
 <!DOCTYPE html>
 <html>
 <head>
@@ -16,5 +17,9 @@ if (!isset($_SESSION['user_id'])) {
     <h2>สวัสดี, <?= htmlspecialchars($_SESSION['name']) ?></h2>
     <p>คุณเข้าสู่ระบบด้วยบัญชี LINE เรียบร้อยแล้ว</p>
     <a href="logout.php">ออกจากระบบ</a>
+    <a href="profile.php">ดูโปรไฟล์ของคุณ</a>
+     <a href="requests/index.php">สร้างรายการ</a>
+
+
 </body>
 </html>

@@ -1,7 +1,7 @@
 <?php
 // login.php → สร้าง URL เพื่อส่งผู้ใช้ไป login กับ LINE
 $client_id = '2006057645';
-$redirect_uri = urlencode('http://localhost/bobbycare_remake/line/line_callback.php');
+$redirect_uri = urlencode('http://localhost/BobbyCareRemake/line/line_callback.php');
 $state = bin2hex(random_bytes(16)); // ป้องกัน CSRF
 $scope = 'profile openid email';
 
