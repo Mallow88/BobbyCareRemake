@@ -30,7 +30,7 @@ $picture_url = $_SESSION['picture_url'] ?? null;
 ?>
 <?php
 // ...
-if ($user['role'] === 'assignor ') {
+if ($user['role'] === 'admin') {
     echo "<p>คุณคือแอดมิน 🛡️</p>";
 } elseif ($user['role'] === 'staff') {
     echo "<p>คุณคือเจ้าหน้าที่ 👷‍♂️</p>";

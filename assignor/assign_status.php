@@ -114,16 +114,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !$existingApproval) {
     <?php if (!$existingApproval): ?>
         <form method="post">
             <p>
-                <label>เลือกผู้พัฒนา (developer):</label><br>
-                <select name="developer_id" required>
-                    <option value="">-- เลือก --</option>
-                    <?php foreach ($developers as $dev): ?>
-                        <option value="<?= $dev['id'] ?>">
-                            <?= htmlspecialchars($dev['name'] . ' ' . $dev['lastname']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </p>
+    <label>เลือกผู้พัฒนา (developer):</label><br>
+    <select name="developer_id" required>
+        <option value="">-- เลือก --</option>
+        <?php foreach ($developers as $dev): ?>
+            <option value="<?= $dev['id'] ?>">
+                <?= htmlspecialchars($dev['name'] . ' ' . $dev['lastname']) ?>
+            </option>
+        <?php endforeach; ?>
+    </select>
+</p>
+
             <button type="submit" name="approve">✅ อนุมัติและมอบหมาย</button>
         </form>
 

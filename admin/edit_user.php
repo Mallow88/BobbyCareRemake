@@ -58,15 +58,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <p>Email: <input type="email" name="email" value="<?= htmlspecialchars($user['email']) ?>"></p>
         <p>เบอร์โทร: <input type="text" name="phone" value="<?= htmlspecialchars($user['phone']) ?>"></p>
         <p>สิทธิ์ (role):
-           <p>สิทธิ์ (role):
     <select name="role">
         <option value="user" <?= $user['role'] === 'user' ? 'selected' : '' ?>>user</option>
         <option value="assignor" <?= $user['role'] === 'assignor' ? 'selected' : '' ?>>assignor</option>
         <option value="divmgr" <?= $user['role'] === 'divmgr' ? 'selected' : '' ?>>divmgr</option>
+       <option value="gmapprover" <?= $user['role'] === 'gmapprover' ? 'selected' : '' ?>>gmapprover</option>
+       <option value="seniorgm" <?= $user['role'] === 'seniorgm' ? 'selected' : '' ?>>seniorgm</option>
+       <option value="developer" <?= $user['role'] === 'developer' ? 'selected' : '' ?>>developer</option>
         <option value="admin" <?= $user['role'] === 'admin' ? 'selected' : '' ?>>admin</option>
     </select>
 </p>
-
+smapprover
         <button type="submit">💾 บันทึก</button>
         <a href="manage_users.php">← ยกเลิก</a>
     </form>

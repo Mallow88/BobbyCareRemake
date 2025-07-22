@@ -92,10 +92,21 @@ switch ($role) {
     case 'divmgr':
         header("Location: ../div_mgr/index.php");
         break;
+    case 'gmapprover': 
+        header("Location: ../gm/gmindex.php");
+        break;
+    case 'seniorgm': 
+        header("Location: ../seniorgm/seniorindex.php");
+        break;
+    case 'developer': 
+        header("Location: ../developer/dev_index.php");
+        break;
     default:
         header("Location: ../dashboard.php");
         break;
 }
+
+
 
 
     exit();
