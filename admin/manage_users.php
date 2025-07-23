@@ -39,6 +39,7 @@ $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <body>
     <h1>👥 จัดการผู้ใช้ทั้งหมด</h1>
     <p><a href="dashboard.php">← กลับแดชบอร์ด</a></p>
+    <li><a href="logout.php">ออกจากระบบ</a></li>
 
     <table>
         <thead>

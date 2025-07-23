@@ -7,103 +7,436 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'seniorgm') {
     exit();
 }
 
+// ดึงคำขอที่ผ่าน GM แล้ว
 $stmt = $conn->prepare("
     SELECT 
-        gm.*, 
-        al.service_request_id,
-        sr.title, sr.description, sr.created_at AS request_created,
-        requester.name AS requester_name, requester.lastname AS requester_lastname,
-        dev.name AS developer_name, dev.lastname AS developer_lastname,
-
-        assignor.name AS assignor_name, assignor.lastname AS assignor_lastname,
-        al.status AS assignor_status,
-        al.reason AS assignor_reason,
-
-        dml.status AS div_mgr_status,
-        dml.reason AS div_mgr_reason,
-        divmgr.name AS div_mgr_name, divmgr.lastname AS div_mgr_lastname,
-
-        gm_approver.name AS gm_name, gm_approver.lastname AS gm_lastname
-    FROM gm_approval_logs gm
-    JOIN approval_logs al ON gm.approval_log_id = al.id
-    JOIN service_requests sr ON al.service_request_id = sr.id
+        sr.*,
+        requester.name AS requester_name, 
+        requester.lastname AS requester_lastname,
+        
+        -- Division Manager Info
+        dma.reason as div_mgr_reason,
+        div_mgr.name as div_mgr_name,
+        
+        -- Assignor Info  
+        aa.reason as assignor_reason,
+        aa.estimated_hours,
+        aa.priority_level,
+        assignor.name as assignor_name,
+        dev.name as dev_name,
+        dev.lastname as dev_lastname,
+        
+        -- GM Info
+        gma.reason as gm_reason,
+        gma.budget_approved,
+        gma.reviewed_at as gm_reviewed_at,
+        gm.name as gm_name
+        
+    FROM service_requests sr
     JOIN users requester ON sr.user_id = requester.id
-    LEFT JOIN users dev ON al.assigned_to_user_id = dev.id
-    LEFT JOIN users assignor ON al.assignor_id = assignor.id
-    LEFT JOIN div_mgr_logs dml ON sr.id = dml.service_request_id
-    LEFT JOIN users divmgr ON dml.div_mgr_user_id = divmgr.id
-    LEFT JOIN users gm_approver ON gm.gm_user_id = gm_approver.id
-    ORDER BY gm.created_at DESC
+    JOIN div_mgr_approvals dma ON sr.id = dma.service_request_id
+    JOIN users div_mgr ON dma.div_mgr_user_id = div_mgr.id
+    JOIN assignor_approvals aa ON sr.id = aa.service_request_id
+    JOIN users assignor ON aa.assignor_user_id = assignor.id
+    LEFT JOIN users dev ON aa.assigned_developer_id = dev.id
+    JOIN gm_approvals gma ON sr.id = gma.service_request_id
+    JOIN users gm ON gma.gm_user_id = gm.id
+    LEFT JOIN senior_gm_approvals sgma ON sr.id = sgma.service_request_id
+    WHERE dma.status = 'approved' 
+    AND aa.status = 'approved'
+    AND gma.status = 'approved'
+    AND (sgma.id IS NULL OR sgma.status = 'pending')
+    ORDER BY gma.reviewed_at DESC
 ");
 $stmt->execute();
-$logs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>ผู้จัดการทั่วไปอาวุโส</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ผู้จัดการอาวุโส - BobbyCareDev</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #4a5568;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);
+        }
+
+        .nav-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(66, 153, 225, 0.4);
+        }
+
+        .nav-btn.secondary {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+        }
+
+        .nav-btn.danger {
+            background: linear-gradient(135deg, #f56565, #e53e3e);
+            box-shadow: 0 4px 15px rgba(245, 101, 101, 0.3);
+        }
+
+        .content-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .request-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 5px solid #805ad5;
+        }
+
+        .request-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .request-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .request-meta {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        .priority-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .priority-low { background: #c6f6d5; color: #2f855a; }
+        .priority-medium { background: #fef5e7; color: #d69e2e; }
+        .priority-high { background: #fed7d7; color: #c53030; }
+        .priority-urgent { background: #e53e3e; color: white; }
+
+        .approval-timeline {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .timeline-step {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            background: white;
+            border-left: 4px solid #48bb78;
+        }
+
+        .step-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            color: white;
+            background: #48bb78;
+            flex-shrink: 0;
+        }
+
+        .step-content {
+            flex: 1;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .step-details {
+            font-size: 0.9rem;
+            color: #718096;
+            line-height: 1.4;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-approve {
+            background: linear-gradient(135deg, #805ad5, #6b46c1);
+            color: white;
+        }
+
+        .btn-approve:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(128, 90, 213, 0.3);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #cbd5e0;
+        }
+
+        .budget-info {
+            background: #e6fffa;
+            border-radius: 8px;
+            padding: 10px 15px;
+            margin-top: 10px;
+            border-left: 4px solid #38b2ac;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .request-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h2>📋 รายการที่ GM อนุมัติแล้ว (Senior GM)</h2>
-    <p><a href="../logout.php">🚪 ออกจากระบบ</a></p>
-    <p><a href="senior_list.php">📜 ดูรายการที่พิจารณาแล้ว</a></p>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-crown"></i> ผู้จัดการอาวุโส</h1>
+            <p>พิจารณาและอนุมัติขั้นสุดท้ายของคำขอบริการ</p>
+            
+            <div class="nav-buttons">
+                <a href="senior_list.php" class="nav-btn secondary">
+                    <i class="fas fa-history"></i> รายการที่พิจารณาแล้ว
+                </a>
+                <a href="../logout.php" class="nav-btn danger">
+                    <i class="fas fa-sign-out-alt"></i> ออกจากระบบ
+                </a>
+            </div>
+        </div>
 
-    <table border="1" cellpadding="8">
-        <thead>
-            <tr>
-                <th>ผู้ร้องขอ</th>
-                <th>หัวข้อ</th>
-                <th>รายละเอียด</th>
-                <th>ผู้พัฒนา</th>
-                <th>ผู้จัดการแผนก</th>
-                <th>เหตุผลแผนก</th>
-                <th>ผู้จัดการฝ่าย</th>
-                <th>เหตุผลฝ่าย</th>
-                <th>GM พิจารณา</th>
-                <th>เหตุผล GM</th>
-                <th>วันที่ร้องขอ</th>
-                <th>วันที่ GM พิจารณา</th>
-                <th>ดำเนินการ</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($logs as $r): ?>
-            <tr>
-                <td><?= htmlspecialchars($r['requester_name'] . ' ' . $r['requester_lastname']) ?></td>
-                <td><?= htmlspecialchars($r['title']) ?></td>
-                <td><?= nl2br(htmlspecialchars($r['description'])) ?></td>
-                <td><?= $r['developer_name'] ? htmlspecialchars($r['developer_name'] . ' ' . $r['developer_lastname']) : '-' ?></td>
+        <div class="content-card">
+            <h2><i class="fas fa-clipboard-check"></i> รายการคำขอที่รอการพิจารณาขั้นสุดท้าย</h2>
 
-                <!-- ผู้จัดการแผนก -->
-                <td>
-                    <?= htmlspecialchars($r['assignor_name'] . ' ' . $r['assignor_lastname']) ?>
-                    <br><small><?= $r['assignor_status'] === 'approved' ? '✅ อนุมัติ' : '❌ ไม่อนุมัติ' ?></small>
-                </td>
-                <td><?= nl2br(htmlspecialchars($r['assignor_reason'])) ?: '-' ?></td>
+            <?php if (empty($requests)): ?>
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h3>ไม่มีคำขอที่รอการพิจารณา</h3>
+                    <p>ขณะนี้ไม่มีคำขอที่ต้องการการอนุมัติขั้นสุดท้ายจากคุณ</p>
+                </div>
+            <?php else: ?>
+                <?php foreach ($requests as $req): ?>
+                    <div class="request-card">
+                        <div class="request-header">
+                            <div>
+                                <div class="request-title"><?= htmlspecialchars($req['title']) ?></div>
+                                <div class="request-meta">
+                                    <i class="fas fa-user"></i>
+                                    ผู้ขอ: <?= htmlspecialchars($req['requester_name'] . ' ' . $req['requester_lastname']) ?>
+                                    <span style="margin-left: 20px;">
+                                        <i class="fas fa-calendar"></i>
+                                        วันที่ส่ง: <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
+                                    </span>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="priority-badge priority-<?= $req['priority_level'] ?>">
+                                    <?php
+                                    $priorities = [
+                                        'low' => 'ต่ำ',
+                                        'medium' => 'ปานกลาง', 
+                                        'high' => 'สูง',
+                                        'urgent' => 'เร่งด่วน'
+                                    ];
+                                    echo $priorities[$req['priority_level']] ?? 'ปานกลาง';
+                                    ?>
+                                </span>
+                                <?php if ($req['estimated_hours']): ?>
+                                    <span style="margin-left: 10px; font-size: 0.9rem; color: #718096;">
+                                        <i class="fas fa-clock"></i> <?= $req['estimated_hours'] ?> ชม.
+                                    </span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
 
-                <!-- ผู้จัดการฝ่าย -->
-                <td>
-                    <?= htmlspecialchars($r['div_mgr_name'] . ' ' . $r['div_mgr_lastname']) ?>
-                    <br><small><?= $r['div_mgr_status'] === 'approved' ? '✅ อนุมัติ' : '❌ ไม่อนุมัติ' ?></small>
-                </td>
-                <td><?= nl2br(htmlspecialchars($r['div_mgr_reason'])) ?: '-' ?></td>
+                        <div style="background: #f7fafc; border-radius: 8px; padding: 15px; margin: 15px 0;">
+                            <strong>รายละเอียดคำขอ:</strong><br>
+                            <?= nl2br(htmlspecialchars($req['description'])) ?>
+                        </div>
 
-                <!-- GM -->
-                <td><?= $r['status'] === 'approved' ? '✅ อนุมัติ' : '❌ ไม่อนุมัติ' ?><br><small>โดย <?= htmlspecialchars($r['gm_name'] . ' ' . $r['gm_lastname']) ?></small></td>
-                <td><?= nl2br(htmlspecialchars($r['reason'])) ?: '-' ?></td>
+                        <div class="approval-timeline">
+                            <h4 style="margin-bottom: 15px; color: #4a5568;">
+                                <i class="fas fa-route"></i> ขั้นตอนการอนุมัติที่ผ่านมา
+                            </h4>
 
-                <td><?= htmlspecialchars($r['request_created']) ?></td>
-                <td><?= htmlspecialchars($r['created_at']) ?></td>
+                            <!-- ผู้จัดการฝ่าย -->
+                            <div class="timeline-step">
+                                <div class="step-icon">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="step-content">
+                                    <div class="step-title">1. ผู้จัดการฝ่าย - อนุมัติแล้ว</div>
+                                    <div class="step-details">
+                                        โดย: <?= htmlspecialchars($req['div_mgr_name']) ?>
+                                        <?php if ($req['div_mgr_reason']): ?>
+                                            <br>หมายเหตุ: <?= htmlspecialchars($req['div_mgr_reason']) ?>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
 
-                <!-- ลิงก์ดำเนินการ -->
-                <td>
-                    <a href="senior_approve.php?id=<?= $r['id'] ?>">📝 พิจารณา</a>
-                </td>
-            </tr>
-            <?php endforeach; ?>
-        </tbody>
-    </table>
+                            <!-- ผู้จัดการแผนก -->
+                            <div class="timeline-step">
+                                <div class="step-icon">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="step-content">
+                                    <div class="step-title">2. ผู้จัดการแผนก - อนุมัติแล้ว</div>
+                                    <div class="step-details">
+                                        โดย: <?= htmlspecialchars($req['assignor_name']) ?>
+                                        <br>มอบหมายให้: <?= htmlspecialchars($req['dev_name'] . ' ' . $req['dev_lastname']) ?>
+                                        <?php if ($req['assignor_reason']): ?>
+                                            <br>หมายเหตุ: <?= htmlspecialchars($req['assignor_reason']) ?>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ผู้จัดการทั่วไป -->
+                            <div class="timeline-step">
+                                <div class="step-icon">
+                                    <i class="fas fa-check"></i>
+                                </div>
+                                <div class="step-content">
+                                    <div class="step-title">3. ผู้จัดการทั่วไป - อนุมัติแล้ว</div>
+                                    <div class="step-details">
+                                        โดย: <?= htmlspecialchars($req['gm_name']) ?>
+                                        <br>วันที่อนุมัติ: <?= date('d/m/Y H:i', strtotime($req['gm_reviewed_at'])) ?>
+                                        <?php if ($req['gm_reason']): ?>
+                                            <br>หมายเหตุ: <?= htmlspecialchars($req['gm_reason']) ?>
+                                        <?php endif; ?>
+                                        <?php if ($req['budget_approved']): ?>
+                                            <div class="budget-info">
+                                                <i class="fas fa-money-bill-wave"></i>
+                                                งบประมาณที่อนุมัติ: <?= number_format($req['budget_approved'], 2) ?> บาท
+                                            </div>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons">
+                            <a href="senior_approve.php?id=<?= $req['id'] ?>" class="btn btn-approve">
+                                <i class="fas fa-gavel"></i>
+                                พิจารณาขั้นสุดท้าย
+                            </a>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            <?php endif; ?>
+        </div>
+    </div>
 </body>
 </html>

@@ -4,22 +4,388 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: index.php");
     exit();
 }
+
+require_once __DIR__ . '/config/database.php';
+
+$user_id = $_SESSION['user_id'];
+
+// ดึงสถิติคำขอของผู้ใช้
+$stats_stmt = $conn->prepare("
+    SELECT 
+        COUNT(*) as total_requests,
+        SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending_requests,
+        SUM(CASE WHEN status IN ('approved', 'completed') THEN 1 ELSE 0 END) as approved_requests,
+        SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected_requests
+    FROM service_requests 
+    WHERE user_id = ?
+");
+$stats_stmt->execute([$user_id]);
+$stats = $stats_stmt->fetch(PDO::FETCH_ASSOC);
+
+// ดึงคำขอล่าสุด
+$recent_stmt = $conn->prepare("
+    SELECT * FROM service_requests 
+    WHERE user_id = ? 
+    ORDER BY created_at DESC 
+    LIMIT 5
+");
+$recent_stmt->execute([$user_id]);
+$recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
-
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - BobbyCareDev</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+
+        body {
+            background: var(--primary-gradient);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .header-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .page-title {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            font-size: 2.5rem;
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 15px 30px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+            font-size: 1.1rem;
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+            color: white;
+        }
+
+        .btn-outline-gradient {
+            background: transparent;
+            border: 2px solid #667eea;
+            color: #667eea;
+            font-weight: 600;
+            padding: 12px 25px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-outline-gradient:hover {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-color: transparent;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border-left: 5px solid #667eea;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            color: #6b7280;
+            font-size: 1rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-card.total .stat-number { color: #667eea; }
+        .stat-card.pending .stat-number { color: #f59e0b; }
+        .stat-card.approved .stat-number { color: #10b981; }
+        .stat-card.rejected .stat-number { color: #ef4444; }
+
+        .recent-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            border-left: 4px solid #e2e8f0;
+        }
+
+        .recent-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border-left-color: #667eea;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-pending { background: #fef3c7; color: #d97706; }
+        .status-approved { background: #d1fae5; color: #065f46; }
+        .status-rejected { background: #fee2e2; color: #dc2626; }
+
+        .welcome-section {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .welcome-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(180deg); }
+        }
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .action-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+            color: inherit;
+        }
+
+        .action-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .action-icon.create { background: linear-gradient(135deg, #10b981, #059669); }
+        .action-icon.track { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+        .action-icon.list { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+            }
+            
+            .stat-number {
+                font-size: 2rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <h2>สวัสดี, <?= htmlspecialchars($_SESSION['name']) ?></h2>
-    <p>คุณเข้าสู่ระบบด้วยบัญชี LINE เรียบร้อยแล้ว</p>
-    <a href="logout.php">ออกจากระบบ</a>
-    <a href="profile.php">ดูโปรไฟล์ของคุณ</a>
-     <a href="requests/index.php">สร้างรายการ</a>
+    <div class="container mt-5">
+        <!-- Welcome Section -->
+        <div class="welcome-section">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold mb-3">
+                        สวัสดี, <?= htmlspecialchars($_SESSION['name']) ?>! 👋
+                    </h1>
+                    <p class="lead mb-0">ยินดีต้อนรับสู่ระบบจัดการคำขอบริการ BobbyCareDev</p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="d-flex gap-2 justify-content-lg-end justify-content-start flex-wrap">
+                        <a href="profile.php" class="btn btn-light">
+                            <i class="fas fa-user me-2"></i>โปรไฟล์
+                        </a>
+                        <a href="logout.php" class="btn btn-outline-light">
+                            <i class="fas fa-sign-out-alt me-2"></i>ออกจากระบบ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
+        <!-- Quick Actions -->
+        <div class="quick-actions">
+            <a href="requests/create.php" class="action-card">
+                <div class="action-icon create">
+                    <i class="fas fa-plus"></i>
+                </div>
+                <h5 class="fw-bold">สร้างคำขอใหม่</h5>
+                <p class="text-muted mb-0">เริ่มต้นคำขอบริการใหม่</p>
+            </a>
+            
+            <a href="requests/track_status.php" class="action-card">
+                <div class="action-icon track">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h5 class="fw-bold">ติดตามสถานะ</h5>
+                <p class="text-muted mb-0">ดูความคืบหน้าคำขอ</p>
+            </a>
+            
+            <a href="requests/index.php" class="action-card">
+                <div class="action-icon list">
+                    <i class="fas fa-list-alt"></i>
+                </div>
+                <h5 class="fw-bold">รายการคำขอ</h5>
+                <p class="text-muted mb-0">จัดการคำขอทั้งหมด</p>
+            </a>
+        </div>
 
+        <div class="row">
+            <!-- Statistics -->
+            <div class="col-lg-8">
+                <div class="glass-card p-4 mb-4">
+                    <h3 class="fw-bold mb-4">
+                        <i class="fas fa-chart-bar me-2 text-primary"></i>สถิติคำขอของคุณ
+                    </h3>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <div class="stat-card total">
+                                <div class="stat-number"><?= $stats['total_requests'] ?></div>
+                                <div class="stat-label">ทั้งหมด</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="stat-card pending">
+                                <div class="stat-number"><?= $stats['pending_requests'] ?></div>
+                                <div class="stat-label">รอดำเนินการ</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="stat-card approved">
+                                <div class="stat-number"><?= $stats['approved_requests'] ?></div>
+                                <div class="stat-label">อนุมัติแล้ว</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <div class="stat-card rejected">
+                                <div class="stat-number"><?= $stats['rejected_requests'] ?></div>
+                                <div class="stat-label">ไม่อนุมัติ</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Requests -->
+            <div class="col-lg-4">
+                <div class="glass-card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h4 class="fw-bold mb-0">
+                            <i class="fas fa-clock me-2 text-primary"></i>คำขอล่าสุด
+                        </h4>
+                        <a href="requests/index.php" class="btn btn-outline-primary btn-sm">
+                            ดูทั้งหมด
+                        </a>
+                    </div>
+
+                    <?php if (empty($recent_requests)): ?>
+                        <div class="text-center py-4">
+                            <i class="fas fa-inbox text-muted fs-1 mb-3"></i>
+                            <p class="text-muted">ยังไม่มีคำขอ</p>
+                            <a href="requests/create.php" class="btn btn-gradient btn-sm">
+                                สร้างคำขอแรก
+                            </a>
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($recent_requests as $request): ?>
+                            <div class="recent-card">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h6 class="fw-bold mb-0"><?= htmlspecialchars(substr($request['title'], 0, 30)) ?><?= strlen($request['title']) > 30 ? '...' : '' ?></h6>
+                                    <?php
+                                    $status_class = in_array($request['status'], ['approved', 'completed']) ? 'status-approved' : 
+                                                   ($request['status'] === 'rejected' ? 'status-rejected' : 'status-pending');
+                                    ?>
+                                    <span class="status-badge <?= $status_class ?>">
+                                        <?= $request['status'] ?>
+                                    </span>
+                                </div>
+                                <small class="text-muted">
+                                    <i class="fas fa-calendar me-1"></i>
+                                    <?= date('d/m/Y H:i', strtotime($request['created_at'])) ?>
+                                </small>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
