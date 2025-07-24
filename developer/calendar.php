@@ -626,7 +626,14 @@ foreach ($tasks as $task) {
             document.getElementById('modalDescription').textContent = task.description;
             document.getElementById('modalRequester').textContent = task.requester_name + ' ' + task.requester_lastname;
             document.getElementById('modalStatus').textContent = statusLabels[task.task_status];
-            document.getElementById('modalDate').textContent = new Date(task.accepted_at || task.created_at).toLocaleDateString('th-TH');
+            
+            let dateText = new Date(task.accepted_at || task.created_at).toLocaleDateString('th-TH');
+            if (task.estimated_days && task.accepted_at) {
+                const startDate = new Date(task.accepted_at);
+                const endDate = new Date(startDate.getTime() + (task.estimated_days - 1) * 24 * 60 * 60 * 1000);
+                dateText += ' (ประมาณ ' + task.estimated_days + ' วัน, ควรเสร็จ: ' + endDate.toLocaleDateString('th-TH') + ')';
+            }
+            document.getElementById('modalDate').textContent = dateText;
 
             const modal = new bootstrap.Modal(document.getElementById('taskModal'));
             modal.show();

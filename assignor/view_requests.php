@@ -1,4 +1,4 @@
-<?php 
+<?php
 session_start();
 require_once __DIR__ . '/../config/database.php';
 
@@ -7,20 +7,34 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'assignor') {
     exit();
 }
 
-// ดึงคำขอที่ผ่านการอนุมัติจาก div_mgr แล้ว
+$assignor_id = $_SESSION['user_id'];
+
+// ดึงรายการคำขอที่ผ่านการอนุมัติจากผู้จัดการฝ่ายแล้ว
 $stmt = $conn->prepare("
     SELECT 
         sr.*,
-        dma.status as div_mgr_status,
+        requester.name AS requester_name, 
+        requester.lastname AS requester_lastname,
+        requester.employee_id,
+        requester.position,
+        requester.department,
+        requester.phone,
+        requester.email,
+        
+        -- Division Manager Info
         dma.reason as div_mgr_reason,
         dma.reviewed_at as div_mgr_reviewed_at,
-        requester.name as requester_name,
-        requester.lastname as requester_lastname,
-        div_mgr.name as div_mgr_name
+        div_mgr.name as div_mgr_name,
+        
+        -- Service Info
+        s.name as service_name,
+        s.category as service_category
+        
     FROM service_requests sr
-    JOIN div_mgr_approvals dma ON sr.id = dma.service_request_id
     JOIN users requester ON sr.user_id = requester.id
-    LEFT JOIN users div_mgr ON dma.div_mgr_user_id = div_mgr.id
+    JOIN div_mgr_approvals dma ON sr.id = dma.service_request_id
+    JOIN users div_mgr ON dma.div_mgr_user_id = div_mgr.id
+    LEFT JOIN services s ON sr.service_id = s.id
     LEFT JOIN assignor_approvals aa ON sr.id = aa.service_request_id
     WHERE dma.status = 'approved' 
     AND (aa.id IS NULL OR aa.status = 'pending')
@@ -30,9 +44,14 @@ $stmt->execute();
 $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // ดึงรายชื่อ developers
-$dev_stmt = $conn->prepare("SELECT id, name, lastname FROM users WHERE role = 'developer' AND is_active = 1");
+$dev_stmt = $conn->prepare("SELECT id, name, lastname FROM users WHERE role = 'developer' AND is_active = 1 ORDER BY name");
 $dev_stmt->execute();
 $developers = $dev_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// ดึงรายการ services ประเภท development
+$services_stmt = $conn->prepare("SELECT * FROM services WHERE category = 'development' AND is_active = 1 ORDER BY name");
+$services_stmt->execute();
+$development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
 <!DOCTYPE html>
@@ -40,140 +59,142 @@ $developers = $dev_stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>คำขอรอดำเนินการ - ผู้จัดการแผนก</title>
+    <title>ผู้จัดการแผนก - BobbyCareDev</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.2);
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-gradient);
             min-height: 100vh;
-            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            box-shadow: var(--card-shadow);
         }
 
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            text-align: center;
+        .header-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
         }
 
-        .header h1 {
-            color: #4a5568;
+        .page-title {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
             font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 700;
-        }
-
-        .nav-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin: 20px 0;
-            flex-wrap: wrap;
-        }
-
-        .nav-btn {
-            background: linear-gradient(135deg, #4299e1, #3182ce);
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);
-        }
-
-        .nav-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(66, 153, 225, 0.4);
-        }
-
-        .nav-btn.secondary {
-            background: linear-gradient(135deg, #48bb78, #38a169);
-            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
-        }
-
-        .content-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
 
         .request-card {
             background: white;
-            border-radius: 15px;
+            border-radius: 20px;
             padding: 25px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            border-left: 5px solid #48bb78;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            border-left: 5px solid #10b981;
         }
 
-        .request-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
+        .request-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
         }
 
         .request-title {
             font-size: 1.4rem;
             font-weight: 700;
             color: #2d3748;
-            margin-bottom: 5px;
+            margin-bottom: 10px;
         }
 
-        .request-meta {
-            color: #718096;
+        .user-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
             font-size: 0.9rem;
         }
 
+        .info-icon.employee { background: #667eea; }
+        .info-icon.user { background: #10b981; }
+        .info-icon.position { background: #f59e0b; }
+        .info-icon.department { background: #8b5cf6; }
+        .info-icon.phone { background: #ef4444; }
+        .info-icon.email { background: #06b6d4; }
+
+        .service-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .service-development {
+            background: linear-gradient(135deg, #c6f6d5, #9ae6b4);
+            color: #2f855a;
+        }
+
         .approval-info {
-            background: #c6f6d5;
-            border-radius: 8px;
+            background: #d1fae5;
+            border-radius: 12px;
             padding: 15px;
             margin: 15px 0;
-            border-left: 4px solid #48bb78;
+            border-left: 4px solid #10b981;
         }
 
         .approval-form {
-            background: #f7fafc;
-            border-radius: 12px;
-            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
             margin-top: 20px;
         }
 
         .form-row {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
             margin-bottom: 20px;
         }
 
         .form-group {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .form-group label {
@@ -183,79 +204,108 @@ $developers = $dev_stmt->fetchAll(PDO::FETCH_ASSOC);
             color: #4a5568;
         }
 
-        select, textarea, input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 0.9rem;
+        .form-control, .form-select {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 12px 15px;
+            transition: all 0.3s ease;
         }
 
-        select:focus, textarea:focus, input:focus {
-            outline: none;
-            border-color: #4299e1;
-            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        .form-control:focus, .form-select:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
         }
 
         .radio-group {
             display: flex;
             gap: 20px;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
         .radio-option {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 10px 15px;
-            border-radius: 8px;
+            padding: 12px 20px;
+            border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
+            border: 2px solid transparent;
         }
 
         .approve-option {
-            border: 2px solid #48bb78;
-            color: #2f855a;
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .approve-option:hover {
+            border-color: #10b981;
         }
 
         .reject-option {
-            border: 2px solid #f56565;
-            color: #c53030;
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .reject-option:hover {
+            border-color: #ef4444;
         }
 
         .submit-btn {
-            background: linear-gradient(135deg, #48bb78, #38a169);
+            background: linear-gradient(135deg, #10b981, #059669);
             color: white;
             border: none;
-            padding: 12px 30px;
-            border-radius: 8px;
+            padding: 15px 30px;
+            border-radius: 10px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
         }
 
         .submit-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-gradient {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border: none;
+            color: white;
+            font-weight: 600;
+            padding: 12px 24px;
+            border-radius: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-gradient:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+            color: white;
         }
 
         .empty-state {
             text-align: center;
-            padding: 60px 20px;
-            color: #718096;
+            padding: 80px 20px;
+            color: #6b7280;
         }
 
         .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            color: #cbd5e0;
+            font-size: 5rem;
+            margin-bottom: 30px;
+            color: #d1d5db;
+            opacity: 0.7;
         }
 
         @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+            }
+            
+            .user-info-grid {
+                grid-template-columns: 1fr;
+            }
+            
             .form-row {
                 grid-template-columns: 1fr;
             }
@@ -268,51 +318,149 @@ $developers = $dev_stmt->fetchAll(PDO::FETCH_ASSOC);
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-user-cog"></i> ผู้จัดการแผนก</h1>
-            <p>พิจารณาคำขอและมอบหมายงานให้ผู้พัฒนา</p>
-            
-            <div class="nav-buttons">
-                <a href="index.php" class="nav-btn">
-                    <i class="fas fa-arrow-left"></i> กลับหน้าหลัก
-                </a>
-                <a href="approval.php" class="nav-btn secondary">
-                    <i class="fas fa-history"></i> ประวัติการอนุมัติ
-                </a>
+    <div class="container mt-5">
+        <!-- Header -->
+        <div class="header-card p-5 mb-5">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-4" style="width: 70px; height: 70px;">
+                            <i class="fas fa-user-cog text-white fs-2"></i>
+                        </div>
+                        <div>
+                            <h1 class="page-title mb-2">ผู้จัดการแผนก</h1>
+                            <p class="text-muted mb-0 fs-5">พิจารณาคำขอและมอบหมายงานให้ผู้พัฒนา</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="d-flex gap-2 justify-content-lg-end justify-content-start flex-wrap">
+                        <a href="index.php" class="btn btn-gradient">
+                            <i class="fas fa-arrow-left me-2"></i>กลับหน้าหลัก
+                        </a>
+                        <a href="view_completed_tasks.php" class="btn btn-gradient">
+                            <i class="fas fa-star me-2"></i>งานที่เสร็จแล้ว
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="content-card">
-            <h2><i class="fas fa-clipboard-check"></i> คำขอที่ผ่านการอนุมัติจากผู้จัดการฝ่าย</h2>
+        <!-- Content -->
+        <div class="glass-card p-4">
+            <div class="d-flex align-items-center mb-4">
+                <i class="fas fa-clipboard-check text-success me-3 fs-3"></i>
+                <h2 class="mb-0 fw-bold">คำขอที่ผ่านการอนุมัติจากผู้จัดการฝ่าย</h2>
+            </div>
 
             <?php if (empty($requests)): ?>
                 <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
-                    <h3>ไม่มีคำขอที่รอการพิจารณา</h3>
-                    <p>ขณะนี้ไม่มีคำขอที่ผ่านการอนุมัติจากผู้จัดการฝ่าย</p>
+                    <i class="fas fa-clipboard-check"></i>
+                    <h3 class="fw-bold mb-3">ไม่มีคำขอที่รอการพิจารณา</h3>
+                    <p class="fs-5">ขณะนี้ไม่มีคำขอที่ผ่านการอนุมัติจากผู้จัดการฝ่าย</p>
                 </div>
             <?php else: ?>
                 <?php foreach ($requests as $req): ?>
                     <div class="request-card">
-                        <div class="request-header">
-                            <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <div class="flex-grow-1">
                                 <div class="request-title"><?= htmlspecialchars($req['title']) ?></div>
-                                <div class="request-meta">
+                                <div class="d-flex gap-2 mb-2">
+                                    <?php if ($req['service_name']): ?>
+                                        <span class="service-badge service-<?= $req['service_category'] ?>">
+                                            <i class="fas fa-code me-1"></i>
+                                            <?= htmlspecialchars($req['service_name']) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                    <?php if ($req['work_category']): ?>
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-building me-1"></i>
+                                            <?= htmlspecialchars($req['work_category']) ?>
+                                        </span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="text-muted">
+                                <i class="fas fa-calendar me-1"></i>
+                                <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
+                            </div>
+                        </div>
+
+                        <!-- ข้อมูลผู้ขอ -->
+                        <div class="user-info-grid">
+                            <div class="info-item">
+                                <div class="info-icon employee">
+                                    <i class="fas fa-id-card"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted">รหัสพนักงาน</small>
+                                    <div class="fw-bold"><?= htmlspecialchars($req['employee_id'] ?? 'ไม่ระบุ') ?></div>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon user">
                                     <i class="fas fa-user"></i>
-                                    ผู้ขอ: <?= htmlspecialchars($req['requester_name'] . ' ' . $req['requester_lastname']) ?>
-                                    <span style="margin-left: 20px;">
-                                        <i class="fas fa-calendar"></i>
-                                        วันที่ส่ง: <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
-                                    </span>
+                                </div>
+                                <div>
+                                    <small class="text-muted">ชื่อ-นามสกุล</small>
+                                    <div class="fw-bold"><?= htmlspecialchars($req['requester_name'] . ' ' . $req['requester_lastname']) ?></div>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon position">
+                                    <i class="fas fa-briefcase"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted">ตำแหน่ง</small>
+                                    <div class="fw-bold"><?= htmlspecialchars($req['position'] ?? 'ไม่ระบุ') ?></div>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon department">
+                                    <i class="fas fa-building"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted">หน่วยงาน</small>
+                                    <div class="fw-bold"><?= htmlspecialchars($req['department'] ?? 'ไม่ระบุ') ?></div>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon phone">
+                                    <i class="fas fa-phone"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted">เบอร์โทร</small>
+                                    <div class="fw-bold"><?= htmlspecialchars($req['phone'] ?? 'ไม่ระบุ') ?></div>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-icon email">
+                                    <i class="fas fa-envelope"></i>
+                                </div>
+                                <div>
+                                    <small class="text-muted">อีเมล</small>
+                                    <div class="fw-bold"><?= htmlspecialchars($req['email'] ?? 'ไม่ระบุ') ?></div>
                                 </div>
                             </div>
                         </div>
 
-                        <div style="background: #f7fafc; border-radius: 8px; padding: 15px; margin: 15px 0;">
-                            <strong>รายละเอียดคำขอ:</strong><br>
-                            <?= nl2br(htmlspecialchars($req['description'])) ?>
+                        <!-- รายละเอียดคำขอ -->
+                        <div class="bg-light p-3 rounded-3 mb-3">
+                            <h6 class="fw-bold text-primary mb-2">
+                                <i class="fas fa-align-left me-2"></i>รายละเอียดคำขอ
+                            </h6>
+                            <p class="mb-0"><?= nl2br(htmlspecialchars($req['description'])) ?></p>
                         </div>
+
+                        <!-- ประโยชน์ที่คาดว่าจะได้รับ -->
+                        <?php if ($req['expected_benefits']): ?>
+                        <div class="bg-success bg-opacity-10 p-3 rounded-3 mb-3 border-start border-success border-4">
+                            <h6 class="fw-bold text-success mb-2">
+                                <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+                            </h6>
+                            <p class="mb-0"><?= nl2br(htmlspecialchars($req['expected_benefits'])) ?></p>
+                        </div>
+                        <?php endif; ?>
 
                         <?php
                         // แสดงไฟล์แนบ
@@ -321,23 +469,47 @@ $developers = $dev_stmt->fetchAll(PDO::FETCH_ASSOC);
                         ?>
 
                         <div class="approval-info">
-                            <strong><i class="fas fa-check-circle"></i> อนุมัติโดยผู้จัดการฝ่าย</strong><br>
-                            <small>
-                                โดย: <?= htmlspecialchars($req['div_mgr_name']) ?> 
-                                เมื่อ: <?= date('d/m/Y H:i', strtotime($req['div_mgr_reviewed_at'])) ?>
-                            </small>
+                            <h6 class="fw-bold mb-2">
+                                <i class="fas fa-check-circle me-2"></i>อนุมัติโดยผู้จัดการฝ่าย
+                            </h6>
+                            <p class="mb-1">
+                                <strong>โดย:</strong> <?= htmlspecialchars($req['div_mgr_name']) ?> 
+                                <strong class="ms-3">เมื่อ:</strong> <?= date('d/m/Y H:i', strtotime($req['div_mgr_reviewed_at'])) ?>
+                            </p>
                             <?php if ($req['div_mgr_reason']): ?>
-                                <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($req['div_mgr_reason']) ?>
+                                <p class="mb-0"><strong>หมายเหตุ:</strong> <?= htmlspecialchars($req['div_mgr_reason']) ?></p>
                             <?php endif; ?>
                         </div>
 
                         <form method="post" action="assign_status.php" class="approval-form">
                             <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
                             
+                            <h5 class="fw-bold mb-3">
+                                <i class="fas fa-tasks me-2"></i>มอบหมายงานและพิจารณา
+                            </h5>
+                            
+                            <!-- เลือก Service ประเภท Development -->
+                            <div class="form-group">
+                                <label for="service_<?= $req['id'] ?>">
+                                    <i class="fas fa-cogs me-2"></i>เลือกประเภทงาน Development:
+                                </label>
+                                <select name="development_service_id" id="service_<?= $req['id'] ?>" class="form-select" required>
+                                    <option value="">-- เลือกประเภทงาน Development --</option>
+                                    <?php foreach ($development_services as $service): ?>
+                                        <option value="<?= $service['id'] ?>">
+                                            <?= htmlspecialchars($service['name']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                                <small class="text-muted">เลือกประเภทงานพัฒนาที่เหมาะสมกับคำขอนี้</small>
+                            </div>
+
                             <div class="form-row">
                                 <div class="form-group">
-                                    <label for="developer_<?= $req['id'] ?>">มอบหมายให้ผู้พัฒนา:</label>
-                                    <select name="assigned_developer_id" id="developer_<?= $req['id'] ?>" required>
+                                    <label for="developer_<?= $req['id'] ?>">
+                                        <i class="fas fa-user-cog me-2"></i>มอบหมายให้ผู้พัฒนา:
+                                    </label>
+                                    <select name="assigned_developer_id" id="developer_<?= $req['id'] ?>" class="form-select" required>
                                         <option value="">-- เลือกผู้พัฒนา --</option>
                                         <?php foreach ($developers as $dev): ?>
                                             <option value="<?= $dev['id'] ?>">
@@ -348,8 +520,10 @@ $developers = $dev_stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </div>
 
                                 <div class="form-group">
-                                    <label for="priority_<?= $req['id'] ?>">ระดับความสำคัญ:</label>
-                                    <select name="priority_level" id="priority_<?= $req['id'] ?>">
+                                    <label for="priority_<?= $req['id'] ?>">
+                                        <i class="fas fa-exclamation-circle me-2"></i>ระดับความสำคัญ:
+                                    </label>
+                                    <select name="priority_level" id="priority_<?= $req['id'] ?>" class="form-select">
                                         <option value="low">ต่ำ</option>
                                         <option value="medium" selected>ปานกลาง</option>
                                         <option value="high">สูง</option>
@@ -359,8 +533,10 @@ $developers = $dev_stmt->fetchAll(PDO::FETCH_ASSOC);
                             </div>
 
                             <div class="form-group">
-                                <label for="estimated_hours_<?= $req['id'] ?>">ประมาณการเวลา (ชั่วโมง):</label>
-                                <input type="number" name="estimated_hours" id="estimated_hours_<?= $req['id'] ?>" min="1" max="1000">
+                                <label for="estimated_days_<?= $req['id'] ?>">
+                                    <i class="fas fa-calendar-alt me-2"></i>ประมาณการเวลา (วัน):
+                                </label>
+                                <input type="number" name="estimated_days" id="estimated_days_<?= $req['id'] ?>" class="form-control" min="1" max="365" placeholder="จำนวนวันที่คาดว่าจะใช้">
                             </div>
 
                             <div class="form-group">
@@ -384,13 +560,14 @@ $developers = $dev_stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <textarea 
                                     name="reason" 
                                     id="reason_<?= $req['id'] ?>" 
+                                    class="form-control"
                                     placeholder="ระบุเหตุผลหรือข้อเสนอแนะ"
                                     rows="3"
                                 ></textarea>
                             </div>
 
                             <button type="submit" class="submit-btn">
-                                <i class="fas fa-paper-plane"></i>
+                                <i class="fas fa-paper-plane me-2"></i>
                                 ส่งผลการพิจารณา
                             </button>
                         </form>
@@ -400,6 +577,7 @@ $developers = $dev_stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // จัดการฟอร์มตามการเลือก
         document.querySelectorAll('input[name="status"]').forEach(radio => {
@@ -407,20 +585,24 @@ $developers = $dev_stmt->fetchAll(PDO::FETCH_ASSOC);
                 const form = this.closest('form');
                 const developerSelect = form.querySelector('select[name="assigned_developer_id"]');
                 const prioritySelect = form.querySelector('select[name="priority_level"]');
-                const hoursInput = form.querySelector('input[name="estimated_hours"]');
+                const daysInput = form.querySelector('input[name="estimated_days"]');
                 const textarea = form.querySelector('textarea');
                 
                 if (this.value === 'approved') {
+                    form.querySelector('select[name="development_service_id"]').required = true;
+                    form.querySelector('select[name="development_service_id"]').disabled = false;
                     developerSelect.required = true;
                     developerSelect.disabled = false;
                     prioritySelect.disabled = false;
-                    hoursInput.disabled = false;
+                    daysInput.disabled = false;
                     textarea.placeholder = 'ข้อเสนอแนะหรือคำแนะนำสำหรับผู้พัฒนา';
                 } else {
+                    form.querySelector('select[name="development_service_id"]').required = false;
+                    form.querySelector('select[name="development_service_id"]').disabled = true;
                     developerSelect.required = false;
                     developerSelect.disabled = true;
                     prioritySelect.disabled = true;
-                    hoursInput.disabled = true;
+                    daysInput.disabled = true;
                     textarea.required = true;
                     textarea.placeholder = 'กรุณาระบุเหตุผลการไม่อนุมัติ';
                 }

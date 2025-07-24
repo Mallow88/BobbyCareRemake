@@ -11,6 +11,9 @@ $user_id = $_SESSION['user_id'];
 
 $name = $_POST['name'] ?? '';
 $lastname = $_POST['lastname'] ?? '';
+$employee_id = $_POST['employee_id'] ?? '';
+$position = $_POST['position'] ?? '';
+$department = $_POST['department'] ?? '';
 $email = $_POST['email'] ?? '';
 $phone = $_POST['phone'] ?? '';
 
@@ -20,8 +23,8 @@ if (empty($name)) {
 }
 
 // อัปเดตฐานข้อมูล
-$stmt = $conn->prepare("UPDATE users SET name = ?, lastname = ?, email = ?, phone = ? WHERE id = ?");
-$result = $stmt->execute([$name, $lastname, $email, $phone, $user_id]);
+$stmt = $conn->prepare("UPDATE users SET name = ?, lastname = ?, employee_id = ?, position = ?, department = ?, email = ?, phone = ? WHERE id = ?");
+$result = $stmt->execute([$name, $lastname, $employee_id, $position, $department, $email, $phone, $user_id]);
 
 if ($result) {
     // อัปเดต session ด้วย

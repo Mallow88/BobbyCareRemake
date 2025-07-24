@@ -12,19 +12,32 @@ $user_id = $_SESSION['user_id'];
 $error = '';
 $success = '';
 
+// ดึงข้อมูลผู้ใช้
+$user_stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
+$user_stmt->execute([$user_id]);
+$user_data = $user_stmt->fetch(PDO::FETCH_ASSOC);
+
+// ดึงรายชื่อผู้จัดการฝ่าย
+$div_mgr_stmt = $conn->prepare("SELECT id, name, lastname FROM users WHERE role = 'divmgr' AND is_active = 1 ORDER BY name");
+$div_mgr_stmt->execute();
+$div_managers = $div_mgr_stmt->fetchAll(PDO::FETCH_ASSOC);
+
 // ถ้ามีการส่งฟอร์ม
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $title = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
     $priority = $_POST['priority'] ?? 'medium';
+    $work_category = $_POST['work_category'] ?? null;
+    $expected_benefits = trim($_POST['expected_benefits'] ?? '');
+    $assigned_div_mgr_id = $_POST['assigned_div_mgr_id'] ?? null;
 
-    if ($title !== '' && $description !== '') {
+    if ($title !== '' && $description !== '' && $work_category && $expected_benefits && $assigned_div_mgr_id) {
         try {
             $conn->beginTransaction();
 
             // สร้าง service request
-            $stmt = $conn->prepare("INSERT INTO service_requests (user_id, title, description, priority, status) VALUES (?, ?, ?, ?, 'pending')");
-            $stmt->execute([$user_id, $title, $description, $priority]);
+            $stmt = $conn->prepare("INSERT INTO service_requests (user_id, title, description, priority, work_category, expected_benefits, assigned_div_mgr_id, status) VALUES (?, ?, ?, ?, ?, ?, ?, 'div_mgr_review')");
+            $stmt->execute([$user_id, $title, $description, $priority, $work_category, $expected_benefits, $assigned_div_mgr_id]);
             $request_id = $conn->lastInsertId();
 
             // จัดการไฟล์ที่อัปโหลด
@@ -348,6 +361,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="post" enctype="multipart/form-data" id="requestForm">
                 <div class="row">
                     <div class="col-lg-8">
+                        <!-- ข้อมูลผู้ขอ -->
+                        <div class="glass-card p-4 mb-4">
+                            <h4 class="fw-bold mb-3">
+                                <i class="fas fa-user me-2"></i>ข้อมูลผู้ขอ
+                            </h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>รหัสพนักงาน:</strong> <?= htmlspecialchars($user_data['employee_id'] ?? 'ไม่ระบุ') ?></p>
+                                    <p><strong>ชื่อ-นามสกุล:</strong> <?= htmlspecialchars($user_data['name'] . ' ' . $user_data['lastname']) ?></p>
+                                    <p><strong>ตำแหน่ง:</strong> <?= htmlspecialchars($user_data['position'] ?? 'ไม่ระบุ') ?></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>หน่วยงาน:</strong> <?= htmlspecialchars($user_data['department'] ?? 'ไม่ระบุ') ?></p>
+                                    <p><strong>เบอร์โทรศัพท์:</strong> <?= htmlspecialchars($user_data['phone'] ?? 'ไม่ระบุ') ?></p>
+                                    <p><strong>อีเมล:</strong> <?= htmlspecialchars($user_data['email'] ?? 'ไม่ระบุ') ?></p>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="mb-4">
                             <label for="title" class="form-label">
                                 <i class="fas fa-heading me-2"></i>หัวข้อคำขอ
@@ -363,9 +395,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <textarea class="form-control" id="description" name="description" rows="6" required
                                       placeholder="อธิบายรายละเอียดคำขอบริการ เช่น ปัญหาที่พบ ความต้องการ หรือข้อกำหนดพิเศษ"></textarea>
                         </div>
+
+                        <div class="mb-4">
+                            <label for="expected_benefits" class="form-label">
+                                <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+                            </label>
+                            <textarea class="form-control" id="expected_benefits" name="expected_benefits" rows="3" required
+                                      placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้"></textarea>
+                        </div>
                     </div>
 
                     <div class="col-lg-4">
+                        <div class="mb-4">
+                            <label class="form-label">
+                                <i class="fas fa-building me-2"></i>หัวข้องานคลัง
+                            </label>
+                            <div class="d-flex flex-column gap-2">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="work_category" value="RDC" id="rdc" required>
+                                    <label class="form-check-label fw-bold text-primary" for="rdc">
+                                        <i class="fas fa-database me-2"></i>RDC (Regional Distribution Center)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="work_category" value="CDC" id="cdc" required>
+                                    <label class="form-check-label fw-bold text-success" for="cdc">
+                                        <i class="fas fa-warehouse me-2"></i>CDC (Central Distribution Center)
+                                    </label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="work_category" value="BDC" id="bdc" required>
+                                    <label class="form-check-label fw-bold text-warning" for="bdc">
+                                        <i class="fas fa-truck me-2"></i>BDC (Branch Distribution Center)
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="assigned_div_mgr_id" class="form-label">
+                                <i class="fas fa-user-tie me-2"></i>ผู้กลั่นกรอง (ผู้จัดการฝ่าย)
+                            </label>
+                            <select class="form-select" id="assigned_div_mgr_id" name="assigned_div_mgr_id" required>
+                                <option value="">-- เลือกผู้จัดการฝ่าย --</option>
+                                <?php foreach ($div_managers as $mgr): ?>
+                                    <option value="<?= $mgr['id'] ?>">
+                                        <?= htmlspecialchars($mgr['name'] . ' ' . $mgr['lastname']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
                         <div class="mb-4">
                             <label class="form-label">
                                 <i class="fas fa-exclamation-circle me-2"></i>ระดับความสำคัญ
@@ -538,10 +618,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         document.getElementById('requestForm').addEventListener('submit', function(e) {
             const title = document.getElementById('title').value.trim();
             const description = document.getElementById('description').value.trim();
+            const workCategory = document.querySelector('input[name="work_category"]:checked');
+            const expectedBenefits = document.getElementById('expected_benefits').value.trim();
+            const divMgr = document.getElementById('assigned_div_mgr_id').value;
             
-            if (!title || !description) {
+            if (!title || !description || !workCategory || !expectedBenefits || !divMgr) {
                 e.preventDefault();
-                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
+                alert('กรุณากรอกข้อมูลให้ครบถ้วน (หัวข้อ, รายละเอียด, หัวข้องานคลัง, ประโยชน์ที่คาดว่าจะได้รับ, และผู้กลั่นกรอง)');
             }
         });
     </script>

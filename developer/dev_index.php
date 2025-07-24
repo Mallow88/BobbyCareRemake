@@ -15,11 +15,17 @@ $stmt = $conn->prepare("
         sr.*,
         t.id as task_id,
         t.task_status,
+        t.accepted_at,
+        aa.estimated_days,
+        aa.priority_level,
         requester.name AS requester_name,
-        requester.lastname AS requester_lastname
+        requester.lastname AS requester_lastname,
+        assignor.name as assignor_name
     FROM service_requests sr
     JOIN tasks t ON sr.id = t.service_request_id
     JOIN users requester ON sr.user_id = requester.id
+    JOIN assignor_approvals aa ON sr.id = aa.service_request_id
+    JOIN users assignor ON aa.assignor_user_id = assignor.id
     WHERE t.developer_user_id = ?
       AND sr.status = 'approved'
       AND t.task_status = 'pending'
@@ -330,7 +336,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accept_request_id']))
                             <i class="fas fa-laptop-code"></i>
                         </div>
                         <div>
-                                <p class="text-muted mb-0 fs-5">จัดการและติดตามงานพัฒนาของคุณ พร้อมดูรีวิวจากผู้ใช้</p>
+                            <h1 class="page-title mb-2">งานของผู้พัฒนา</h1>
                             <p class="text-muted mb-0 fs-5">จัดการและติดตามงานพัฒนาของคุณ</p>
                         </div>
                     </div>
@@ -426,6 +432,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accept_request_id']))
                                             <div class="text-muted">
                                                 <i class="fas fa-clock me-2"></i>
                                                 <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
+                                                <?php if ($req['assignor_name']): ?>
+                                                    <br><small class="text-primary">
+                                                        <i class="fas fa-user-tie me-1"></i>
+                                                        มอบหมายโดย: <?= htmlspecialchars($req['assignor_name']) ?>
+                                                    </small>
+                                                <?php endif; ?>
                                             </div>
                                         </td>
                                         <td>

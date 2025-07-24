@@ -25,6 +25,11 @@ $stmt = $conn->prepare("
         sr.*,
         requester.name AS requester_name, 
         requester.lastname AS requester_lastname,
+        requester.employee_id,
+        requester.position,
+        requester.department,
+        requester.phone,
+        requester.email,
         
         -- Division Manager Info
         dma.reason as div_mgr_reason,
@@ -32,11 +37,15 @@ $stmt = $conn->prepare("
         
         -- Assignor Info  
         aa.reason as assignor_reason,
-        aa.estimated_hours,
+        aa.estimated_days,
         aa.priority_level,
         assignor.name as assignor_name,
         dev.name as dev_name,
-        dev.lastname as dev_lastname
+        dev.lastname as dev_lastname,
+        
+        -- Service Info
+        s.name as service_name,
+        s.category as service_category
         
     FROM service_requests sr
     JOIN users requester ON sr.user_id = requester.id
@@ -45,6 +54,7 @@ $stmt = $conn->prepare("
     JOIN assignor_approvals aa ON sr.id = aa.service_request_id
     JOIN users assignor ON aa.assignor_user_id = assignor.id
     LEFT JOIN users dev ON aa.assigned_developer_id = dev.id
+    LEFT JOIN services s ON sr.service_id = s.id
     WHERE sr.id = ?
 ");
 $stmt->execute([$request_id]);
@@ -335,14 +345,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="info-row">
+                    <div class="info-label">รหัสพนักงาน:</div>
+                    <div class="info-value"><?= htmlspecialchars($data['employee_id'] ?? 'ไม่ระบุ') ?></div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">ตำแหน่ง:</div>
+                    <div class="info-value"><?= htmlspecialchars($data['position'] ?? 'ไม่ระบุ') ?></div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">หน่วยงาน:</div>
+                    <div class="info-value"><?= htmlspecialchars($data['department'] ?? 'ไม่ระบุ') ?></div>
+                </div>
+
+                <div class="info-row">
+                    <div class="info-label">เบอร์โทร:</div>
+                    <div class="info-value"><?= htmlspecialchars($data['phone'] ?? 'ไม่ระบุ') ?></div>
+                </div>
+
+                <div class="info-row">
                     <div class="info-label">หัวข้อ:</div>
                     <div class="info-value"><?= htmlspecialchars($data['title']) ?></div>
                 </div>
+
+                <?php if ($data['service_name']): ?>
+                <div class="info-row">
+                    <div class="info-label">ประเภทบริการ:</div>
+                    <div class="info-value">
+                        <span class="priority-badge priority-<?= $data['service_category'] === 'development' ? 'high' : 'medium' ?>">
+                            <?php if ($data['service_category'] === 'development'): ?>
+                                <i class="fas fa-code me-1"></i>
+                            <?php else: ?>
+                                <i class="fas fa-tools me-1"></i>
+                            <?php endif; ?>
+                            <?= htmlspecialchars($data['service_name']) ?>
+                        </span>
+                    </div>
+                </div>
+                <?php endif; ?>
+
+                <?php if ($data['work_category']): ?>
+                <div class="info-row">
+                    <div class="info-label">หัวข้องานคลัง:</div>
+                    <div class="info-value">
+                        <span class="priority-badge priority-medium">
+                            <i class="fas fa-building me-1"></i>
+                            <?= htmlspecialchars($data['work_category']) ?>
+                        </span>
+                    </div>
+                </div>
+                <?php endif; ?>
 
                 <div class="info-row">
                     <div class="info-label">รายละเอียด:</div>
                     <div class="info-value"><?= nl2br(htmlspecialchars($data['description'])) ?></div>
                 </div>
+
+                <?php if ($data['expected_benefits']): ?>
+                <div class="info-row">
+                    <div class="info-label">ประโยชน์ที่คาดหวัง:</div>
+                    <div class="info-value"><?= nl2br(htmlspecialchars($data['expected_benefits'])) ?></div>
+                </div>
+                <?php endif; ?>
 
                 <div class="info-row">
                     <div class="info-label">ผู้พัฒนา:</div>
@@ -365,13 +430,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </span>
                     </div>
                 </div>
-
-                <?php if ($data['estimated_hours']): ?>
-                <div class="info-row">
-                    <div class="info-label">ประมาณการ:</div>
-                    <div class="info-value"><?= $data['estimated_hours'] ?> ชั่วโมง</div>
-                </div>
-                <?php endif; ?>
+                 <?php if ($data['estimated_days']): ?>
+                                    <div class="estimate-info mt-2">
+                                        <i class="fas fa-clock me-1"></i>
+                                        ประมาณ <?= $data['estimated_days'] ?> วัน
+                                    </div>
+                                <?php endif; ?>
 
                 <div class="info-row">
                     <div class="info-label">วันที่ส่ง:</div>

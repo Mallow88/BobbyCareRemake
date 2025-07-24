@@ -6,7 +6,6 @@ if (!isset($_SESSION['user_id'])) {
     header("Location: index.php");
     exit();
 }
-
 $user_id = $_SESSION['user_id'];
 
 $stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
@@ -26,7 +25,6 @@ if (!$user) {
 </head>
 <body>
     <h2>แก้ไขโปรไฟล์</h2>
-
     <form action="update_profile.php" method="POST">
         <input type="hidden" name="id" value="<?= $user['id'] ?>">
 
@@ -36,6 +34,15 @@ if (!$user) {
         <label>นามสกุล:</label><br>
         <input type="text" name="lastname" value="<?= htmlspecialchars($user['lastname']) ?>"><br><br>
 
+        <label>รหัสพนักงาน:</label><br>
+        <input type="text" name="employee_id" value="<?= htmlspecialchars($user['employee_id']) ?>"><br><br>
+
+        <label>ตำแหน่ง:</label><br>
+        <input type="text" name="position" value="<?= htmlspecialchars($user['position']) ?>"><br><br>
+
+        <label>หน่วยงาน:</label><br>
+        <input type="text" name="department" value="<?= htmlspecialchars($user['department']) ?>"><br><br>
+
         <label>อีเมล:</label><br>
         <input type="email" name="email" value="<?= htmlspecialchars($user['email']) ?>"><br><br>
 
@@ -44,7 +51,6 @@ if (!$user) {
 
         <button type="submit">💾 บันทึก</button>
     </form>
-
     <p><a href="profile.php">🔙 กลับไปโปรไฟล์</a></p>
 </body>
 </html>

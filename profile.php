@@ -56,6 +56,9 @@ if ($user['role'] === 'admin') {
     <p><strong>LINE ID:</strong> <?php echo htmlspecialchars($line_id); ?></p>
     <p><strong>ชื่อ:</strong> <?php echo htmlspecialchars($name); ?></p>
     <p><strong>นามสกุล:</strong> <?php echo htmlspecialchars($lastname); ?></p>
+    <p><strong>รหัสพนักงาน:</strong> <?php echo htmlspecialchars($user['employee_id'] ?? 'ไม่ระบุ'); ?></p>
+    <p><strong>ตำแหน่ง:</strong> <?php echo htmlspecialchars($user['position'] ?? 'ไม่ระบุ'); ?></p>
+    <p><strong>หน่วยงาน:</strong> <?php echo htmlspecialchars($user['department'] ?? 'ไม่ระบุ'); ?></p>
     <p><strong>Email:</strong> <?php echo htmlspecialchars($email); ?></p>
     <p><strong>เบอร์โทร:</strong> <?php echo htmlspecialchars($phone); ?></p>
 

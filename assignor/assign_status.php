@@ -18,7 +18,8 @@ $status = $_POST['status'];
 $reason = $_POST['reason'] ?? '';
 $assigned_developer_id = $_POST['assigned_developer_id'] ?? null;
 $priority_level = $_POST['priority_level'] ?? 'medium';
-$estimated_hours = $_POST['estimated_hours'] ?? null;
+$estimated_days = $_POST['estimated_days'] ?? null;
+$development_service_id = $_POST['development_service_id'] ?? null;
 
 // ตรวจสอบข้อมูล
 if ($status === 'rejected' && trim($reason) === '') {
@@ -33,27 +34,39 @@ if ($status === 'approved' && !$assigned_developer_id) {
     exit();
 }
 
+if ($status === 'approved' && !$development_service_id) {
+    $_SESSION['error'] = "กรุณาเลือกประเภทงาน Development";
+    header("Location: view_requests.php");
+    exit();
+}
+
 try {
     $conn->beginTransaction();
 
     // บันทึกการอนุมัติ
     $stmt = $conn->prepare("
         INSERT INTO assignor_approvals (
-            service_request_id, assignor_user_id, assigned_developer_id, 
-            status, reason, estimated_hours, priority_level, reviewed_at
+            service_request_id, assignor_user_id, assigned_developer_id,
+            status, reason, estimated_days, priority_level, reviewed_at
         ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
         ON DUPLICATE KEY UPDATE 
         assigned_developer_id = VALUES(assigned_developer_id),
         status = VALUES(status), 
         reason = VALUES(reason), 
-        estimated_hours = VALUES(estimated_hours),
+        estimated_days = VALUES(estimated_days),
         priority_level = VALUES(priority_level),
         reviewed_at = NOW()
     ");
     $stmt->execute([
-        $request_id, $assignor_id, $assigned_developer_id, 
-        $status, $reason, $estimated_hours, $priority_level
+        $request_id, $assignor_id, $assigned_developer_id,
+        $status, $reason, $estimated_days, $priority_level
     ]);
+
+    // อัปเดต service_id ใน service_requests ถ้าเลือก development service
+    if ($status === 'approved' && $development_service_id) {
+        $stmt = $conn->prepare("UPDATE service_requests SET service_id = ? WHERE id = ?");
+        $stmt->execute([$development_service_id, $request_id]);
+    }
 
     // อัปเดตสถานะใน service_requests
     $new_status = $status === 'approved' ? 'gm_review' : 'rejected';
@@ -61,10 +74,10 @@ try {
     
     $stmt = $conn->prepare("
         UPDATE service_requests 
-        SET status = ?, current_step = ?, priority = ?, estimated_hours = ? 
+        SET status = ?, current_step = ?, priority = ?, estimated_days = ?
         WHERE id = ?
     ");
-    $stmt->execute([$new_status, $current_step, $priority_level, $estimated_hours, $request_id]);
+    $stmt->execute([$new_status, $current_step, $priority_level, $estimated_days, $request_id]);
 
     // บันทึก log
     $stmt = $conn->prepare("

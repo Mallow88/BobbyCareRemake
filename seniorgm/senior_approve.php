@@ -26,6 +26,11 @@ $stmt = $conn->prepare("
         sr.*,
         requester.name AS requester_name, 
         requester.lastname AS requester_lastname,
+        requester.employee_id,
+        requester.position,
+        requester.department,
+        requester.phone,
+        requester.email,
         
         -- Division Manager Info
         dma.reason as div_mgr_reason,
@@ -33,7 +38,7 @@ $stmt = $conn->prepare("
         
         -- Assignor Info  
         aa.reason as assignor_reason,
-        aa.estimated_hours,
+        aa.estimated_days,
         aa.priority_level,
         assignor.name as assignor_name,
         dev.name as dev_name,
@@ -43,7 +48,11 @@ $stmt = $conn->prepare("
         gma.reason as gm_reason,
         gma.budget_approved,
         gma.reviewed_at as gm_reviewed_at,
-        gm.name as gm_name
+        gm.name as gm_name,
+        
+        -- Service Info
+        s.name as service_name,
+        s.category as service_category
         
     FROM service_requests sr
     JOIN users requester ON sr.user_id = requester.id
@@ -54,6 +63,7 @@ $stmt = $conn->prepare("
     LEFT JOIN users dev ON aa.assigned_developer_id = dev.id
     JOIN gm_approvals gma ON sr.id = gma.service_request_id
     JOIN users gm ON gma.gm_user_id = gm.id
+    LEFT JOIN services s ON sr.service_id = s.id
     WHERE sr.id = ?
 ");
 $stmt->execute([$request_id]);
@@ -140,76 +150,130 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>พิจารณาคำขอ (Senior GM) - BobbyCareDev</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.2);
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--primary-gradient);
             min-height: 100vh;
-            color: #333;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 25px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .header-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .page-title {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 800;
+            font-size: 2.5rem;
+        }
+
+        .user-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            background: #f8f9fa;
+            border-radius: 15px;
             padding: 20px;
+            margin: 15px 0;
         }
 
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            text-align: center;
-        }
-
-        .content-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .request-info {
-            background: #f7fafc;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
-
-        .info-row {
+        .info-item {
             display: flex;
-            margin-bottom: 10px;
-            align-items: flex-start;
+            align-items: center;
+            gap: 10px;
         }
 
-        .info-label {
+        .info-icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.9rem;
+        }
+
+        .info-icon.employee { background: #667eea; }
+        .info-icon.user { background: #10b981; }
+        .info-icon.position { background: #f59e0b; }
+        .info-icon.department { background: #8b5cf6; }
+        .info-icon.phone { background: #ef4444; }
+        .info-icon.email { background: #06b6d4; }
+
+        .service-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
             font-weight: 600;
-            color: #4a5568;
-            min-width: 120px;
-            margin-right: 15px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
-        .info-value {
-            color: #2d3748;
-            flex: 1;
+        .service-development {
+            background: linear-gradient(135deg, #c6f6d5, #9ae6b4);
+            color: #2f855a;
         }
+
+        .service-service {
+            background: linear-gradient(135deg, #dbeafe, #93c5fd);
+            color: #1e40af;
+        }
+
+        .category-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .category-rdc { background: #dbeafe; color: #1e40af; }
+        .category-cdc { background: #d1fae5; color: #065f46; }
+        .category-bdc { background: #fef3c7; color: #92400e; }
+
+        .priority-badge {
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .priority-low { background: #c6f6d5; color: #2f855a; }
+        .priority-medium { background: #fef5e7; color: #d69e2e; }
+        .priority-high { background: #fed7d7; color: #c53030; }
+        .priority-urgent { background: #e53e3e; color: white; }
 
         .approval-summary {
-            background: white;
-            border-radius: 12px;
+            background: #f7fafc;
+            border-radius: 15px;
             padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         .approval-step {
@@ -217,14 +281,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: flex-start;
             margin-bottom: 15px;
             padding: 15px;
-            border-radius: 8px;
-            background: #f7fafc;
+            border-radius: 10px;
+            background: white;
             border-left: 4px solid #48bb78;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
         .step-number {
-            width: 30px;
-            height: 30px;
+            width: 35px;
+            height: 35px;
             border-radius: 50%;
             background: #48bb78;
             color: white;
@@ -254,9 +319,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .approval-form {
             background: white;
-            border-radius: 12px;
+            border-radius: 15px;
             padding: 25px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
         }
 
         .form-group {
@@ -268,6 +333,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             margin-bottom: 8px;
             font-weight: 600;
             color: #4a5568;
+            font-size: 1.1rem;
         }
 
         .radio-group {
@@ -280,46 +346,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 12px 20px;
-            border-radius: 8px;
+            padding: 15px 25px;
+            border-radius: 12px;
             cursor: pointer;
             transition: all 0.3s ease;
             border: 2px solid transparent;
+            font-weight: 600;
         }
 
         .approve-option {
-            background: #c6f6d5;
+            background: linear-gradient(135deg, #c6f6d5, #9ae6b4);
             color: #2f855a;
         }
 
         .approve-option:hover {
             border-color: #48bb78;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(72, 187, 120, 0.3);
         }
 
         .reject-option {
-            background: #fed7d7;
+            background: linear-gradient(135deg, #fed7d7, #feb2b2);
             color: #c53030;
         }
 
         .reject-option:hover {
             border-color: #f56565;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(245, 101, 101, 0.3);
         }
 
-        textarea {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-family: inherit;
-            font-size: 0.9rem;
-            resize: vertical;
-            min-height: 80px;
+        .form-control {
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 12px 15px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
         }
 
-        textarea:focus {
-            outline: none;
-            border-color: #4299e1;
-            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        .form-control:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
         }
 
         .submit-btn {
@@ -327,27 +394,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: white;
             border: none;
             padding: 15px 30px;
-            border-radius: 8px;
+            border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             margin-top: 20px;
+            box-shadow: 0 8px 25px rgba(128, 90, 213, 0.3);
         }
 
         .submit-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(128, 90, 213, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 12px 35px rgba(128, 90, 213, 0.4);
         }
 
         .back-btn {
             background: linear-gradient(135deg, #4299e1, #3182ce);
             color: white;
-            padding: 10px 20px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             text-decoration: none;
             font-weight: 600;
             transition: all 0.3s ease;
@@ -355,58 +423,104 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             align-items: center;
             gap: 8px;
             margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);
         }
 
         .back-btn:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(66, 153, 225, 0.3);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(66, 153, 225, 0.4);
+            color: white;
         }
 
         .error-message {
-            background: #fed7d7;
+            background: linear-gradient(135deg, #fed7d7, #feb2b2);
             color: #c53030;
-            padding: 12px;
-            border-radius: 8px;
+            padding: 15px;
+            border-radius: 12px;
             margin-bottom: 20px;
             display: flex;
             align-items: center;
-            gap: 8px;
-        }
-
-        .priority-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
+            gap: 10px;
             font-weight: 600;
-            text-transform: uppercase;
+            border-left: 4px solid #ef4444;
         }
-
-        .priority-low { background: #c6f6d5; color: #2f855a; }
-        .priority-medium { background: #fef5e7; color: #d69e2e; }
-        .priority-high { background: #fed7d7; color: #c53030; }
-        .priority-urgent { background: #e53e3e; color: white; }
 
         .budget-info {
-            background: #e6fffa;
-            border-radius: 8px;
-            padding: 10px 15px;
+            background: linear-gradient(135deg, #e6fffa, #b2f5ea);
+            border-radius: 10px;
+            padding: 12px 16px;
             margin-top: 10px;
             border-left: 4px solid #38b2ac;
+            display: inline-block;
+        }
+
+        .description-box {
+            background: #f7fafc;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #667eea;
+        }
+
+        .benefits-box {
+            background: linear-gradient(135deg, #f0fff4, #e6fffa);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            border-left: 4px solid #10b981;
+        }
+
+        .estimate-info {
+            background: #fef5e7;
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-left: 3px solid #f59e0b;
+            display: inline-block;
+            font-size: 0.9rem;
+        }
+
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+            }
+            
+            .user-info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .radio-group {
+                flex-direction: column;
+                gap: 10px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-gavel"></i> พิจารณาคำขอขั้นสุดท้าย</h1>
-            <p>การอนุมัติขั้นสุดท้ายโดยผู้จัดการอาวุโส</p>
+    <div class="container mt-5">
+        <!-- Header -->
+        <div class="header-card p-5 mb-5">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-4" style="width: 70px; height: 70px;">
+                            <i class="fas fa-crown text-white fs-2"></i>
+                        </div>
+                        <div>
+                            <h1 class="page-title mb-2">พิจารณาคำขอขั้นสุดท้าย</h1>
+                            <p class="text-muted mb-0 fs-5">การอนุมัติขั้นสุดท้ายโดยผู้จัดการอาวุโส</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <a href="seniorindex.php" class="back-btn">
+                        <i class="fas fa-arrow-left"></i> กลับรายการ
+                    </a>
+                </div>
+            </div>
         </div>
 
-        <div class="content-card">
-            <a href="seniorindex.php" class="back-btn">
-                <i class="fas fa-arrow-left"></i> กลับรายการ
-            </a>
-
+        <div class="glass-card p-4">
             <?php if (!empty($error)): ?>
                 <div class="error-message">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -414,35 +528,37 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             <?php endif; ?>
 
-            <div class="request-info">
-                <h3 style="margin-bottom: 20px; color: #2d3748;">
-                    <i class="fas fa-info-circle"></i> ข้อมูลคำขอ
+            <!-- ข้อมูลคำขอ -->
+            <div class="glass-card p-4 mb-4">
+                <h3 class="fw-bold mb-3">
+                    <i class="fas fa-info-circle text-primary me-2"></i>ข้อมูลคำขอ
                 </h3>
 
-                <div class="info-row">
-                    <div class="info-label">ผู้ขอ:</div>
-                    <div class="info-value"><?= htmlspecialchars($data['requester_name'] . ' ' . $data['requester_lastname']) ?></div>
-                </div>
-
-                <div class="info-row">
-                    <div class="info-label">หัวข้อ:</div>
-                    <div class="info-value"><?= htmlspecialchars($data['title']) ?></div>
-                </div>
-
-                <div class="info-row">
-                    <div class="info-label">รายละเอียด:</div>
-                    <div class="info-value"><?= nl2br(htmlspecialchars($data['description'])) ?></div>
-                </div>
-
-                <div class="info-row">
-                    <div class="info-label">ผู้พัฒนา:</div>
-                    <div class="info-value"><?= htmlspecialchars($data['dev_name'] . ' ' . $data['dev_lastname']) ?></div>
-                </div>
-
-                <div class="info-row">
-                    <div class="info-label">ความสำคัญ:</div>
-                    <div class="info-value">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div class="flex-grow-1">
+                        <div class="request-title"><?= htmlspecialchars($data['title']) ?></div>
+                        <div class="d-flex gap-2 mb-2">
+                            <?php if ($data['service_name']): ?>
+                                <span class="service-badge service-<?= $data['service_category'] ?>">
+                                    <?php if ($data['service_category'] === 'development'): ?>
+                                        <i class="fas fa-code me-1"></i>
+                                    <?php else: ?>
+                                        <i class="fas fa-tools me-1"></i>
+                                    <?php endif; ?>
+                                    <?= htmlspecialchars($data['service_name']) ?>
+                                </span>
+                            <?php endif; ?>
+                            <?php if ($data['work_category']): ?>
+                                <span class="category-badge category-<?= strtolower($data['work_category']) ?>">
+                                    <i class="fas fa-building me-1"></i>
+                                    <?= htmlspecialchars($data['work_category']) ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <div class="text-end">
                         <span class="priority-badge priority-<?= $data['priority_level'] ?>">
+                            <i class="fas fa-exclamation-circle me-1"></i>
                             <?php
                             $priorities = [
                                 'low' => 'ต่ำ',
@@ -453,43 +569,101 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             echo $priorities[$data['priority_level']] ?? 'ปานกลาง';
                             ?>
                         </span>
+                        <?php if ($data['estimated_days']): ?>
+                            <div class="estimate-info mt-2">
+                                <i class="fas fa-clock me-1"></i>
+                                ประมาณ <?= $data['estimated_days'] ?> วัน
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
 
-                <?php if ($data['estimated_hours']): ?>
-                <div class="info-row">
-                    <div class="info-label">ประมาณการ:</div>
-                    <div class="info-value"><?= $data['estimated_hours'] ?> ชั่วโมง</div>
-                </div>
-                <?php endif; ?>
-
-                <?php if ($data['budget_approved']): ?>
-                <div class="info-row">
-                    <div class="info-label">งบประมาณ:</div>
-                    <div class="info-value">
-                        <div class="budget-info">
-                            <i class="fas fa-money-bill-wave"></i>
-                            <?= number_format($data['budget_approved'], 2) ?> บาท
+                <!-- ข้อมูลผู้ขอ -->
+                <div class="user-info-grid">
+                    <div class="info-item">
+                        <div class="info-icon employee">
+                            <i class="fas fa-id-card"></i>
+                        </div>
+                        <div>
+                            <small class="text-muted">รหัสพนักงาน</small>
+                            <div class="fw-bold"><?= htmlspecialchars($data['employee_id'] ?? 'ไม่ระบุ') ?></div>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon user">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <div>
+                            <small class="text-muted">ชื่อ-นามสกุล</small>
+                            <div class="fw-bold"><?= htmlspecialchars($data['requester_name'] . ' ' . $data['requester_lastname']) ?></div>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon position">
+                            <i class="fas fa-briefcase"></i>
+                        </div>
+                        <div>
+                            <small class="text-muted">ตำแหน่ง</small>
+                            <div class="fw-bold"><?= htmlspecialchars($data['position'] ?? 'ไม่ระบุ') ?></div>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon department">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <div>
+                            <small class="text-muted">หน่วยงาน</small>
+                            <div class="fw-bold"><?= htmlspecialchars($data['department'] ?? 'ไม่ระบุ') ?></div>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon phone">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div>
+                            <small class="text-muted">เบอร์โทร</small>
+                            <div class="fw-bold"><?= htmlspecialchars($data['phone'] ?? 'ไม่ระบุ') ?></div>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <div class="info-icon email">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div>
+                            <small class="text-muted">อีเมล</small>
+                            <div class="fw-bold"><?= htmlspecialchars($data['email'] ?? 'ไม่ระบุ') ?></div>
                         </div>
                     </div>
                 </div>
+
+                <!-- รายละเอียดคำขอ -->
+                <div class="description-box">
+                    <h6 class="fw-bold text-primary mb-2">
+                        <i class="fas fa-align-left me-2"></i>รายละเอียดคำขอ
+                    </h6>
+                    <p class="mb-0"><?= nl2br(htmlspecialchars($data['description'])) ?></p>
+                </div>
+
+                <!-- ประโยชน์ที่คาดว่าจะได้รับ -->
+                <?php if ($data['expected_benefits']): ?>
+                <div class="benefits-box">
+                    <h6 class="fw-bold text-success mb-2">
+                        <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+                    </h6>
+                    <p class="mb-0"><?= nl2br(htmlspecialchars($data['expected_benefits'])) ?></p>
+                </div>
                 <?php endif; ?>
 
-                <div class="info-row">
-                    <div class="info-label">วันที่ส่ง:</div>
-                    <div class="info-value"><?= date('d/m/Y H:i', strtotime($data['created_at'])) ?></div>
-                </div>
+                <?php
+                // แสดงไฟล์แนบ
+                require_once __DIR__ . '/../includes/attachment_display.php';
+                displayAttachments($request_id);
+                ?>
             </div>
 
-            <?php
-            // แสดงไฟล์แนบ
-            require_once __DIR__ . '/../includes/attachment_display.php';
-            displayAttachments($request_id);
-            ?>
-
             <div class="approval-summary">
-                <h3 style="margin-bottom: 20px; color: #2d3748;">
-                    <i class="fas fa-route"></i> สรุปการอนุมัติที่ผ่านมา
+                <h3 class="fw-bold mb-3">
+                    <i class="fas fa-route text-primary me-2"></i>สรุปการอนุมัติที่ผ่านมา
                 </h3>
 
                 <div class="approval-step">
@@ -497,9 +671,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="step-content">
                         <div class="step-title">ผู้จัดการฝ่าย - อนุมัติแล้ว</div>
                         <div class="step-details">
-                            โดย: <?= htmlspecialchars($data['div_mgr_name']) ?>
+                            <strong>โดย:</strong> <?= htmlspecialchars($data['div_mgr_name']) ?>
                             <?php if ($data['div_mgr_reason']): ?>
-                                <br>หมายเหตุ: <?= htmlspecialchars($data['div_mgr_reason']) ?>
+                                <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($data['div_mgr_reason']) ?>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -510,10 +684,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="step-content">
                         <div class="step-title">ผู้จัดการแผนก - อนุมัติแล้ว</div>
                         <div class="step-details">
-                            โดย: <?= htmlspecialchars($data['assignor_name']) ?>
-                            <br>มอบหมายให้: <?= htmlspecialchars($data['dev_name'] . ' ' . $data['dev_lastname']) ?>
+                            <strong>โดย:</strong> <?= htmlspecialchars($data['assignor_name']) ?>
+                            <br><strong>มอบหมายให้:</strong> <?= htmlspecialchars($data['dev_name'] . ' ' . $data['dev_lastname']) ?>
                             <?php if ($data['assignor_reason']): ?>
-                                <br>หมายเหตุ: <?= htmlspecialchars($data['assignor_reason']) ?>
+                                <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($data['assignor_reason']) ?>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -524,10 +698,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="step-content">
                         <div class="step-title">ผู้จัดการทั่วไป - อนุมัติแล้ว</div>
                         <div class="step-details">
-                            โดย: <?= htmlspecialchars($data['gm_name']) ?>
-                            <br>วันที่อนุมัติ: <?= date('d/m/Y H:i', strtotime($data['gm_reviewed_at'])) ?>
+                            <strong>โดย:</strong> <?= htmlspecialchars($data['gm_name']) ?>
+                            <br><strong>วันที่อนุมัติ:</strong> <?= date('d/m/Y H:i', strtotime($data['gm_reviewed_at'])) ?>
                             <?php if ($data['gm_reason']): ?>
-                                <br>หมายเหตุ: <?= htmlspecialchars($data['gm_reason']) ?>
+                                <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($data['gm_reason']) ?>
+                            <?php endif; ?>
+                            <?php if ($data['budget_approved']): ?>
+                                <div class="budget-info mt-2">
+                                    <i class="fas fa-money-bill-wave me-1"></i>
+                                    งบประมาณที่อนุมัติ: <?= number_format($data['budget_approved'], 2) ?> บาท
+                                </div>
                             <?php endif; ?>
                         </div>
                     </div>
@@ -535,8 +715,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
 
             <form method="post" class="approval-form">
-                <h3 style="margin-bottom: 20px; color: #2d3748;">
-                    <i class="fas fa-crown"></i> การพิจารณาขั้นสุดท้าย
+                <h3 class="fw-bold mb-3">
+                    <i class="fas fa-crown text-primary me-2"></i>การพิจารณาขั้นสุดท้าย
                 </h3>
 
                 <div class="form-group">
@@ -544,12 +724,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="radio-group">
                         <label class="radio-option approve-option">
                             <input type="radio" name="status" value="approved" required>
-                            <i class="fas fa-check-circle"></i>
+                            <i class="fas fa-check-circle me-2"></i>
                             อนุมัติขั้นสุดท้าย
                         </label>
                         <label class="radio-option reject-option">
                             <input type="radio" name="status" value="rejected" required>
-                            <i class="fas fa-times-circle"></i>
+                            <i class="fas fa-times-circle me-2"></i>
                             ไม่อนุมัติ
                         </label>
                     </div>
@@ -557,12 +737,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="form-group">
                     <label for="reason">เหตุผล/ข้อเสนอแนะ:</label>
-                    <textarea name="reason" id="reason" rows="3" placeholder="ระบุเหตุผลหรือข้อเสนอแนะ"></textarea>
+                    <textarea name="reason" id="reason" class="form-control" rows="3" placeholder="ระบุเหตุผลหรือข้อเสนอแนะ"></textarea>
                 </div>
 
                 <div class="form-group">
                     <label for="final_notes">หมายเหตุสำหรับผู้พัฒนา:</label>
-                    <textarea name="final_notes" id="final_notes" rows="3" placeholder="ข้อแนะนำหรือคำแนะนำพิเศษสำหรับผู้พัฒนา"></textarea>
+                    <textarea name="final_notes" id="final_notes" class="form-control" rows="3" placeholder="ข้อแนะนำหรือคำแนะนำพิเศษสำหรับผู้พัฒนา"></textarea>
                 </div>
 
                 <button type="submit" class="submit-btn">
@@ -573,6 +753,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // จัดการฟอร์มตามการเลือก
         document.querySelectorAll('input[name="status"]').forEach(radio => {

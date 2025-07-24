@@ -336,7 +336,41 @@ $acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews)
                                         <i class="fas fa-clock me-2"></i>
                                         รีวิวเมื่อ: <?= date('d/m/Y H:i', strtotime($review['user_reviewed_at'])) ?>
                                     </span>
+                                    <?php if ($review['assignor_name']): ?>
+                                        <span class="ms-3">
+                                            <i class="fas fa-user-tie me-2"></i>
+                                            มอบหมายโดย: <?= htmlspecialchars($review['assignor_name']) ?>
+                                        </span>
+                                    <?php endif; ?>
                                 </p>
+                                
+                                <?php if ($review['estimated_days']): ?>
+                                <div class="mb-3">
+                                    <span class="badge bg-warning text-dark">
+                                        <i class="fas fa-clock me-1"></i>
+                                        ประมาณการ: <?= $review['estimated_days'] ?> วัน
+                                    </span>
+                                    <?php 
+                                    // คำนวณวันที่ควรเสร็จและวันที่เสร็จจริง
+                                    if ($review['accepted_at'] && $review['completed_at']) {
+                                        $expected_completion = date('Y-m-d', strtotime($review['accepted_at'] . ' + ' . $review['estimated_days'] . ' days'));
+                                        $actual_completion = date('Y-m-d', strtotime($review['completed_at']));
+                                        
+                                        if ($actual_completion <= $expected_completion) {
+                                            echo '<span class="badge bg-success ms-2">';
+                                            echo '<i class="fas fa-check me-1"></i>';
+                                            echo 'เสร็จตามกำหนด';
+                                        } else {
+                                            $days_late = (strtotime($actual_completion) - strtotime($expected_completion)) / (60 * 60 * 24);
+                                            echo '<span class="badge bg-danger ms-2">';
+                                            echo '<i class="fas fa-exclamation me-1"></i>';
+                                            echo 'เสร็จช้า ' . $days_late . ' วัน';
+                                        }
+                                        echo '</span>';
+                                    }
+                                    ?>
+                                </div>
+                                <?php endif; ?>
 
                                 <div class="rating-stars mb-3">
                                     <?= str_repeat('⭐', $review['rating']) ?>
