@@ -110,7 +110,7 @@ function getApprovalStatus($status) {
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #a8b5ebff 0%, #ffffffff 100%);
             min-height: 100vh;
             color: #333;
         }

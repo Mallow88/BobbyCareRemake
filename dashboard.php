@@ -43,7 +43,7 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-gradient: linear-gradient(135deg, #a8b5ebff 0%, #ffffffff 100%);
             --card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
             --glass-bg: rgba(255, 255, 255, 0.95);
             --glass-border: rgba(255, 255, 255, 0.2);
@@ -178,7 +178,7 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
         .status-rejected { background: #fee2e2; color: #dc2626; }
 
         .welcome-section {
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            background: linear-gradient(135deg, #8d9de2ff, #b792dbff);
             color: white;
             border-radius: 20px;
             padding: 40px;

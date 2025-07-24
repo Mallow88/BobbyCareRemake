@@ -114,7 +114,7 @@ foreach ($tasks as $task) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #a8b5ebff 0%, #ffffffff 100%);
+            --primary-gradient: linear-gradient(135deg, #a8b5ebff 0%, #ffffffff 100%); 
             --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             --glass-bg: rgba(255, 255, 255, 0.95);
             --glass-border: rgba(255, 255, 255, 0.2);
