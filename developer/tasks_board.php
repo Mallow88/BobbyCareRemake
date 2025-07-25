@@ -138,6 +138,10 @@ $stmt = $conn->prepare("
         sr.deadline,
         requester.name AS requester_name,
         requester.lastname AS requester_lastname,
+        requester.employee_id,
+        requester.position,
+        requester.department,
+
         ur.rating,
         ur.review_comment,
         ur.status as review_status,
@@ -189,359 +193,63 @@ foreach ($tasks as $task) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <link rel="stylesheet" href="css/tasks_board.css">
     <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            --glass-bg: rgba(255, 255, 255, 0.95);
-            --glass-border: rgba(255, 255, 255, 0.2);
+        .task-card.priority-urgent {
+            border-left: 4px solid #dc2626 !important;
+            box-shadow: 0 0 15px rgba(220, 38, 38, 0.3);
+            order: 1;
         }
 
-        body {
-            background: var(--primary-gradient);
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        .task-card.priority-high {
+            border-left: 4px solid #ef4444 !important;
+            order: 2;
         }
 
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            box-shadow: var(--card-shadow);
+        .task-card.priority-medium {
+            border-left: 4px solid #f59e0b !important;
+            order: 3;
         }
 
-        .header-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
-            backdrop-filter: blur(20px);
-            border-radius: 25px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        .task-card.priority-low {
+            border-left: 4px solid #10b981 !important;
+            opacity: 0.9;
+            order: 4;
         }
 
-        .kanban-board {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
-        }
-
-        .kanban-column {
-            background: rgba(255, 255, 255, 0.9);
-            border-radius: 15px;
-            padding: 20px;
-            min-height: 500px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(10px);
-        }
-
-        .column-header {
+        .tasks-container {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #e9ecef;
+            flex-direction: column;
         }
 
-        .column-title {
-            font-weight: 700;
-            font-size: 1.1rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .task-count {
-            background: #6c757d;
-            color: white;
-            border-radius: 50%;
-            width: 25px;
-            height: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-
-        .task-card {
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 15px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            cursor: move;
-            transition: all 0.3s ease;
-            border-left: 4px solid #dee2e6;
-            position: relative;
-        }
-
-        .task-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-        }
-
-        .task-card.self-created {
-            border-left-color: #9f7aea;
-            background: linear-gradient(135deg, #faf5ff, #f3e8ff);
-        }
-
-        .task-title {
-            font-weight: 600;
-            color: #2d3748;
-            margin-bottom: 10px;
-            font-size: 1rem;
-        }
-
-        .task-description {
-            color: #6b7280;
-            font-size: 0.9rem;
-            line-height: 1.4;
-            margin-bottom: 15px;
-        }
-
-        .task-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.8rem;
-            color: #9ca3af;
-        }
-
-        .task-requester {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .status-buttons {
-            display: flex;
-            gap: 5px;
-            margin-top: 10px;
-            flex-wrap: wrap;
-        }
-
-        .status-btn {
-            padding: 4px 8px;
-            border: none;
-            border-radius: 6px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .status-btn:hover {
-            transform: scale(1.05);
-        }
-
-        .self-created-badge {
+        .task-actions {
             position: absolute;
             top: 10px;
             right: 10px;
-            background: linear-gradient(135deg, #9f7aea, #805ad5);
-            color: white;
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 600;
+            display: flex;
+            gap: 5px;
         }
 
-        .delete-btn {
-            position: absolute;
-            top: 10px;
-            right: 80px;
-            background: #ef4444;
+        .detail-btn {
+            background: rgba(102, 126, 234, 0.8);
             color: white;
             border: none;
             border-radius: 50%;
-            width: 24px;
-            height: 24px;
+            width: 30px;
+            height: 30px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.7rem;
+            font-size: 0.8rem;
             cursor: pointer;
             transition: all 0.2s ease;
+            opacity: 0.7;
         }
 
-        .delete-btn:hover {
-            background: #dc2626;
+        .detail-btn:hover {
+            opacity: 1;
             transform: scale(1.1);
-        }
-
-        /* Column specific styles */
-        .pending {
-            border-left-color: #f59e0b;
-        }
-        .pending .column-title {
-            color: #f59e0b;
-        }
-        .pending .task-count {
-            background: #f59e0b;
-        }
-
-        .received {
-            border-left-color: #3b82f6;
-        }
-        .received .column-title {
-            color: #3b82f6;
-        }
-        .received .task-count {
-            background: #3b82f6;
-        }
-
-        .in_progress {
-            border-left-color: #8b5cf6;
-        }
-        .in_progress .column-title {
-            color: #8b5cf6;
-        }
-        .in_progress .task-count {
-            background: #8b5cf6;
-        }
-
-        .on_hold {
-            border-left-color: #ef4444;
-        }
-        .on_hold .column-title {
-            color: #ef4444;
-        }
-        .on_hold .task-count {
-            background: #ef4444;
-        }
-
-        .completed {
-            border-left-color: #10b981;
-        }
-        .completed .column-title {
-            color: #10b981;
-        }
-        .completed .task-count {
-            background: #10b981;
-        }
-
-        .btn-gradient {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border: none;
-            color: white;
-            font-weight: 600;
-            padding: 12px 24px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-gradient:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-            color: white;
-        }
-
-        .empty-column {
-            text-align: center;
-            padding: 40px 20px;
-            color: #9ca3af;
-        }
-
-        .empty-column i {
-            font-size: 3rem;
-            margin-bottom: 15px;
-            opacity: 0.5;
-        }
-
-        .modal-content {
-            border-radius: 15px;
-            border: none;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-        }
-
-        .modal-header {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border-radius: 15px 15px 0 0;
-        }
-
-        .navbar-custom {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .page-title {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 800;
-            font-size: 2.5rem;
-        }
-
-        .sortable-ghost {
-            opacity: 0.4;
-        }
-        
-        .sortable-chosen {
-            transform: rotate(2deg);
-        }
-        
-        .sortable-drag {
-            transform: rotate(2deg);
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
-        }
-
-        .service-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            display: inline-block;
-        }
-
-        .service-development {
-            background: #c6f6d5;
-            color: #2f855a;
-        }
-
-        .service-service {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .priority-badge {
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            margin-left: 5px;
-        }
-
-        .priority-low { background: #c6f6d5; color: #2f855a; }
-        .priority-medium { background: #fef5e7; color: #d69e2e; }
-        .priority-high { background: #fed7d7; color: #c53030; }
-        .priority-urgent { background: #e53e3e; color: white; }
-
-        .form-control, .form-select {
-            border: 2px solid #e9ecef;
-            border-radius: 10px;
-            padding: 12px 15px;
-            transition: all 0.3s ease;
-        }
-
-        .form-control:focus, .form-select:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
-        }
-
-        @media (max-width: 768px) {
-            .kanban-board {
-                grid-template-columns: 1fr;
-            }
+            background: rgba(102, 126, 234, 1);
         }
     </style>
 </head>
@@ -645,6 +353,12 @@ foreach ($tasks as $task) {
                                 
                                 <div class="task-title"><?= htmlspecialchars($task['title']) ?></div>
                                 
+                                <div class="task-actions">
+                                    <button class="detail-btn" onclick="showTaskDetail(<?= $task['id'] ?>)" title="ดูรายละเอียด">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                
                                 <?php if ($task['service_name']): ?>
                                     <span class="service-badge service-<?= $task['service_category'] ?>">
                                         <?php if ($task['service_category'] === 'development'): ?>
@@ -724,6 +438,12 @@ foreach ($tasks as $task) {
                                 
                                 <div class="task-title"><?= htmlspecialchars($task['title']) ?></div>
                                 
+                                <div class="task-actions">
+                                    <button class="detail-btn" onclick="showTaskDetail(<?= $task['id'] ?>)" title="ดูรายละเอียด">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                
                                 <?php if ($task['service_name']): ?>
                                     <span class="service-badge service-<?= $task['service_category'] ?>">
                                         <?php if ($task['service_category'] === 'development'): ?>
@@ -802,6 +522,12 @@ foreach ($tasks as $task) {
                                 <?php endif; ?>
                                 
                                 <div class="task-title"><?= htmlspecialchars($task['title']) ?></div>
+                                
+                                <div class="task-actions">
+                                    <button class="detail-btn" onclick="showTaskDetail(<?= $task['id'] ?>)" title="ดูรายละเอียด">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                                 
                                 <?php if ($task['service_name']): ?>
                                     <span class="service-badge service-<?= $task['service_category'] ?>">
@@ -883,6 +609,12 @@ foreach ($tasks as $task) {
                                 
                                 <div class="task-title"><?= htmlspecialchars($task['title']) ?></div>
                                 
+                                <div class="task-actions">
+                                    <button class="detail-btn" onclick="showTaskDetail(<?= $task['id'] ?>)" title="ดูรายละเอียด">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
+                                
                                 <?php if ($task['service_name']): ?>
                                     <span class="service-badge service-<?= $task['service_category'] ?>">
                                         <?php if ($task['service_category'] === 'development'): ?>
@@ -958,6 +690,12 @@ foreach ($tasks as $task) {
                                 <?php endif; ?>
                                 
                                 <div class="task-title"><?= htmlspecialchars($task['title']) ?></div>
+                                
+                                <div class="task-actions">
+                                    <button class="detail-btn" onclick="showTaskDetail(<?= $task['id'] ?>)" title="ดูรายละเอียด">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                </div>
                                 
                                 <?php if ($task['service_name']): ?>
                                     <span class="service-badge service-<?= $task['service_category'] ?>">
@@ -1038,30 +776,123 @@ foreach ($tasks as $task) {
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title">
-                        <i class="fas fa-info-circle me-2"></i>รายละเอียดงาน
+                        <i class="fas fa-clipboard-list me-2"></i>รายละเอียดงาน
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="row">
-                        <div class="col-md-8">
+                        <div class="col-md-7">
                             <div class="mb-3">
-                                <h6 class="fw-bold text-primary">หัวข้องาน:</h6>
-                                <p id="detailTitle" class="mb-0"></p>
+                                <h6 class="fw-bold text-primary">
+                                    <i class="fas fa-heading me-2"></i>หัวข้องาน
+                                </h6>
+                                <div id="detailTitle" class="bg-light p-3 rounded fw-bold"></div>
                             </div>
+                            
                             <div class="mb-3">
-                                <h6 class="fw-bold text-primary">รายละเอียด:</h6>
+                                <h6 class="fw-bold text-primary">
+                                    <i class="fas fa-align-left me-2"></i>รายละเอียดงาน
+                                </h6>
+
+
                                 <div id="detailDescription" class="bg-light p-3 rounded"></div>
                             </div>
-                            <div class="mb-3">
-                                <h6 class="fw-bold text-primary">ผู้ร้องขอ:</h6>
-                                <p id="detailRequester" class="mb-0"></p>
+                            
+                            <div class="mb-3" id="detailBenefits" style="display: none;">
+                                <h6 class="fw-bold text-success">
+                                    <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+                                </h6>
+                                <div id="detailBenefitsContent" class="bg-success bg-opacity-10 p-3 rounded border-start border-success border-4"></div>
                             </div>
-                            <div id="additionalInfo"></div>
-                        </div>
-                        <div class="col-md-4">
+                            
                             <div class="mb-3">
-                                <h6 class="fw-bold text-primary">ไฟล์แนบ:</h6>
+                                <h6 class="fw-bold text-primary">
+                                    <i class="fas fa-user me-2"></i>ข้อมูลผู้ร้องขอ
+                                </h6>
+                                <div class="bg-light p-3 rounded">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <small class="text-muted">ชื่อ-นามสกุล</small>
+                                            <div id="detailRequester" class="fw-bold"></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">รหัสพนักงาน</small>
+                                            <div id="detailEmployeeId" class="fw-bold"></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">ตำแหน่ง</small>
+                                            <div id="detailPosition" class="fw-bold"></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">หน่วยงาน</small>
+                                            <div id="detailDepartment" class="fw-bold"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-5">
+                            <div class="mb-3">
+                                <h6 class="fw-bold text-primary">
+                                    <i class="fas fa-cogs me-2"></i>ข้อมูลงาน
+                                </h6>
+                                <div class="bg-light p-3 rounded">
+                                    <div class="mb-2">
+                                        <small class="text-muted">ประเภทบริการ</small>
+                                        <div id="detailService" class="fw-bold"></div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">หัวข้องานคลัง</small>
+                                        <div id="detailWorkCategory" class="fw-bold"></div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">ความสำคัญ</small>
+                                        <div id="detailPriority" class="fw-bold"></div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">เวลา</small>
+                                        <div id="detailEstimatedDays" class="fw-bold"></div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">ผู้มอบหมาย</small>
+                                        <div id="detailAssignor" class="fw-bold"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6 class="fw-bold text-primary">
+                                    <i class="fas fa-chart-line me-2"></i>ความคืบหน้า
+                                </h6>
+                                <div class="bg-light p-3 rounded">
+                                    <div class="mb-2">
+                                        <small class="text-muted">สถานะ</small>
+                                        <div id="detailStatus" class="fw-bold"></div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">ความคืบหน้า</small>
+                                        <div class="progress mb-1">
+                                            <div id="detailProgress" class="progress-bar bg-primary" role="progressbar"></div>
+                                        </div>
+                                        <small id="detailProgressText" class="text-muted"></small>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">วันที่รับงาน</small>
+                                        <div id="detailAcceptedAt" class="fw-bold"></div>
+                                    </div>
+                                    <div class="mb-2">
+                                        <small class="text-muted">วันที่ควรเสร็จ</small>
+                                        <div id="detailExpectedCompletion" class="fw-bold"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <h6 class="fw-bold text-primary">
+                                    <i class="fas fa-paperclip me-2"></i>ไฟล์แนบ
+                                </h6>
                                 <div id="attachmentsList">
                                     <div class="text-center">
                                         <div class="spinner-border text-primary" role="status">
@@ -1133,9 +964,9 @@ foreach ($tasks as $task) {
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="estimated_days" class="form-label fw-bold">ประมาณการ (วัน):</label>
+                                    <label for="estimated_days" class="form-label fw-bold">เวลาแทน:</label>
                                     <input type="number" class="form-control" id="estimated_days" name="estimated_days" 
-                                           min="1" max="365" value="1">
+                                           min="1" max="365" value="1" placeholder="จำนวนวันที่คาดว่าจะใช้">
                                 </div>
 
                                 <div class="mb-3">
@@ -1201,6 +1032,106 @@ foreach ($tasks as $task) {
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let currentTaskId = null;
+        let currentCompleteTaskId = null;
+        
+        // ดึงข้อมูลรายละเอียดงาน
+        function showTaskDetail(taskId) {
+            // ค้นหาข้อมูลงานจาก tasks array
+            const tasks = <?= json_encode($tasks) ?>;
+            const task = tasks.find(t => t.id == taskId);
+            
+            if (!task) {
+                alert('ไม่พบข้อมูลงาน');
+                return;
+            }
+            
+            // แสดงข้อมูลในป๊อปอัพ
+            document.getElementById('detailTitle').textContent = task.title;
+            document.getElementById('detailDescription').innerHTML = task.description.replace(/\n/g, '<br>');
+            
+            // ข้อมูลผู้ร้องขอ
+            document.getElementById('detailRequester').textContent = task.requester_name + ' ' + task.requester_lastname;
+            document.getElementById('detailEmployeeId').textContent = task.employee_id || 'ไม่ระบุ';
+            document.getElementById('detailPosition').textContent = task.position || 'ไม่ระบุ';
+            document.getElementById('detailDepartment').textContent = task.department || 'ไม่ระบุ';
+            
+            // ข้อมูลงาน
+            document.getElementById('detailService').textContent = task.service_name || 'ไม่ระบุ';
+            document.getElementById('detailWorkCategory').textContent = task.work_category || 'ไม่ระบุ';
+            
+            const priorityLabels = {
+                'urgent': 'เร่งด่วน',
+                'high': 'สูง', 
+                'medium': 'ปานกลาง',
+                'low': 'ต่ำ'
+            };
+            document.getElementById('detailPriority').textContent = priorityLabels[task.priority] || 'ปานกลาง';
+            document.getElementById('detailEstimatedDays').textContent = (task.estimated_days || 1) + ' วัน';
+            document.getElementById('detailAssignor').textContent = task.assignor_name || 'ไม่ระบุ';
+            
+            // สถานะและความคืบหน้า
+            const statusLabels = {
+                'pending': 'รอรับ',
+                'received': 'รับแล้ว',
+                'in_progress': 'กำลังทำ',
+                'on_hold': 'พักงาน',
+                'completed': 'เสร็จแล้ว'
+            };
+            document.getElementById('detailStatus').textContent = statusLabels[task.task_status] || 'ไม่ทราบ';
+            
+            const progress = task.progress_percentage || 0;
+            const progressBar = document.getElementById('detailProgress');
+            progressBar.style.width = progress + '%';
+            progressBar.textContent = progress + '%';
+            document.getElementById('detailProgressText').textContent = 'อัปเดตล่าสุด: ' + new Date(task.updated_at).toLocaleDateString('th-TH');
+            
+            // วันที่
+            document.getElementById('detailAcceptedAt').textContent = task.accepted_at ? 
+                new Date(task.accepted_at).toLocaleDateString('th-TH') : 'ยังไม่รับงาน';
+                
+            // คำนวณวันที่ควรเสร็จ
+            if (task.accepted_at && task.estimated_days) {
+                const acceptedDate = new Date(task.accepted_at);
+                const expectedDate = new Date(acceptedDate.getTime() + (task.estimated_days * 24 * 60 * 60 * 1000));
+                document.getElementById('detailExpectedCompletion').textContent = expectedDate.toLocaleDateString('th-TH');
+            } else {
+                document.getElementById('detailExpectedCompletion').textContent = 'ไม่สามารถคำนวณได้';
+            }
+            
+            // แสดงประโยชน์ที่คาดว่าจะได้รับ (ถ้ามี)
+            if (task.expected_benefits) {
+                document.getElementById('detailBenefits').style.display = 'block';
+                document.getElementById('detailBenefitsContent').innerHTML = task.expected_benefits.replace(/\n/g, '<br>');
+            } else {
+                document.getElementById('detailBenefits').style.display = 'none';
+            }
+            
+            // โหลดไฟล์แนบ
+            loadAttachments(task.service_request_id);
+            
+            // เปิด Modal
+            const modal = new bootstrap.Modal(document.getElementById('taskDetailModal'));
+            modal.show();
+        }
+        
+        // โหลดไฟล์แนบ
+        function loadAttachments(serviceRequestId) {
+            const attachmentsList = document.getElementById('attachmentsList');
+            
+            fetch(`../includes/get_attachments.php?service_request_id=${serviceRequestId}`)
+                .then(response => response.text())
+                .then(html => {
+                    if (html.trim() === '') {
+                        attachmentsList.innerHTML = '<div class="text-center text-muted py-3"><i class="fas fa-inbox fa-2x mb-2"></i><p>ไม่มีไฟล์แนบ</p></div>';
+                    } else {
+                        attachmentsList.innerHTML = html;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading attachments:', error);
+                    attachmentsList.innerHTML = '<div class="text-center text-danger py-3"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><p>เกิดข้อผิดพลาดในการโหลดไฟล์แนบ</p></div>';
+                });
+        }
         
         function updateStatus(taskId, newStatus) {
             let progress = 0;
@@ -1268,7 +1199,50 @@ foreach ($tasks as $task) {
 
             // ตั้งค่าวันที่ขั้นต่ำเป็นวันนี้
             document.getElementById('deadline').min = new Date().toISOString().split('T')[0];
+            
+            // เรียงงานตามความสำคัญในแต่ละคอลัมน์
+            sortTasksByPriority();
         });
+        
+        // เรียงงานตามความสำคัญ
+        function sortTasksByPriority() {
+            const containers = document.querySelectorAll('.tasks-container');
+            
+            containers.forEach(container => {
+                const tasks = Array.from(container.querySelectorAll('.task-card'));
+                
+                tasks.sort((a, b) => {
+                    const priorityOrder = {
+                        'priority-urgent': 1,
+                        'priority-high': 2,
+                        'priority-medium': 3,
+                        'priority-low': 4
+                    };
+                    
+                    let aPriority = 5;
+                    let bPriority = 5;
+                    
+                    for (let className of a.classList) {
+                        if (priorityOrder[className]) {
+                            aPriority = priorityOrder[className];
+                            break;
+                        }
+                    }
+                    
+                    for (let className of b.classList) {
+                        if (priorityOrder[className]) {
+                            bPriority = priorityOrder[className];
+                            break;
+                        }
+                    }
+                    
+                    return aPriority - bPriority;
+                });
+                
+                // เรียงใหม่ใน DOM
+                tasks.forEach(task => container.appendChild(task));
+            });
+        }
     </script>
 </body>
 </html>
