@@ -12,6 +12,12 @@ $user_id = $_SESSION['user_id'];
 $error = '';
 $success = '';
 
+// ดึงรายการ services ประเภท development
+$services_stmt = $conn->prepare("SELECT * FROM services WHERE category = 'development' AND is_active = 1 ORDER BY name");
+$services_stmt->execute();
+$development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
 // ดึงข้อมูลผู้ใช้
 $user_stmt = $conn->prepare("SELECT * FROM users WHERE id = ?");
 $user_stmt->execute([$user_id]);
@@ -380,6 +386,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         </div>
 
+
+
+    <!-- ------------------------------------------------------------------------- -->
+     <div class="container mt-5">
+    <div class="form-group">
+        <label for="devServiceSelect">
+            <i class="fas fa-cogs me-2"></i>เลือกประเภทงาน Development:
+        </label>
+        <select class="form-select" id="devServiceSelect">
+            <option value="">-- เลือกประเภทงาน --</option>
+            <option value="new_program" data-modal="#modalNewProgram">โปรแกรมใหม่</option>
+            <option value="existing_add_feature" data-modal="#modalAddFeature">เพิ่มฟังก์ชันในระบบเดิม</option>
+            <option value="other">อื่นๆ</option>
+        </select>
+        <small class="text-muted">เลือกหัวข้อเพื่อเปิดฟอร์มเฉพาะ</small>
+    </div>
+</div>
+    <!-- ------------------------------------------------------------------------- -->
+
+
+
                         <div class="mb-4">
                             <label for="title" class="form-label">
                                 <i class="fas fa-heading me-2"></i>หัวข้อคำขอ
@@ -403,6 +430,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <textarea class="form-control" id="expected_benefits" name="expected_benefits" rows="3" required
                                       placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้"></textarea>
                         </div>
+
+                    
                     </div>
 
                     <div class="col-lg-4">
@@ -501,6 +530,83 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </form>
         </div>
     </div>
+    <!-- ------------------------------------------------------------------------- -->
+ <!-- Modal: โปรแกรมใหม่ -->
+<div class="modal fade" id="modalNewProgram" tabindex="-1" aria-labelledby="modalNewProgramLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="modalNewProgramLabel">📦 ขอพัฒนาระบบใหม่</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label class="form-label">ขั้นตอนการทำงานเดิม</label>
+            <textarea class="form-control" rows="3" placeholder="อธิบาย flow การทำงานแบบ manual หรือเดิมที่ใช้"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">แนวทาง/ไอเดีย (เช่น จากกรอกมือ → คีย์โปรแกรม)</label>
+            <textarea class="form-control" rows="2"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">โปรแกรมที่คาดว่าจะเกี่ยวข้อง</label>
+            <input type="text" class="form-control">
+          </div>
+          
+            <div class="mb-3">
+            <label class="form-label">ปกติใช้โปรเเกรมอะไรทำงานอยู่</label>
+          <textarea class="form-control" rows="2"></textarea>
+          </div>
+            <div class="mb-3">
+            <label class="form-label">ถ้ากรณีต้องระบบหรือปิด Server จะกระทบต่อกระบวนการอะไรบ้างในตอนนี้</label>
+             <textarea class="form-control" rows="2"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">เอกสารการทำงานที่เกี่ยวข้อง ( SD )</label>
+            <input type="file" class="form-control">
+          </div>
+
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal: เพิ่มฟังก์ชัน -->
+<div class="modal fade" id="modalAddFeature" tabindex="-1" aria-labelledby="modalAddFeatureLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title" id="modalAddFeatureLabel">🔧 เพิ่มฟังก์ชันระบบเดิม</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="mb-3">
+            <label class="form-label">ชื่อโปรแกรมเดิม</label>
+            <input type="text" class="form-control" placeholder="เช่น ระบบเบิกของ">
+          </div>
+          <div class="mb-3">
+            <label class="form-label">สิ่งที่ต้องการให้เพิ่ม</label>
+            <textarea class="form-control" rows="2" placeholder="เช่น เพิ่มปุ่ม export, เพิ่มช่องใหม่"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">เหตุผลและประโยชน์ที่คาดหวัง</label>
+            <textarea class="form-control" rows="2"></textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">แนบภาพหรือเอกสารประกอบ (ถ้ามี)</label>
+            <input type="file" class="form-control">
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+    <!-- ------------------------------------------------------------------------- -->
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -604,7 +710,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const dt = new DataTransfer();
             selectedFiles.forEach(file => dt.items.add(file));
             fileInput.files = dt.files;
-        }
+        } requests/create.php
 
         function formatFileSize(bytes) {
             if (bytes === 0) return '0 Bytes';
@@ -627,6 +733,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 alert('กรุณากรอกข้อมูลให้ครบถ้วน (หัวข้อ, รายละเอียด, หัวข้องานคลัง, ประโยชน์ที่คาดว่าจะได้รับ, และผู้กลั่นกรอง)');
             }
         });
+
+
+
     </script>
+        <!-- ------------------------------------------------------------------------- -->
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    const select = document.getElementById("devServiceSelect");
+    select.addEventListener("change", function () {
+        const selected = select.options[select.selectedIndex];
+        const modalSelector = selected.getAttribute("data-modal");
+
+        if (modalSelector) {
+            const modal = new bootstrap.Modal(document.querySelector(modalSelector));
+            modal.show();
+        }
+    });
+});
+</script>
+    <!-- ------------------------------------------------------------------------- -->
 </body>
 </html>
