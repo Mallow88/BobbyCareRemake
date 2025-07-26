@@ -979,7 +979,7 @@ foreach ($tasks as $task) {
 
             // ลิงก์ไปยังบอร์ดงาน
             document.getElementById('modalViewBoard').href = 'tasks_board.php#task-' + task.id;
-
+ 
             const modal = new bootstrap.Modal(document.getElementById('taskModal'));
             modal.show();
         }

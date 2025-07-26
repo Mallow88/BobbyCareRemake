@@ -186,6 +186,7 @@ function getApprovalStatus($status) {
             margin-bottom: 20px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             border-left: 5px solid #4299e1;
+            
         }
 
         .request-header {
@@ -361,6 +362,7 @@ function getApprovalStatus($status) {
                 align-items: flex-start;
             }
         }
+        
     </style>
 </head>
 <body>
@@ -380,6 +382,54 @@ function getApprovalStatus($status) {
                     <i class="fas fa-plus"></i> สร้างคำขอใหม่
                 </a>
             </div>
+        </div>
+          <!-- ส่วนกรองข้อมูล -->
+        <div class="filter-section">
+            <form method="GET" class="filter-form">
+                <div class="form-group">
+                    <label for="search"><i class="fas fa-search"></i> ค้นหา</label>
+                    <input type="text" id="search" name="search" class="form-control" 
+                           placeholder="ค้นหาชื่อหรือรายละเอียด..." value="<?= htmlspecialchars($search) ?>">
+                </div>
+                
+                <div class="form-group">
+                    <label for="status"><i class="fas fa-filter"></i> สถานะ</label>
+                    <select id="status" name="status" class="form-control">
+                        <option value="">ทุกสถานะ</option>
+                        <option value="pending" <?= $status_filter === 'pending' ? 'selected' : '' ?>>รอดำเนินการ</option>
+                        <option value="div_mgr_review" <?= $status_filter === 'div_mgr_review' ? 'selected' : '' ?>>ผู้จัดการฝ่ายพิจารณา</option>
+                        <option value="assignor_review" <?= $status_filter === 'assignor_review' ? 'selected' : '' ?>>ผู้จัดการแผนกพิจารณา</option>
+                        <option value="gm_review" <?= $status_filter === 'gm_review' ? 'selected' : '' ?>>ผู้จัดการทั่วไปพิจารณา</option>
+                        <option value="senior_gm_review" <?= $status_filter === 'senior_gm_review' ? 'selected' : '' ?>>ผู้จัดการอาวุโสพิจารณา</option>
+                        <option value="approved" <?= $status_filter === 'approved' ? 'selected' : '' ?>>อนุมัติแล้ว</option>
+                        <option value="rejected" <?= $status_filter === 'rejected' ? 'selected' : '' ?>>ไม่อนุมัติ</option>
+                        <option value="in_progress" <?= $status_filter === 'in_progress' ? 'selected' : '' ?>>กำลังดำเนินการ</option>
+                        <option value="completed" <?= $status_filter === 'completed' ? 'selected' : '' ?>>เสร็จสิ้น</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="date"><i class="fas fa-calendar"></i> ช่วงเวลา</label>
+                    <select id="date" name="date" class="form-control">
+                        <option value="">ทุกช่วงเวลา</option>
+                        <option value="today" <?= $date_filter === 'today' ? 'selected' : '' ?>>วันนี้</option>
+                        <option value="week" <?= $date_filter === 'week' ? 'selected' : '' ?>>7 วันที่ผ่านมา</option>
+                        <option value="month" <?= $date_filter === 'month' ? 'selected' : '' ?>>30 วันที่ผ่านมา</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search"></i> ค้นหา
+                    </button>
+                </div>
+                
+                <div class="form-group">
+                    <a href="track_status.php" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> ล้างตัวกรอง
+                    </a>
+                </div>
+            </form>
         </div>
 
         <div class="requests-container">
@@ -404,12 +454,6 @@ function getApprovalStatus($status) {
                                 <?= getStatusBadge($req['status']) ?>
                             </div>
                         </div>
-
-                        <?php
-                        // แสดงไฟล์แนบ
-                        require_once __DIR__ . '/../includes/attachment_display.php';
-                        displayAttachments($req['id']);
-                        ?>
 
                         <div class="progress-timeline">
                             <!-- ขั้นตอนที่ 1: ผู้จัดการฝ่าย -->
@@ -445,7 +489,7 @@ function getApprovalStatus($status) {
                                 <?php if ($req['assigned_dev_name']): ?>
                                     <div class="step-reviewer">
                                         <i class="fas fa-user-cog"></i> 
-                                        มอบหมาย: <?= htmlspecialchars($req['assigned_dev_name'] . ' ' . $req['assigned_dev_lastname']) ?>
+                                        ผู้พัฒนาระบบงาน: <?= htmlspecialchars($req['assigned_dev_name'] . ' ' . $req['assigned_dev_lastname']) ?>
                                     </div>
                                 <?php endif; ?>
                             </div>
@@ -464,6 +508,12 @@ function getApprovalStatus($status) {
                                 <?php if ($req['gm_name']): ?>
                                     <div class="step-reviewer">โดย: <?= htmlspecialchars($req['gm_name']) ?></div>
                                 <?php endif; ?>
+                                  <?php if ($req['assigned_dev_name']): ?>
+                                    <div class="step-reviewer">
+                                        <i class="fas fa-user-cog"></i> 
+                                        ผู้พัฒนาระบบงาน: <?= htmlspecialchars($req['assigned_dev_name'] . ' ' . $req['assigned_dev_lastname']) ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
 
                             <!-- ขั้นตอนที่ 4: ผู้จัดการอาวุโส -->
@@ -479,6 +529,12 @@ function getApprovalStatus($status) {
                                 <?php endif; ?>
                                 <?php if ($req['senior_gm_name']): ?>
                                     <div class="step-reviewer">โดย: <?= htmlspecialchars($req['senior_gm_name']) ?></div>
+                                <?php endif; ?>
+                                  <?php if ($req['assigned_dev_name']): ?>
+                                    <div class="step-reviewer">
+                                        <i class="fas fa-user-cog"></i> 
+                                        ผู้พัฒนาระบบงาน: <?= htmlspecialchars($req['assigned_dev_name'] . ' ' . $req['assigned_dev_lastname']) ?>
+                                    </div>
                                 <?php endif; ?>
                             </div>
 
@@ -550,6 +606,14 @@ function getApprovalStatus($status) {
                             </div>
                             <?php endif; ?>
                         </div>
+
+                       <div class="border rounded p-2 bg-light" style="max-width: 300px; max-height: 200px; overflow: auto;">
+    <?php
+    require_once __DIR__ . '/../includes/attachment_display.php';
+    displayAttachments($req['id']);
+    ?>
+</div>
+
 
                         <!-- แสดงความคืบหน้าของงาน -->
                         <?php if ($req['task_status'] && $req['progress_percentage'] !== null): ?>
