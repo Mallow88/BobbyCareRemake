@@ -381,6 +381,10 @@ function getApprovalStatus($status) {
                 <a href="create.php" class="nav-btn secondary">
                     <i class="fas fa-plus"></i> สร้างคำขอใหม่
                 </a>
+                 </a>
+                  <a href="tt.php" class="nav-btn secondary">
+                    <i class="fas fa-plus"></i> สร้างคำขอใหม่
+                </a>
             </div>
         </div>
           <!-- ส่วนกรองข้อมูล -->
