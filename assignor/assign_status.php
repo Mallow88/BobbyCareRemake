@@ -1,4 +1,4 @@
-<?php 
+<?php  
 session_start();
 require_once __DIR__ . '/../config/database.php';
 
@@ -19,9 +19,9 @@ $reason = $_POST['reason'] ?? '';
 $assigned_developer_id = $_POST['assigned_developer_id'] ?? null;
 $priority_level = $_POST['priority_level'] ?? 'medium';
 $estimated_days = $_POST['estimated_days'] ?? null;
-$development_service_id = $_POST['development_service_id'] ?? null;
 
-// ตรวจสอบข้อมูล
+// ✅ ลบ: development_service_id
+// ✅ ลบการ validate development_service_id
 if ($status === 'rejected' && trim($reason) === '') {
     $_SESSION['error'] = "กรุณาระบุเหตุผลเมื่อไม่อนุมัติ";
     header("Location: view_requests.php");
@@ -30,12 +30,6 @@ if ($status === 'rejected' && trim($reason) === '') {
 
 if ($status === 'approved' && !$assigned_developer_id) {
     $_SESSION['error'] = "กรุณาเลือกผู้พัฒนาที่จะมอบหมายงาน";
-    header("Location: view_requests.php");
-    exit();
-}
-
-if ($status === 'approved' && !$development_service_id) {
-    $_SESSION['error'] = "กรุณาเลือกประเภทงาน Development";
     header("Location: view_requests.php");
     exit();
 }
@@ -62,11 +56,11 @@ try {
         $status, $reason, $estimated_days, $priority_level
     ]);
 
-    // อัปเดต service_id ใน service_requests ถ้าเลือก development service
-    if ($status === 'approved' && $development_service_id) {
-        $stmt = $conn->prepare("UPDATE service_requests SET service_id = ? WHERE id = ?");
-        $stmt->execute([$development_service_id, $request_id]);
-    }
+    // ✅ ลบส่วนนี้: ไม่ต้องอัปเดต service_id อีกแล้ว
+    // if ($status === 'approved' && $development_service_id) {
+    //     $stmt = $conn->prepare("UPDATE service_requests SET service_id = ? WHERE id = ?");
+    //     $stmt->execute([$development_service_id, $request_id]);
+    // }
 
     // อัปเดตสถานะใน service_requests
     $new_status = $status === 'approved' ? 'gm_review' : 'rejected';

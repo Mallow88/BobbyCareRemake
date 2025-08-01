@@ -226,10 +226,14 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
             color: #cbd5e0;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
+          @media (max-width: 768px) {
+    .page-title {
+        font-size: 2rem;
+        text-align: center;
+    }
+    .container {
+        padding: 1rem;
+    }
 
             .header h1 {
                 font-size: 2rem;

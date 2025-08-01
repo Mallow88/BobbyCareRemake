@@ -243,10 +243,16 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
         .action-icon.track { background: linear-gradient(135deg, #3b82f6, #2563eb); }
         .action-icon.list { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
 
-        @media (max-width: 768px) {
-            .page-title {
-                font-size: 2rem;
-            }
+       @media (max-width: 768px) {
+    .page-title {
+        font-size: 2rem;
+        text-align: center;
+    }
+    .container {
+        padding: 1rem;
+    }
+
+
             
             .stat-number {
                 font-size: 2rem;

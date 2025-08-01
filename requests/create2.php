@@ -207,7 +207,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="section-icon">
                             <i class="fas fa-cogs"></i>
                         </div>
-                        ประเภทบริการ
+                        ประเภทบริการ services
                     </div>
                     <div class="service-grid">
                         <?php foreach ($services as $service): ?>
@@ -234,6 +234,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         
                         <!-- ฟิลด์สำหรับโปรแกรมใหม่ -->
                         <div id="newProgramFields" class="development-grid" style="display: none;">
+                           
                             <div>
                                 <label for="program_purpose" class="form-label">
                                     <i class="fas fa-bullseye me-2"></i>วัตถุประสงค์ของโปรแกรม <span class="text-danger">*</span>
@@ -246,7 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <i class="fas fa-users me-2"></i>กลุ่มผู้ใช้งาน <span class="text-danger">*</span>
                                 </label>
                                 <textarea class="form-control" id="target_users" name="target_users" rows="2"
-                                          placeholder="ระบุกลุ่มผู้ใช้งานหลัก เช่น พนักงานฝ่ายขาย, ผู้จัดการ, ลูกค้า"></textarea>
+                                          placeholder="ระบุกลุ่มผู้ใช้งานหลัก เช่น พนักงาน, ผู้จัดการ, ลูกค้า"></textarea>
                             </div>
                             <div>
                                 <label for="main_functions" class="form-label">
@@ -275,6 +276,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </label>
                                 <textarea class="form-control" id="related_programs" name="related_programs" rows="2"
                                           placeholder="โปรแกรมหรือระบบที่คาดว่าจะต้องใช้ในการพัฒนา"></textarea>
+                            </div>
+                              <div>
+                                <label for="expected_benefits" class="form-label">
+                                    <i class="fas fa-images me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+                                </label>
+                                <textarea class="form-control" id="expected_benefits" name="expected_benefits" rows="2"
+                                          placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้"></textarea>
                             </div>
                         </div>
 
@@ -317,7 +325,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <i class="fas fa-redo me-2"></i>ขั้นตอนการทำให้เกิดปัญหา
                                 </label>
                                 <textarea class="form-control" id="steps_to_reproduce" name="steps_to_reproduce" rows="3"
-                                          placeholder="ระบุขั้นตอนการใช้งานที่ทำให้เกิดปัญหา (ถ้ามี)"></textarea>
+                                          placeholder="ระบุขั้นตอนการใช้งานที่ทำให้เกิดปัญหา"></textarea>
+                            </div>
+                              <div>
+                                <label for="expected_benefits" class="form-label">
+                                    <i class="fas fa-images me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+                                </label>
+                                <textarea class="form-control" id="expected_benefits" name="expected_benefits" rows="2"
+                                          placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้"></textarea>
                             </div>
                         </div>
 
@@ -356,6 +371,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </label>
                                 <textarea class="form-control" id="change_reason" name="change_reason" rows="2"
                                           placeholder="อธิบายเหตุผลที่ต้องการเปลี่ยนแปลงข้อมูล"></textarea>
+                            </div>
+                              <div>
+                                <label for="expected_benefits" class="form-label">
+                                    <i class="fas fa-images me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+                                </label>
+                                <textarea class="form-control" id="expected_benefits" name="expected_benefits" rows="2"
+                                          placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้"></textarea>
                             </div>
                         </div>
 
@@ -454,30 +476,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <textarea class="form-control" id="reference_examples" name="reference_examples" rows="2"
                                           placeholder="มีเว็บไซต์หรือโปรแกรมที่ชอบให้อ้างอิงหรือไม่ (ถ้ามี)"></textarea>
                             </div>
-    
+                             <div>
+                                <label for="expected_benefits" class="form-label">
+                                    <i class="fas fa-images me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+                                </label>
+                                <textarea class="form-control" id="expected_benefits" name="expected_benefits" rows="2"
+                                          placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้"></textarea>
+                            </div>
                         </div>
-
-
-
-
-                        <!-- ฟิลด์ทั่วไปสำหรับทุกประเภท Development -->
-                        <!-- <div class="development-grid mt-4">
-                            <div>
-                                <label for="current_workflow" class="form-label">
-                                    <i class="fas fa-list-ol me-2"></i>ขั้นตอนการทำงานเดิม
-                                </label>
-                                <textarea class="form-control" id="current_workflow" name="current_workflow" rows="3"
-                                          placeholder="อธิบายขั้นตอนการทำงานปัจจุบัน เช่น วิธีการทำงาน กระบวนการที่ใช้อยู่"></textarea>
-                            </div>
-                            <div>
-                                <label for="related_programs" class="form-label">
-                                    <i class="fas fa-desktop me-2"></i>โปรแกรมที่คาดว่าจะเกี่ยวข้อง
-                                </label>
-                                <textarea class="form-control" id="related_programs" name="related_programs" rows="2"
-                                          placeholder="โปรแกรมหรือระบบที่คาดว่าจะต้องใช้ในการพัฒนา"></textarea>
-                            </div>
-                           
-                        </div> -->
                     </div>
                 </div>
 
@@ -498,25 +504,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <input type="text" class="form-control" id="title" name="title" required 
                                    placeholder="ระบุหัวข้อคำขอบริการ">
                         </div>
-                        <div class="col-12 mb-3">
-                            <label for="description" class="form-label">
-                                <i class="fas fa-align-left me-2"></i>รายละเอียด <span class="text-danger">*</span>
-                            </label>
-                            <textarea class="form-control" id="description" name="description" rows="4" required
-                                      placeholder="อธิบายรายละเอียดคำขอบริการ เช่น ปัญหาที่พบ ความต้องการ หรือข้อกำหนดพิเศษ"></textarea>
-                        </div>
-                        <div class="col-12">
-                            <label for="expected_benefits" class="form-label">
-                                <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ <span class="text-danger">*</span>
-                            </label>
-                            <textarea class="form-control" id="expected_benefits" name="expected_benefits" rows="3" required
-                                      placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้"></textarea>
-                        </div>
                     </div>
                 </div>
 
-            
-
+        
                 <!-- การตั้งค่า -->
                 <div class="form-section">
                  
@@ -559,39 +550,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        
-                        <!-- <div class="col-lg-4 mb-4">
-                            <label class="form-label">
-                                <i class="fas fa-exclamation-circle me-2"></i>ระดับความสำคัญ
-                            </label>
-                            <div class="priority-grid">
-                                <div class="radio-option">
-                                    <input type="radio" id="priority_low" name="priority" value="low">
-                                    <label for="priority_low" class="radio-label priority-low">
-                                        <i class="fas fa-circle mb-1"></i><br>ต่ำ
-                                    </label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="priority_medium" name="priority" value="medium" checked>
-                                    <label for="priority_medium" class="radio-label priority-medium">
-                                        <i class="fas fa-circle mb-1"></i><br>ปานกลาง
-                                    </label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="priority_high" name="priority" value="high">
-                                    <label for="priority_high" class="radio-label priority-high">
-                                        <i class="fas fa-circle mb-1"></i><br>สูง
-                                    </label>
-                                </div>
-                                <div class="radio-option">
-                                    <input type="radio" id="priority_urgent" name="priority" value="urgent">
-                                    <label for="priority_urgent" class="radio-label priority-urgent">
-                                        <i class="fas fa-circle mb-1"></i><br>เร่งด่วน
-                                    </label>
-                                </div>
-                            </div>
-                        </div> -->
-
                          <div class="form-section">
                          <div class="section-title">
                         <div class="section-icon">
@@ -611,8 +569,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
 
                 </div>
-
-               
 
                 <!-- ปุ่มส่ง -->
                 <div class="form-section text-center">

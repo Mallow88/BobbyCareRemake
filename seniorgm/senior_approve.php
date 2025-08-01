@@ -714,7 +714,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
 
-            <form method="post" class="approval-form">
+            <form method="post" class="approval-form" onsubmit="disableSubmitBtn()">
                 <h3 class="fw-bold mb-3">
                     <i class="fas fa-crown text-primary me-2"></i>การพิจารณาขั้นสุดท้าย
                 </h3>
@@ -745,7 +745,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <textarea name="final_notes" id="final_notes" class="form-control" rows="3" placeholder="ข้อแนะนำหรือคำแนะนำพิเศษสำหรับผู้พัฒนา"></textarea>
                 </div>
 
-                <button type="submit" class="submit-btn">
+                <button type="submit" class="submit-btn"  id="submitBtn" >
                     <i class="fas fa-stamp"></i>
                     ส่งผลการพิจารณาขั้นสุดท้าย
                 </button>
@@ -754,25 +754,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // จัดการฟอร์มตามการเลือก
-        document.querySelectorAll('input[name="status"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                const reasonTextarea = document.getElementById('reason');
-                const finalNotesTextarea = document.getElementById('final_notes');
-                
-                if (this.value === 'rejected') {
-                    reasonTextarea.required = true;
-                    reasonTextarea.placeholder = 'กรุณาระบุเหตุผลการไม่อนุมัติ';
-                    finalNotesTextarea.disabled = true;
-                    finalNotesTextarea.value = '';
-                } else {
-                    reasonTextarea.required = false;
-                    reasonTextarea.placeholder = 'ระบุเหตุผลหรือข้อเสนอแนะ (ไม่บังคับ)';
-                    finalNotesTextarea.disabled = false;
-                }
-            });
+<script>
+    document.querySelectorAll('input[name="status"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const reasonTextarea = document.getElementById('reason');
+            const finalNotesTextarea = document.getElementById('final_notes');
+            
+            if (this.value === 'rejected') {
+                reasonTextarea.required = true;
+                reasonTextarea.placeholder = 'กรุณาระบุเหตุผลการไม่อนุมัติ';
+                finalNotesTextarea.disabled = true;
+                finalNotesTextarea.value = '';
+            } else {
+                reasonTextarea.required = false;
+                reasonTextarea.placeholder = 'ระบุเหตุผลหรือข้อเสนอแนะ (ไม่บังคับ)';
+                finalNotesTextarea.disabled = false;
+            }
         });
-    </script>
+    });
+
+    function disableSubmitBtn() {
+        document.getElementById('submitBtn').disabled = true;
+    }
+</script>
+
 </body>
 </html>

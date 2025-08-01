@@ -12,25 +12,34 @@ $user_id = $_SESSION['user_id'];
 // ดึงรายการคำขอที่ยังไม่ได้รับการพิจารณาจาก div_mgr
 $stmt = $conn->prepare("
     SELECT sr.*, u.name, u.lastname, u.employee_id, u.position, u.department, u.phone, u.email,
-           s.name as service_name, s.category as service_category
+           s.name as service_name, s.category as service_category,
+           dn.document_number,
+           dn.created_at as document_created_at,
+           (SELECT COUNT(*) FROM request_attachments WHERE service_request_id = sr.id) as attachment_count
     FROM service_requests sr
     JOIN users u ON sr.user_id = u.id
     LEFT JOIN services s ON sr.service_id = s.id
+    LEFT JOIN document_numbers dn ON sr.id = dn.service_request_id
     LEFT JOIN div_mgr_approvals dma ON sr.id = dma.service_request_id
-    WHERE (dma.id IS NULL OR dma.status = 'pending') 
+
+    WHERE sr.status = 'pending'
     AND sr.assigned_div_mgr_id = ?
+    AND (dma.id IS NULL OR dma.status = 'div_mgr_review')
     ORDER BY sr.created_at DESC
 ");
 $stmt->execute([$user_id]);
 $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ถ้ามีการ submit
+
+
+// บันทึกข้อมูลในฐานข้อมูล  
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $request_id = $_POST['request_id'];
     $status = $_POST['status'];
-    $reason = $_POST['reason'] ?? '';
+    $document_number = trim($_POST['document_number'] ?? '');
+    $reason = trim($_POST['reason'] ?? '');
 
-    if ($status === 'rejected' && trim($reason) === '') {
+    if ($status === 'rejected' && $reason === '') {
         $error = "กรุณาระบุเหตุผลเมื่อไม่อนุมัติ";
     } else {
         try {
@@ -38,16 +47,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // บันทึกการอนุมัติ
             $stmt = $conn->prepare("
-                INSERT INTO div_mgr_approvals (service_request_id, div_mgr_user_id, status, reason, reviewed_at) 
-                VALUES (?, ?, ?, ?, NOW())
+                INSERT INTO div_mgr_approvals (service_request_id, div_mgr_user_id, status, reason, reviewed_at, document_number) 
+                VALUES (?, ?, ?, ?, NOW(), ?)
                 ON DUPLICATE KEY UPDATE 
-                status = VALUES(status), 
-                reason = VALUES(reason), 
-                reviewed_at = NOW()
+                    status = VALUES(status), 
+                    reason = VALUES(reason),
+                    document_number = VALUES(document_number), 
+                    reviewed_at = NOW()
             ");
-            $stmt->execute([$request_id, $user_id, $status, $reason]);
+            $stmt->execute([$request_id, $user_id, $status, $reason, $document_number]);
 
-            // อัปเดตสถานะใน service_requests
+            // อัปเดตสถานะ
             $new_status = $status === 'approved' ? 'assignor_review' : 'rejected';
             $stmt = $conn->prepare("UPDATE service_requests SET status = ?, current_step = ? WHERE id = ?");
             $stmt->execute([$new_status, $status === 'approved' ? 'div_mgr_approved' : 'div_mgr_rejected', $request_id]);
@@ -69,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
 ?>
 
 <!DOCTYPE html>
@@ -369,12 +380,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <h3 class="fw-bold mb-3">ไม่มีคำขอที่รอการพิจารณา</h3>
                     <p class="fs-5">ขณะนี้ไม่มีคำขอใหม่ที่ต้องการการอนุมัติจากคุณ</p>
                 </div>
+
+
             <?php else: ?>
                 <?php foreach ($requests as $req): ?>
                     <div class="request-card">
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div class="flex-grow-1">
+
+                                   <!-- ข้อมูลเลขที่เอกสาร -->
+                                <?php if (!empty($req['document_number'])): ?>
+    <div class="text-muted mb-2">
+        <i class="fas fa-file-alt me-1"></i> เลขที่เอกสาร: <?= htmlspecialchars($req['document_number']) ?>
+    </div>
+    <!-- ส่งค่า document_number ไปใน form ด้วย -->
+    <input type="hidden" name="document_number" value="<?= htmlspecialchars($req['document_number']) ?>">
+<?php endif; ?>
+
+
+                                <!-- หัวข้อ -->
                                 <div class="request-title"><?= htmlspecialchars($req['title']) ?></div>
+                                
+                                  <!-- ประเภทบริการ -->
                                 <div class="d-flex gap-2 mb-2">
                                     <?php if ($req['service_name']): ?>
                                         <span class="service-badge service-<?= $req['service_category'] ?>">
@@ -386,14 +413,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <?= htmlspecialchars($req['service_name']) ?>
                                         </span>
                                     <?php endif; ?>
-                                    <?php if ($req['work_category']): ?>
-                                        <span class="category-badge category-<?= strtolower($req['work_category']) ?>">
-                                            <i class="fas fa-building me-1"></i>
-                                            <?= htmlspecialchars($req['work_category']) ?>
-                                        </span>
-                                    <?php endif; ?>
                                 </div>
+
+                                
                             </div>
+                              <!-- เอกสารสร้างเมื่อ -->
                             <div class="text-muted">
                                 <i class="fas fa-calendar me-1"></i>
                                 <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
@@ -457,22 +481,74 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                         </div>
+                        
 
-                        <!-- รายละเอียดคำขอ -->
-                        <div class="bg-light p-3 rounded-3 mb-3">
-                            <h6 class="fw-bold text-primary mb-2">
-                                <i class="fas fa-align-left me-2"></i>รายละเอียดคำขอ
-                            </h6>
-                            <p class="mb-0"><?= nl2br(htmlspecialchars($req['description'])) ?></p>
-                        </div>
+<?php if ($req['service_category'] === 'development'): ?>
+    <div class="bg-info bg-opacity-10 p-3 rounded-3 mb-3 border-start border-info border-4">
+        <h6 class="fw-bold text-info mb-3">
+            <i class="fas fa-code me-2"></i>ข้อมูล Development
+        </h6>
+        <div class="row">
+            <?php
+                $fields = [
+                    'program_purpose' => 'วัตถุประสงค์',
+                    'target_users' => 'กลุ่มผู้ใช้งาน',
+                    'main_functions' => 'ฟังก์ชันหลัก',
+                    'data_requirements' => 'ข้อมูลที่ต้องใช้',
+                    'current_program_name' => 'โปรแกรมที่มีปัญหา',
+                    'problem_description' => 'รายละเอียดปัญหา',
+                    'error_frequency' => 'ความถี่ของปัญหา',
+                    'steps_to_reproduce' => 'ขั้นตอนการทำให้เกิดปัญหา',
+                    'program_name_change' => 'โปรแกรมที่ต้องการเปลี่ยนข้อมูล',
+                    'data_to_change' => 'ข้อมูลที่ต้องการเปลี่ยน',
+                    'new_data_value' => 'ข้อมูลใหม่ที่ต้องการ',
+                    'change_reason' => 'เหตุผลในการเปลี่ยนแปลง',
+                    'program_name_function' => 'โปรแกรมที่ต้องการเพิ่มฟังก์ชั่น',
+                    'new_functions' => 'ฟังก์ชั่นใหม่ที่ต้องการ',
+                    'function_benefits' => 'ประโยชน์ของฟังก์ชั่นใหม่',
+                    'integration_requirements' => 'ความต้องการเชื่อมต่อ',
+                    'program_name_decorate' => 'โปรแกรมที่ต้องการตกแต่ง',
+                    'decoration_type' => 'ประเภทการตกแต่ง',
+                    'reference_examples' => 'ตัวอย่างอ้างอิง',
+                    'current_workflow' => 'ขั้นตอนการทำงานเดิม',
+                    'approach_ideas' => 'แนวทาง/ไอเดีย',
+                    'related_programs' => 'โปรแกรมที่คาดว่าจะเกี่ยวข้อง',
+                    'current_tools' => 'ปกติใช้โปรแกรมอะไรทำงานอยู่',
+                    'system_impact' => 'ผลกระทบต่อระบบ',
+                    'related_documents' => 'เอกสารการทำงานที่เกี่ยวข้อง',
+                ];
 
-                        <!-- ประโยชน์ที่คาดว่าจะได้รับ -->
-                        <?php if ($req['expected_benefits']): ?>
-                        <div class="bg-success bg-opacity-10 p-3 rounded-3 mb-3 border-start border-success border-4">
-                            <h6 class="fw-bold text-success mb-2">
-                                <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
-                            </h6>
-                            <p class="mb-0"><?= nl2br(htmlspecialchars($req['expected_benefits'])) ?></p>
+                foreach ($fields as $key => $label):
+                    if (!empty($req[$key])):
+            ?>
+            <div class="col-md-6 mb-3">
+                <strong><?= $label ?>:</strong><br>
+                <?= nl2br(htmlspecialchars($req[$key])) ?>
+            </div>
+            <?php
+                    endif;
+                endforeach;
+            ?>
+        </div>
+    </div>
+<?php endif; ?>
+<?php if ($req['expected_benefits']): ?>
+    <div class="bg-success bg-opacity-10 p-3 rounded-3 mb-3 border-start border-success border-4">
+        <h6 class="fw-bold text-success mb-2">
+            <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+        </h6>
+        <p class="mb-0"><?= nl2br(htmlspecialchars($req['expected_benefits'])) ?></p>
+    </div>
+<?php endif; ?>
+
+
+
+                        <?php if ($req['attachment_count'] > 0): ?>
+                        <div class="mt-3">
+                            <span class="badge bg-info">
+                                <i class="fas fa-paperclip me-1"></i>
+                                <?= $req['attachment_count'] ?> ไฟล์แนบ
+                            </span>
                         </div>
                         <?php endif; ?>
 
@@ -483,6 +559,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ?>
 
                         <form method="post" class="approval-form">
+                            <?php if (!empty($req['document_number'])): ?>
+    <input type="hidden" name="document_number" value="<?= htmlspecialchars($req['document_number']) ?>">
+<?php endif; ?>
+
                             <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
                             
                             <h5 class="fw-bold mb-3">

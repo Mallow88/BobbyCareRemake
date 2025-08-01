@@ -9,6 +9,75 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'developer') {
 
 $developer_id = $_SESSION['user_id'];
 
+// จัดการ subtask actions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['update_subtask'])) {
+        $subtask_id = $_POST['subtask_id'];
+        $new_status = $_POST['new_status'];
+        $notes = trim($_POST['notes'] ?? '');
+        
+        try {
+            $conn->beginTransaction();
+            
+            // อัปเดตสถานะ subtask
+            $update_subtask = $conn->prepare("
+                UPDATE task_subtasks 
+                SET status = ?, notes = ?, 
+                    started_at = CASE WHEN ? = 'in_progress' AND started_at IS NULL THEN NOW() ELSE started_at END,
+                    completed_at = CASE WHEN ? = 'completed' THEN NOW() ELSE NULL END,
+                    updated_at = NOW()
+                WHERE id = ?
+            ");
+            $update_subtask->execute([$new_status, $notes, $new_status, $new_status, $subtask_id]);
+            
+            // บันทึก log
+            $log_stmt = $conn->prepare("
+                INSERT INTO subtask_logs (subtask_id, old_status, new_status, changed_by, notes) 
+                VALUES (?, (SELECT status FROM task_subtasks WHERE id = ? LIMIT 1), ?, ?, ?)
+            ");
+            $log_stmt->execute([$subtask_id, $subtask_id, $new_status, $developer_id, $notes]);
+            
+            // คำนวณ progress รวม
+            $task_id_stmt = $conn->prepare("SELECT task_id FROM task_subtasks WHERE id = ?");
+            $task_id_stmt->execute([$subtask_id]);
+            $task_id = $task_id_stmt->fetchColumn();
+            
+            $progress_stmt = $conn->prepare("
+                SELECT SUM(CASE WHEN status = 'completed' THEN percentage ELSE 0 END) as total_progress
+                FROM task_subtasks 
+                WHERE task_id = ?
+            ");
+            $progress_stmt->execute([$task_id]);
+            $total_progress = $progress_stmt->fetchColumn() ?? 0;
+            
+            // อัปเดต progress ในตาราง tasks
+            $update_task = $conn->prepare("UPDATE tasks SET progress_percentage = ? WHERE id = ?");
+            $update_task->execute([$total_progress, $task_id]);
+            
+            // ถ้า progress = 100% ให้เปลี่ยนสถานะเป็น completed
+            if ($total_progress >= 100) {
+                $complete_task = $conn->prepare("
+                    UPDATE tasks 
+                    SET task_status = 'completed', completed_at = NOW() 
+                    WHERE id = ? AND task_status != 'completed'
+                ");
+                $complete_task->execute([$task_id]);
+                
+                $update_sr = $conn->prepare("UPDATE service_requests SET developer_status = 'completed' WHERE id = (SELECT service_request_id FROM tasks WHERE id = ?)");
+                $update_sr->execute([$task_id]);
+            }
+            
+            $conn->commit();
+            header("Location: tasks_board.php");
+            exit();
+            
+        } catch (Exception $e) {
+            $conn->rollBack();
+            $error = "เกิดข้อผิดพลาด: " . $e->getMessage();
+        }
+    }
+}
+
 // สร้างงานใหม่
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_task'])) {
     $title = trim($_POST['title'] ?? '');
@@ -138,10 +207,6 @@ $stmt = $conn->prepare("
         sr.deadline,
         requester.name AS requester_name,
         requester.lastname AS requester_lastname,
-        requester.employee_id,
-        requester.position,
-        requester.department,
-
         ur.rating,
         ur.review_comment,
         ur.status as review_status,
@@ -400,6 +465,19 @@ foreach ($tasks as $task) {
                                         <i class="fas fa-user"></i>
                                         <?= htmlspecialchars($task['requester_name'] . ' ' . $task['requester_lastname']) ?>
                                     </div>
+                                    <?php if ($task['service_name']): ?>
+                                    <div class="service-badge service-<?= $task['service_category'] ?>">
+                                        <?php if ($task['service_category'] === 'development'): ?>
+                                            <i class="fas fa-code"></i>
+                                        <?php else: ?>
+                                            <i class="fas fa-tools"></i>
+                                        <?php endif; ?>
+                                        <?= htmlspecialchars($task['service_name']) ?>
+                                    </div>
+                                    <?php endif; ?>
+                                    <div class="priority-badge priority-<?= $task['priority_level'] ?? 'medium' ?>">
+                                        <?= ucfirst($task['priority_level'] ?? 'medium') ?>
+                                    </div>
                                     <div class="task-date"><?= date('d/m/Y', strtotime($task['request_date'])) ?></div>
                                 </div>
                                 <div class="status-buttons">
@@ -489,6 +567,13 @@ foreach ($tasks as $task) {
                                 </div>
                                 <div class="status-buttons">
                                     <button class="status-btn btn-success" onclick="updateStatus(<?= $task['id'] ?>, 'in_progress')">เริ่มทำ</button>
+                                    
+                                    <!-- ปุ่มดู Subtasks สำหรับงาน Development -->
+                                    <?php if ($task['service_category'] === 'development' && $task['current_step'] !== 'developer_self_created'): ?>
+                                        <button class="status-btn btn-subtask" onclick="showSubtasks(<?= $task['id'] ?>)">
+                                            <i class="fas fa-tasks"></i> Subtasks
+                                        </button>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -575,6 +660,13 @@ foreach ($tasks as $task) {
                                 <div class="status-buttons">
                                     <button class="status-btn btn-warning" onclick="updateStatus(<?= $task['id'] ?>, 'on_hold')">พักงาน</button>
                                     <button class="status-btn btn-success" onclick="showCompleteModal(<?= $task['id'] ?>)">ส่งงาน</button>
+                                    
+                                    <!-- ปุ่มดู Subtasks สำหรับงาน Development -->
+                                    <?php if ($task['service_category'] === 'development' && $task['current_step'] !== 'developer_self_created'): ?>
+                                        <button class="status-btn btn-subtask" onclick="showSubtasks(<?= $task['id'] ?>)">
+                                            <i class="fas fa-tasks"></i> Subtasks
+                                        </button>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -794,8 +886,6 @@ foreach ($tasks as $task) {
                                 <h6 class="fw-bold text-primary">
                                     <i class="fas fa-align-left me-2"></i>รายละเอียดงาน
                                 </h6>
-
-
                                 <div id="detailDescription" class="bg-light p-3 rounded"></div>
                             </div>
                             
@@ -852,7 +942,7 @@ foreach ($tasks as $task) {
                                         <div id="detailPriority" class="fw-bold"></div>
                                     </div>
                                     <div class="mb-2">
-                                        <small class="text-muted">เวลา</small>
+                                        <small class="text-muted">เวลาแทน</small>
                                         <div id="detailEstimatedDays" class="fw-bold"></div>
                                     </div>
                                     <div class="mb-2">
@@ -906,6 +996,28 @@ foreach ($tasks as $task) {
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับ Subtasks -->
+    <div class="modal fade" id="subtaskModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-tasks me-2"></i>รายละเอียดขั้นตอนการพัฒนา
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="subtaskContent">
+                        <div class="text-center">
+                            <i class="fas fa-spinner fa-spin fs-1 text-primary"></i>
+                            <p class="mt-3">กำลังโหลดข้อมูล...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1176,6 +1288,58 @@ foreach ($tasks as $task) {
             }
         }
 
+        function showSubtasks(taskId) {
+            const modal = new bootstrap.Modal(document.getElementById('subtaskModal'));
+            
+            // โหลดข้อมูล subtasks
+            fetch(`get_subtasks.php?task_id=${taskId}`)
+                .then(response => response.text())
+                .then(html => {
+                    document.getElementById('subtaskContent').innerHTML = html;
+                    modal.show();
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('subtaskContent').innerHTML = 
+                        '<div class="alert alert-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>';
+                    modal.show();
+                });
+        }
+        
+        function updateSubtaskStatus(subtaskId, newStatus) {
+            const form = document.createElement('form');
+            form.method = 'POST';
+            form.style.display = 'none';
+            
+            const subtaskInput = document.createElement('input');
+            subtaskInput.name = 'subtask_id';
+            subtaskInput.value = subtaskId;
+            
+            const statusInput = document.createElement('input');
+            statusInput.name = 'new_status';
+            statusInput.value = newStatus;
+            
+            const actionInput = document.createElement('input');
+            actionInput.name = 'update_subtask';
+            actionInput.value = '1';
+            
+            // เพิ่ม notes ถ้ามี
+            const notesTextarea = document.querySelector(`#notes_${subtaskId}`);
+            if (notesTextarea) {
+                const notesInput = document.createElement('input');
+                notesInput.name = 'notes';
+                notesInput.value = notesTextarea.value;
+                form.appendChild(notesInput);
+            }
+            
+            form.appendChild(subtaskInput);
+            form.appendChild(statusInput);
+            form.appendChild(actionInput);
+            
+            document.body.appendChild(form);
+            form.submit();
+        }
+
         // เปิดใช้งาน drag & drop
         document.addEventListener('DOMContentLoaded', function() {
             const containers = document.querySelectorAll('.tasks-container');
@@ -1244,5 +1408,238 @@ foreach ($tasks as $task) {
             });
         }
     </script>
+    
+    <style>
+        .btn-complete { background: #10b981; }
+        .btn-complete:hover { background: #059669; }
+        
+        .btn-subtask { 
+            background: #8b5cf6; 
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            width: 100%;
+        }
+        .btn-subtask:hover { 
+            background: #7c3aed; 
+            color: white;
+        }
+        
+        .service-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: inline-block;
+        }
+
+        .service-development {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .service-service {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+        
+        .subtask-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .subtask-item {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .subtask-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        
+        .subtask-item.pending {
+            border-left-color: #f59e0b;
+        }
+        
+        .subtask-item.in_progress {
+            border-left-color: #3b82f6;
+            background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+        }
+        
+        .subtask-item.completed {
+            border-left-color: #10b981;
+            background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+        }
+        
+        .subtask-header {
+            display: flex;
+            justify-content: between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        
+        .subtask-title {
+            font-weight: 600;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+        
+        .subtask-description {
+            color: #6b7280;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .subtask-progress {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .subtask-percentage {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            min-width: 50px;
+            text-align: center;
+        }
+        
+        .subtask-status-badge {
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+        
+        .status-in_progress {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+        
+        .status-completed {
+            background: #d1fae5;
+            color: #065f46;
+        }
+        
+        .subtask-actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .subtask-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-start {
+            background: #3b82f6;
+            color: white;
+        }
+        
+        .btn-start:hover {
+            background: #2563eb;
+        }
+        
+        .btn-finish {
+            background: #10b981;
+            color: white;
+        }
+        
+        .btn-finish:hover {
+            background: #059669;
+        }
+        
+        .subtask-notes {
+            margin-top: 10px;
+        }
+        
+        .subtask-notes textarea {
+            width: 100%;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 0.9rem;
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        .subtask-dates {
+            font-size: 0.8rem;
+            color: #6b7280;
+            margin-top: 10px;
+        }
+        
+        .overall-progress {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .overall-progress h6 {
+            margin-bottom: 10px;
+            color: #4a5568;
+        }
+        
+        .progress-bar-container {
+            background: #e2e8f0;
+            border-radius: 10px;
+            height: 20px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-bar-fill {
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            height: 100%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        @media (max-width: 768px) {
+            .kanban-board {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+            
+            .kanban-column {
+                min-height: auto;
+            }
+        }
+    </style>
 </body>
 </html>

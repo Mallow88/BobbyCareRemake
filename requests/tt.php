@@ -109,10 +109,10 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 function getStatusBadge($status) {
     $badges = [
         'pending' => '<span class="badge pending">รอดำเนินการ</span>',
-        'div_mgr_review' => '<span class="badge in-review">ผู้จัดการฝ่ายพิจารณา</span>',
-        'assignor_review' => '<span class="badge in-review">ผู้จัดการแผนกพิจารณา</span>',
-        'gm_review' => '<span class="badge in-review">ผู้จัดการทั่วไปพิจารณา</span>',
-        'senior_gm_review' => '<span class="badge in-review">ผู้จัดการอาวุโสพิจารณา</span>',
+        'div_mgr_review' => '<span class="badge in-review">รอผู้จัดการฝ่ายพิจารณา</span>',
+        'assignor_review' => '<span class="badge in-review">รอผู้จัดการแผนกพิจารณา</span>',
+        'gm_review' => '<span class="badge in-review">รอผู้จัดการทั่วไปพิจารณา</span>',
+        'senior_gm_review' => '<span class="badge in-review">รอผู้จัดการอาวุโสพิจารณา</span>',
         'approved' => '<span class="badge approved">อนุมัติแล้ว</span>',
         'rejected' => '<span class="badge rejected">ไม่อนุมัติ</span>',
         'developer_assigned' => '<span class="badge assigned">มอบหมายงานแล้ว</span>',
@@ -572,10 +572,16 @@ function getApprovalStatus($status) {
             color: #cbd5e0;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
+       @media (max-width: 768px) {
+    .page-title {
+        font-size: 2rem;
+        text-align: center;
+    }
+    .container {
+        padding: 1rem;
+    }
+
+
 
             .header h1 {
                 font-size: 2rem;
@@ -638,9 +644,7 @@ function getApprovalStatus($status) {
                     <i class="fas fa-plus"></i> สร้างคำขอใหม่
                 </a>
                  </a>
-                  <a href="track_status.php" class="nav-btn secondary">
-                    <i class="fas fa-plus"></i> สร้างคำขอใหม่
-                </a>
+                
             </div>
         </div>
           <!-- ส่วนกรองข้อมูล -->

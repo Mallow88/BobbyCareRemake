@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 26, 2025 at 08:51 AM
+-- Generation Time: Jul 29, 2025 at 04:57 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -166,7 +166,9 @@ INSERT INTO `admin_logs` (`id`, `admin_id`, `action`, `created_at`) VALUES
 (289, 1, 'แก้ไขผู้ใช้ ID 2', '2025-07-25 10:11:18'),
 (290, 1, 'Login', '2025-07-26 01:10:55'),
 (291, 1, 'Login', '2025-07-26 01:21:55'),
-(292, 1, 'แก้ไขผู้ใช้ ID 2', '2025-07-26 01:22:03');
+(292, 1, 'แก้ไขผู้ใช้ ID 2', '2025-07-26 01:22:03'),
+(293, 1, 'Login', '2025-07-29 01:07:49'),
+(294, 1, 'แก้ไขผู้ใช้ ID 2', '2025-07-29 01:07:55');
 
 -- --------------------------------------------------------
 
@@ -192,19 +194,74 @@ CREATE TABLE `assignor_approvals` (
 --
 
 INSERT INTO `assignor_approvals` (`id`, `service_request_id`, `assignor_user_id`, `assigned_developer_id`, `status`, `reason`, `estimated_days`, `priority_level`, `reviewed_at`, `created_at`) VALUES
-(1, 26, 1, 1, 'approved', 'ผู้จัดการแผนก', 6, 'high', '2025-07-23 03:07:08', '2025-07-23 03:07:08'),
 (2, 25, 1, 1, 'approved', 'ผู้จัดการแผนก2', 24, 'urgent', '2025-07-23 03:07:38', '2025-07-23 03:07:38'),
-(3, 27, 1, 1, 'approved', 'ผู้จัดการแผนก1', 36, 'high', '2025-07-23 03:31:39', '2025-07-23 03:31:39'),
 (4, 28, 1, 1, 'approved', 'ผู้จัดการแผนก2', 72, 'urgent', '2025-07-23 03:32:04', '2025-07-23 03:32:04'),
 (6, 23, 1, 1, 'approved', '78787878', 8, 'urgent', '2025-07-23 04:03:17', '2025-07-23 04:03:17'),
 (7, 31, 1, 1, 'approved', 'เอกสารผู้จัดการแผนก', 32, 'high', '2025-07-23 08:51:23', '2025-07-23 08:51:23'),
 (8, 32, 2, 2, 'approved', 'อนุมัติโดยผู้จัดการแผนก', 29, 'urgent', '2025-07-24 02:33:48', '2025-07-24 02:33:48'),
 (9, 29, 2, NULL, 'rejected', '55', NULL, 'medium', '2025-07-24 03:06:48', '2025-07-24 03:06:48'),
-(10, 34, 2, 1, 'approved', 'ผู้จัดการแผนก2', 2, 'urgent', '2025-07-24 03:07:23', '2025-07-24 03:07:23'),
 (11, 33, 2, 1, 'approved', 'ผู้จัดการแผนก1', 3, 'high', '2025-07-24 03:07:45', '2025-07-24 03:07:45'),
-(12, 38, 2, 1, 'approved', 'ผู้จัดการแผนกข้อเสนอแนะ:', 3, 'urgent', '2025-07-24 08:46:32', '2025-07-24 08:46:32'),
-(13, 48, 2, 2, 'approved', 'ผู้จัดการแผนก', 2, 'high', '2025-07-25 02:39:42', '2025-07-25 02:39:42'),
-(14, 35, 2, 2, 'approved', 'ผู้จัดการแผนก2', 2, 'urgent', '2025-07-25 02:40:01', '2025-07-25 02:40:01');
+(13, 48, 2, 2, 'approved', 'ผู้จัดการแผนก', 2, 'high', '2025-07-25 02:39:42', '2025-07-25 02:39:42');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `departments`
+--
+
+CREATE TABLE `departments` (
+  `id` int(11) NOT NULL,
+  `warehouse_number` varchar(10) NOT NULL,
+  `code_name` varchar(10) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `is_active` tinyint(1) DEFAULT 1
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `departments`
+--
+
+INSERT INTO `departments` (`id`, `warehouse_number`, `code_name`, `created_at`, `is_active`) VALUES
+(1, '03', 'TRO', '2025-07-29 02:32:07', 1),
+(2, '03', 'PIC', '2025-07-29 02:32:07', 1),
+(3, '03', 'DAN', '2025-07-29 02:32:07', 1),
+(4, '03', 'RCV', '2025-07-29 02:32:07', 1),
+(5, '03', 'BQC', '2025-07-29 02:32:07', 1),
+(6, '02', 'PIC', '2025-07-29 02:32:07', 1),
+(7, '02', 'LOA', '2025-07-29 02:32:07', 1),
+(8, '02', 'TRI', '2025-07-29 02:32:07', 1),
+(9, '02', 'RCV', '2025-07-29 02:32:07', 1),
+(10, '02', 'DAI', '2025-07-29 02:32:07', 1),
+(11, '02', 'TRO', '2025-07-29 02:32:07', 1),
+(12, '02', 'MIS', '2025-07-29 02:32:07', 1),
+(13, '02', 'CQC', '2025-07-29 02:32:07', 1),
+(14, '02', 'SAF', '2025-07-29 02:32:07', 1),
+(15, '02', 'DAO', '2025-07-29 02:32:07', 1),
+(16, '02', 'ENG', '2025-07-29 02:32:07', 1),
+(17, '01', 'RFC', '2025-07-29 02:32:07', 1),
+(18, '01', 'LOA', '2025-07-29 02:32:07', 1),
+(19, '01', 'TRI', '2025-07-29 02:32:07', 1),
+(20, '01', 'SPC', '2025-07-29 02:32:07', 1),
+(21, '01', 'SEQ', '2025-07-29 02:32:07', 1),
+(22, '01', 'INV', '2025-07-29 02:32:07', 1),
+(23, '01', 'RBC', '2025-07-29 02:32:07', 1),
+(24, '01', 'RFL', '2025-07-29 02:32:07', 1),
+(25, '01', 'DAO', '2025-07-29 02:32:07', 1),
+(26, '01', 'RID', '2025-07-29 02:32:07', 1),
+(27, '01', 'REV', '2025-07-29 02:32:07', 1),
+(28, '01', 'SAF', '2025-07-29 02:32:07', 1),
+(29, '01', 'ADM', '2025-07-29 02:32:07', 1),
+(30, '01', 'RCN', '2025-07-29 02:32:07', 1),
+(31, '01', 'O2O', '2025-07-29 02:32:07', 1),
+(32, '01', 'ENG', '2025-07-29 02:32:07', 1),
+(33, '01', 'TRP', '2025-07-29 02:32:07', 1),
+(34, '01', 'ROD', '2025-07-29 02:32:07', 1),
+(35, '01', 'SPD', '2025-07-29 02:32:07', 1),
+(36, '01', 'TRO', '2025-07-29 02:32:07', 1),
+(37, '01', 'DAI', '2025-07-29 02:32:07', 1),
+(38, '01', 'FLA', '2025-07-29 02:32:07', 1),
+(39, '01', 'DEV', '2025-07-29 02:32:07', 1),
+(40, '01', 'MIS', '2025-07-29 02:32:07', 1);
 
 -- --------------------------------------------------------
 
@@ -228,19 +285,32 @@ CREATE TABLE `div_mgr_approvals` (
 
 INSERT INTO `div_mgr_approvals` (`id`, `service_request_id`, `div_mgr_user_id`, `status`, `reason`, `reviewed_at`, `created_at`) VALUES
 (1, 25, 1, 'approved', 'bolt1ข้อเสนอแนะ', '2025-07-23 02:59:29', '2025-07-23 02:59:29'),
-(2, 26, 1, 'approved', 'ข้อเสนอแนะ2ฝ่าย', '2025-07-23 02:59:46', '2025-07-23 02:59:46'),
 (3, 24, 1, 'rejected', 'asds', '2025-07-23 02:59:55', '2025-07-23 02:59:55'),
 (4, 28, 1, 'approved', 'ฝ่าย1', '2025-07-23 03:28:36', '2025-07-23 03:28:36'),
-(5, 27, 1, 'approved', 'ฝ่าย4', '2025-07-23 03:28:42', '2025-07-23 03:28:42'),
 (6, 29, 1, 'approved', '', '2025-07-23 03:58:11', '2025-07-23 03:58:11'),
 (7, 23, 1, 'approved', '555', '2025-07-23 03:58:17', '2025-07-23 03:58:17'),
 (9, 31, 1, 'approved', 'ผ่าน', '2025-07-23 08:46:10', '2025-07-23 08:46:10'),
 (10, 32, 2, 'approved', 'ผู้จัดการฝ่าย อนุมัติ', '2025-07-24 02:29:24', '2025-07-24 02:29:24'),
 (11, 33, 2, 'approved', 'ผู้จัดการฝ่าย1', '2025-07-24 03:04:57', '2025-07-24 03:04:57'),
-(12, 34, 2, 'approved', 'ผู้จัดการฝ่าย2', '2025-07-24 03:05:21', '2025-07-24 03:05:21'),
-(13, 35, 1, 'approved', 'ผู้จัดการฝ่าย', '2025-07-24 07:17:40', '2025-07-24 07:17:40'),
-(14, 38, 2, 'approved', 'เหตุผลผู้จัดการฝ่าย', '2025-07-24 08:24:42', '2025-07-24 08:24:42'),
 (15, 48, 2, 'approved', 'ผู้จัดการฝ่าย', '2025-07-25 02:38:17', '2025-07-25 02:38:17');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `document_numbers`
+--
+
+CREATE TABLE `document_numbers` (
+  `id` int(11) NOT NULL,
+  `warehouse_number` varchar(10) NOT NULL,
+  `code_name` varchar(10) NOT NULL,
+  `year` int(11) NOT NULL,
+  `month` int(11) NOT NULL,
+  `running_number` int(11) NOT NULL,
+  `document_number` varchar(50) NOT NULL,
+  `service_request_id` int(11) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -265,20 +335,13 @@ CREATE TABLE `document_status_logs` (
 
 INSERT INTO `document_status_logs` (`id`, `service_request_id`, `step_name`, `status`, `reviewer_id`, `reviewer_role`, `notes`, `created_at`) VALUES
 (1, 25, 'div_mgr_review', 'approved', 1, 'divmgr', 'bolt1ข้อเสนอแนะ', '2025-07-23 02:59:29'),
-(2, 26, 'div_mgr_review', 'approved', 1, 'divmgr', 'ข้อเสนอแนะ2ฝ่าย', '2025-07-23 02:59:46'),
 (3, 24, 'div_mgr_review', 'rejected', 1, 'divmgr', 'asds', '2025-07-23 02:59:55'),
-(4, 26, 'assignor_review', 'approved', 1, 'assignor', 'ผู้จัดการแผนก', '2025-07-23 03:07:08'),
 (5, 25, 'assignor_review', 'approved', 1, 'assignor', 'ผู้จัดการแผนก2', '2025-07-23 03:07:38'),
 (6, 25, 'gm_review', 'approved', 1, 'gmapprover', 'GM1', '2025-07-23 03:10:42'),
-(7, 26, 'gm_review', 'rejected', 1, 'gmapprover', 'GM2', '2025-07-23 03:12:03'),
 (8, 25, 'senior_gm_review', 'approved', 1, 'seniorgm', 'ผู้จัดการอาวุโส ผู้จัดการอาวุโส ร่งทำ', '2025-07-23 03:15:07'),
 (9, 28, 'div_mgr_review', 'approved', 1, 'divmgr', 'ฝ่าย1', '2025-07-23 03:28:36'),
-(10, 27, 'div_mgr_review', 'approved', 1, 'divmgr', 'ฝ่าย4', '2025-07-23 03:28:42'),
-(11, 27, 'assignor_review', 'approved', 1, 'assignor', 'ผู้จัดการแผนก1', '2025-07-23 03:31:39'),
 (12, 28, 'assignor_review', 'approved', 1, 'assignor', 'ผู้จัดการแผนก2', '2025-07-23 03:32:04'),
 (13, 28, 'gm_review', 'approved', 1, 'gmapprover', 'อนุมัติคำขอ (GM)1', '2025-07-23 03:33:04'),
-(14, 27, 'gm_review', 'approved', 1, 'gmapprover', 'อนุมัติคำขอ (GM)2', '2025-07-23 03:33:18'),
-(15, 27, 'senior_gm_review', 'approved', 1, 'seniorgm', 'ผู้จัดการอาวุโส1 เร่ง', '2025-07-23 03:34:15'),
 (16, 28, 'senior_gm_review', 'approved', 1, 'seniorgm', 'ผู้จัดการอาวุโส2 ทำสะ', '2025-07-23 03:34:30'),
 (17, 29, 'div_mgr_review', 'approved', 1, 'divmgr', '', '2025-07-23 03:58:11'),
 (18, 23, 'div_mgr_review', 'approved', 1, 'divmgr', '555', '2025-07-23 03:58:17'),
@@ -294,26 +357,14 @@ INSERT INTO `document_status_logs` (`id`, `service_request_id`, `step_name`, `st
 (32, 32, 'gm_review', 'approved', 2, 'gmapprover', 'อนุมัติคำขอ (GM)', '2025-07-24 02:37:04'),
 (33, 32, 'senior_gm_review', 'approved', 2, 'seniorgm', 'พิจารณาคำขอขั้นสุดท้าย หมายเหตุสำหรับผู้พัฒนา:\r\n55', '2025-07-24 02:39:41'),
 (34, 33, 'div_mgr_review', 'approved', 2, 'divmgr', 'ผู้จัดการฝ่าย1', '2025-07-24 03:04:57'),
-(35, 34, 'div_mgr_review', 'approved', 2, 'divmgr', 'ผู้จัดการฝ่าย2', '2025-07-24 03:05:21'),
 (36, 29, 'assignor_review', 'rejected', 2, 'assignor', '55', '2025-07-24 03:06:48'),
-(37, 34, 'assignor_review', 'approved', 2, 'assignor', 'ผู้จัดการแผนก2', '2025-07-24 03:07:23'),
 (38, 33, 'assignor_review', 'approved', 2, 'assignor', 'ผู้จัดการแผนก1', '2025-07-24 03:07:45'),
 (39, 33, 'gm_review', 'approved', 2, 'gmapprover', 'ผู้จัดการทั่วไป1', '2025-07-24 03:08:51'),
-(40, 34, 'gm_review', 'approved', 2, 'gmapprover', 'ผู้จัดการทั่วไป2', '2025-07-24 03:09:05'),
-(41, 34, 'senior_gm_review', 'approved', 2, 'seniorgm', 'ผู้จัดการอาวุโส1 ผู้จัดการอาวุโส111', '2025-07-24 03:09:59'),
 (42, 33, 'senior_gm_review', 'approved', 2, 'seniorgm', 'ผู้จัดการอาวุโส2 ผู้จัดการอาวุโส222', '2025-07-24 03:10:10'),
-(43, 35, 'div_mgr_review', 'approved', 1, 'divmgr', 'ผู้จัดการฝ่าย', '2025-07-24 07:17:40'),
-(44, 38, 'div_mgr_review', 'approved', 2, 'divmgr', 'เหตุผลผู้จัดการฝ่าย', '2025-07-24 08:24:42'),
-(45, 38, 'assignor_review', 'approved', 2, 'assignor', 'ผู้จัดการแผนกข้อเสนอแนะ:', '2025-07-24 08:46:32'),
-(46, 38, 'gm_review', 'approved', 2, 'gmapprover', 'อนุมัติคำขอ (GM)', '2025-07-24 09:14:11'),
-(47, 38, 'senior_gm_review', 'approved', 2, 'seniorgm', 'พิจารณาคำขอขั้นสุดท้าย หมายเหตุสำหรับผู้พัฒนาพิจารณาคำขอขั้นสุดท้าย', '2025-07-24 09:19:13'),
 (48, 48, 'div_mgr_review', 'approved', 2, 'divmgr', 'ผู้จัดการฝ่าย', '2025-07-25 02:38:17'),
 (49, 48, 'assignor_review', 'approved', 2, 'assignor', 'ผู้จัดการแผนก', '2025-07-25 02:39:42'),
-(50, 35, 'assignor_review', 'approved', 2, 'assignor', 'ผู้จัดการแผนก2', '2025-07-25 02:40:01'),
 (51, 48, 'gm_review', 'approved', 2, 'gmapprover', 'อนุมัติคำขอ (GM)', '2025-07-25 02:41:21'),
-(52, 35, 'gm_review', 'approved', 2, 'gmapprover', 'อนุมัติคำขอ (GM)2', '2025-07-25 02:41:37'),
-(53, 48, 'senior_gm_review', 'approved', 2, 'seniorgm', 'ผู้จัดการอาวุโส ผู้จัดการอาวุโสหมายเหตุสำหรับผู้พัฒนา', '2025-07-25 02:42:45'),
-(54, 35, 'senior_gm_review', 'approved', 2, 'seniorgm', 'ผู้จัดการอาวุโส ผู้จัดการอาวุโสหมายเหตุสำหรับผู้พัฒนา', '2025-07-25 02:42:59');
+(53, 48, 'senior_gm_review', 'approved', 2, 'seniorgm', 'ผู้จัดการอาวุโส ผู้จัดการอาวุโสหมายเหตุสำหรับผู้พัฒนา', '2025-07-25 02:42:45');
 
 -- --------------------------------------------------------
 
@@ -338,17 +389,81 @@ CREATE TABLE `gm_approvals` (
 
 INSERT INTO `gm_approvals` (`id`, `service_request_id`, `gm_user_id`, `status`, `reason`, `budget_approved`, `reviewed_at`, `created_at`) VALUES
 (1, 25, 1, 'approved', 'GM1', 20000.00, '2025-07-23 03:10:42', '2025-07-23 03:10:42'),
-(2, 26, 1, 'rejected', 'GM2', NULL, '2025-07-23 03:12:03', '2025-07-23 03:12:03'),
 (3, 28, 1, 'approved', 'อนุมัติคำขอ (GM)1', 20000.00, '2025-07-23 03:33:04', '2025-07-23 03:33:04'),
-(4, 27, 1, 'approved', 'อนุมัติคำขอ (GM)2', 400.00, '2025-07-23 03:33:18', '2025-07-23 03:33:18'),
 (5, 23, 1, 'approved', '14564', 20000.00, '2025-07-23 04:04:23', '2025-07-23 04:04:23'),
 (7, 31, 1, 'approved', 'เอกสาร อนุมัติคำขอ (GM)', 20000.00, '2025-07-23 08:53:41', '2025-07-23 08:53:41'),
 (8, 32, 2, 'approved', 'อนุมัติคำขอ (GM)', 200000.00, '2025-07-24 02:37:04', '2025-07-24 02:37:04'),
 (9, 33, 2, 'approved', 'ผู้จัดการทั่วไป1', 30000.00, '2025-07-24 03:08:51', '2025-07-24 03:08:51'),
-(10, 34, 2, 'approved', 'ผู้จัดการทั่วไป2', 30.00, '2025-07-24 03:09:05', '2025-07-24 03:09:05'),
-(11, 38, 2, 'approved', 'อนุมัติคำขอ (GM)', 300000.00, '2025-07-24 09:14:11', '2025-07-24 09:14:11'),
-(12, 48, 2, 'approved', 'อนุมัติคำขอ (GM)', 2000000.00, '2025-07-25 02:41:21', '2025-07-25 02:41:21'),
-(13, 35, 2, 'approved', 'อนุมัติคำขอ (GM)2', 100.00, '2025-07-25 02:41:37', '2025-07-25 02:41:37');
+(12, 48, 2, 'approved', 'อนุมัติคำขอ (GM)', 2000000.00, '2025-07-25 02:41:21', '2025-07-25 02:41:21');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `programs`
+--
+
+CREATE TABLE `programs` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `programs`
+--
+
+INSERT INTO `programs` (`id`, `name`) VALUES
+(1, 'Admin Booking จองห้องประชุม, รถ ,เลขที่บันทึก'),
+(2, 'ARM Share'),
+(3, 'Battery Mangement'),
+(4, 'BESAFE'),
+(5, 'Break Case'),
+(6, 'Consignment RDC'),
+(7, 'Consignment CDC'),
+(8, 'Consignment RDC Monitor'),
+(9, 'COVID-19'),
+(10, 'ALL Dashboard'),
+(11, 'DATA CENTER'),
+(12, 'DATA ENTRY'),
+(13, 'Friend\'s Corner'),
+(14, 'Full Case'),
+(15, 'iMove'),
+(16, 'LABEL RDC'),
+(17, 'LABEL CDC'),
+(18, 'Loading'),
+(19, 'Location Hold'),
+(20, 'LORA'),
+(21, 'Magic Location'),
+(22, 'MAYYA'),
+(23, 'Mermaid'),
+(24, 'NRS'),
+(25, 'O2O RDC'),
+(26, 'O2O CDC'),
+(27, 'Organization Development'),
+(28, 'PICK & LOAD'),
+(29, 'Pick Dang'),
+(30, 'PIMMY CDC'),
+(31, 'PIMMY RDC'),
+(32, 'POP & FOP'),
+(33, 'Product'),
+(34, 'Progress RDC'),
+(35, 'RECEIVE CDC'),
+(36, 'RECEIVE CHECK-IN'),
+(37, 'Repick'),
+(38, 'Replenishment'),
+(39, 'STOCK Engineer'),
+(40, 'TO BE SHOP CDC'),
+(41, 'TO BE SHOP INVENTORY'),
+(42, 'TO BE SHOP RDC'),
+(43, 'Transporter RDC'),
+(44, 'Transporter CDC'),
+(45, 'TRUCK-AGE'),
+(46, 'VSM'),
+(47, 'ADMIN ตรวจนับทรัพย์สิน'),
+(48, 'ADMIN เบิกวัสดุอุปกรณ์สิ้นเปลือง CDC'),
+(49, 'ADMIN เบิกวัสดุอุปกรณ์สิ้นเปลือง RDC'),
+(50, 'รักษ์ RACK'),
+(51, 'รักษ์ รถ'),
+(52, 'Remaining Check Stock (RCS)');
 
 -- --------------------------------------------------------
 
@@ -374,18 +489,16 @@ INSERT INTO `request_attachments` (`id`, `service_request_id`, `original_filenam
 (1, 31, '131317.pdf', '31_1753260224_0.pdf', 59743, 'pdf', '2025-07-23 08:43:44'),
 (2, 32, '131317.pdf', '32_1753324053_0.pdf', 59743, 'pdf', '2025-07-24 02:27:33'),
 (3, 33, '131162.jpg', '33_1753326089_0.jpg', 113831, 'jpg', '2025-07-24 03:01:29'),
-(4, 34, '131317.jpg', '34_1753326103_0.jpg', 82227, 'jpg', '2025-07-24 03:01:43'),
-(5, 35, '131325.jpg', '35_1753326127_0.jpg', 92603, 'jpg', '2025-07-24 03:02:07'),
-(6, 35, '131328.jpg', '35_1753326127_1.jpg', 82385, 'jpg', '2025-07-24 03:02:07'),
 (7, 36, '131317.jpg', '36_1753326147_0.jpg', 82227, 'jpg', '2025-07-24 03:02:27'),
 (8, 36, '131317.pdf', '36_1753326147_1.pdf', 59743, 'pdf', '2025-07-24 03:02:27'),
 (9, 37, '131162.jpg', '37_1753326163_0.jpg', 113831, 'jpg', '2025-07-24 03:02:43'),
-(10, 38, '131317.pdf', '38_1753344350_0.pdf', 59743, 'pdf', '2025-07-24 08:05:50'),
 (11, 48, '131317.jpg', '48_1753411052_0.jpg', 82227, 'jpg', '2025-07-25 02:37:32'),
 (12, 48, '131317.pdf', '48_1753411052_1.pdf', 59743, 'pdf', '2025-07-25 02:37:32'),
 (13, 49, 'เมล์แจ้งรายละเอียดก่อนเริ่มงาน.pdf', '49_1753429575_0.pdf', 405166, 'pdf', '2025-07-25 07:46:15'),
 (14, 49, '131317 (1).pdf', '49_1753429575_1.pdf', 59743, 'pdf', '2025-07-25 07:46:15'),
-(15, 49, '131317.pdf', '49_1753429575_2.pdf', 59743, 'pdf', '2025-07-25 07:46:15');
+(15, 49, '131317.pdf', '49_1753429575_2.pdf', 59743, 'pdf', '2025-07-25 07:46:15'),
+(16, 54, '131317.pdf', '54_1753683166_0.pdf', 59743, 'pdf', '2025-07-28 06:12:46'),
+(17, 54, 'ใบเสร็จค่าเดินทาง.pdf', '54_1753683166_1.pdf', 102535, 'pdf', '2025-07-28 06:12:46');
 
 -- --------------------------------------------------------
 
@@ -410,16 +523,12 @@ CREATE TABLE `senior_gm_approvals` (
 
 INSERT INTO `senior_gm_approvals` (`id`, `service_request_id`, `senior_gm_user_id`, `status`, `reason`, `final_notes`, `reviewed_at`, `created_at`) VALUES
 (1, 25, 1, 'approved', 'ผู้จัดการอาวุโส', 'ผู้จัดการอาวุโส ร่งทำ', '2025-07-23 03:15:07', '2025-07-23 03:15:07'),
-(2, 27, 1, 'approved', 'ผู้จัดการอาวุโส1', 'เร่ง', '2025-07-23 03:34:15', '2025-07-23 03:34:15'),
 (3, 28, 1, 'approved', 'ผู้จัดการอาวุโส2', 'ทำสะ', '2025-07-23 03:34:30', '2025-07-23 03:34:30'),
 (5, 23, 1, 'approved', '489456', '464', '2025-07-23 04:05:14', '2025-07-23 04:05:14'),
 (6, 31, 1, 'approved', 'ผู้จัดการอาวุโส เอกสาร', 'รีบๆทำเนาะ', '2025-07-23 08:56:19', '2025-07-23 08:56:19'),
 (7, 32, 2, 'approved', 'พิจารณาคำขอขั้นสุดท้าย', 'หมายเหตุสำหรับผู้พัฒนา:\r\n55', '2025-07-24 02:39:41', '2025-07-24 02:39:41'),
-(8, 34, 2, 'approved', 'ผู้จัดการอาวุโส1', 'ผู้จัดการอาวุโส111', '2025-07-24 03:09:59', '2025-07-24 03:09:59'),
 (9, 33, 2, 'approved', 'ผู้จัดการอาวุโส2', 'ผู้จัดการอาวุโส222', '2025-07-24 03:10:10', '2025-07-24 03:10:10'),
-(10, 38, 2, 'approved', 'พิจารณาคำขอขั้นสุดท้าย', 'หมายเหตุสำหรับผู้พัฒนาพิจารณาคำขอขั้นสุดท้าย', '2025-07-24 09:19:13', '2025-07-24 09:19:13'),
-(11, 48, 2, 'approved', 'ผู้จัดการอาวุโส', 'ผู้จัดการอาวุโสหมายเหตุสำหรับผู้พัฒนา', '2025-07-25 02:42:45', '2025-07-25 02:42:45'),
-(12, 35, 2, 'approved', 'ผู้จัดการอาวุโส', 'ผู้จัดการอาวุโสหมายเหตุสำหรับผู้พัฒนา', '2025-07-25 02:42:59', '2025-07-25 02:42:59');
+(11, 48, 2, 'approved', 'ผู้จัดการอาวุโส', 'ผู้จัดการอาวุโสหมายเหตุสำหรับผู้พัฒนา', '2025-07-25 02:42:45', '2025-07-25 02:42:45');
 
 -- --------------------------------------------------------
 
@@ -480,45 +589,46 @@ CREATE TABLE `service_requests` (
   `expected_benefits` text DEFAULT NULL,
   `assigned_div_mgr_id` int(11) DEFAULT NULL,
   `service_id` int(11) DEFAULT NULL,
-  `employee_id` varchar(50) DEFAULT NULL
+  `employee_id` varchar(50) DEFAULT NULL,
+  `current_workflow` text DEFAULT NULL COMMENT 'ขั้นตอนการทำงานเดิม',
+  `approach_ideas` text DEFAULT NULL COMMENT 'แนวทาง/ไอเดีย',
+  `related_programs` text DEFAULT NULL COMMENT 'โปรแกรมที่คาดว่าจะเกี่ยวข้อง',
+  `current_tools` text DEFAULT NULL COMMENT 'ปกติใช้โปรแกรมอะไรทำงานอยู่',
+  `system_impact` text DEFAULT NULL COMMENT 'ถ้ากรณีต้องระบบหรือปิด Server จะกระทบต่อกระบวนการอะไรบ้าง',
+  `related_documents` text DEFAULT NULL COMMENT 'เอกสารการทำงานที่เกี่ยวข้อง'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `service_requests`
 --
 
-INSERT INTO `service_requests` (`id`, `user_id`, `title`, `description`, `status`, `rejection_reason`, `assigned_to_admin_id`, `created_at`, `updated_at`, `current_step`, `priority`, `estimated_days`, `deadline`, `developer_status`, `work_category`, `expected_benefits`, `assigned_div_mgr_id`, `service_id`, `employee_id`) VALUES
-(23, 1, 'D44', 'DDD', 'approved', NULL, NULL, '2025-07-22 09:09:23', '2025-07-24 10:09:15', 'senior_gm_approved', 'urgent', 8, NULL, 'received', NULL, NULL, NULL, NULL, NULL),
-(24, 1, 'E55', '55', 'rejected', NULL, NULL, '2025-07-22 09:09:30', '2025-07-23 02:59:55', 'div_mgr_rejected', 'medium', NULL, NULL, 'not_assigned', NULL, NULL, NULL, NULL, NULL),
-(25, 1, 'ทดสอบbolt', 'bolt1', 'approved', NULL, NULL, '2025-07-23 02:57:11', '2025-07-23 03:15:07', 'senior_gm_approved', 'urgent', 24, NULL, 'not_assigned', NULL, NULL, NULL, NULL, NULL),
-(26, 1, 'bolt2', 'bolt22', 'rejected', NULL, NULL, '2025-07-23 02:57:24', '2025-07-23 03:12:03', 'gm_rejected', 'high', 6, NULL, 'not_assigned', NULL, NULL, NULL, NULL, NULL),
-(27, 1, 'bolt3', 'bolt333', 'approved', NULL, NULL, '2025-07-23 03:26:22', '2025-07-24 01:47:09', 'senior_gm_approved', 'high', 36, NULL, 'completed', NULL, NULL, NULL, NULL, NULL),
-(28, 1, 'ระบบล่ม', 'เชื่อมเนตไม่ได้', 'approved', NULL, NULL, '2025-07-23 03:26:41', '2025-07-23 04:25:00', 'senior_gm_approved', 'urgent', 72, NULL, 'accepted', NULL, NULL, NULL, NULL, NULL),
-(29, 1, '123', '123', 'rejected', NULL, NULL, '2025-07-23 03:57:22', '2025-07-24 03:06:48', 'assignor_rejected', 'medium', NULL, NULL, 'not_assigned', NULL, NULL, NULL, NULL, NULL),
-(30, 1, 'ทดเอกสารไฟล์', 'ทดเอกสารไฟล์', 'pending', NULL, NULL, '2025-07-23 08:29:26', '2025-07-23 08:29:26', 'user_submitted', 'medium', NULL, NULL, 'not_assigned', NULL, NULL, NULL, NULL, NULL),
-(31, 1, 'เอกสาร1', 'เอกสาร11', 'approved', NULL, NULL, '2025-07-23 08:43:44', '2025-07-23 09:05:53', 'senior_gm_approved', 'high', 32, NULL, 'accepted', NULL, NULL, NULL, NULL, NULL),
-(32, 2, 'ทดสอบวันที่24', 'ทดสอบรายละเอียดวันที่24', 'approved', NULL, NULL, '2025-07-24 02:27:33', '2025-07-24 02:44:25', 'senior_gm_approved', 'urgent', 29, NULL, 'accepted', NULL, NULL, NULL, NULL, NULL),
-(33, 2, 'เทส1', 'เทส11', 'approved', NULL, NULL, '2025-07-24 03:01:29', '2025-07-24 06:35:23', 'senior_gm_approved', 'high', 3, NULL, 'accepted', NULL, NULL, NULL, NULL, NULL),
-(34, 2, 'เทส2', 'เทส2', 'approved', NULL, NULL, '2025-07-24 03:01:43', '2025-07-24 03:16:04', 'senior_gm_approved', 'urgent', 2, NULL, 'accepted', NULL, NULL, NULL, NULL, NULL),
-(35, 2, 'เทส3', 'เทส33', 'approved', NULL, NULL, '2025-07-24 03:02:07', '2025-07-25 09:58:01', 'senior_gm_approved', 'urgent', 2, NULL, 'pending', NULL, NULL, NULL, 5, NULL),
-(36, 2, 'เทส4', 'เทส444', 'pending', NULL, NULL, '2025-07-24 03:02:27', '2025-07-24 03:02:27', 'user_submitted', 'medium', NULL, NULL, 'not_assigned', NULL, NULL, NULL, NULL, NULL),
-(37, 2, 'เทส5', 'เทส55', 'pending', NULL, NULL, '2025-07-24 03:02:43', '2025-07-24 03:02:43', 'user_submitted', 'medium', NULL, NULL, 'not_assigned', NULL, NULL, NULL, NULL, NULL),
-(38, 1, 'เน็ต่ลมครับ', 'เข้าเว็บไม่ได้', 'approved', NULL, NULL, '2025-07-24 08:05:50', '2025-07-24 10:09:22', 'senior_gm_approved', 'urgent', 3, NULL, 'in_progress', 'CDC', 'เเล่นเกม4Kหัวเเตก', 2, 2, NULL),
-(39, 1, 'ทดสอบ', 'ทดสอบครับ44', 'approved', NULL, NULL, '2025-07-24 09:55:07', '2025-07-24 10:09:10', 'developer_self_created', 'high', 4, '2025-07-25', 'received', NULL, NULL, NULL, 12, NULL),
-(40, 1, '56456', '4564564', 'approved', NULL, NULL, '2025-07-24 10:03:23', '2025-07-24 10:09:20', 'developer_self_created', 'high', 6, '0000-00-00', 'in_progress', NULL, NULL, NULL, 9, NULL),
-(41, 1, '561456', '564', 'approved', NULL, NULL, '2025-07-24 10:04:52', '2025-07-24 10:09:16', 'developer_self_created', 'urgent', 1, '2025-07-25', 'in_progress', NULL, NULL, NULL, 6, NULL),
-(42, 2, 'ทดสอบ', 'ไฟดับ', 'approved', NULL, NULL, '2025-07-25 01:30:41', '2025-07-25 02:49:16', 'developer_self_created', 'high', 1, '2025-07-25', 'in_progress', NULL, NULL, NULL, 10, NULL),
-(43, 2, 'ทดสอบ', 'ไฟดับ', 'approved', NULL, NULL, '2025-07-25 01:39:09', '2025-07-25 01:39:09', 'developer_self_created', 'high', 1, '2025-07-25', 'received', NULL, NULL, NULL, 10, NULL),
-(44, 2, 'ทดสอบ', 'ไฟดับ', 'approved', NULL, NULL, '2025-07-25 01:39:13', '2025-07-25 01:39:13', 'developer_self_created', 'high', 1, '2025-07-25', 'received', NULL, NULL, NULL, 10, NULL),
-(45, 2, 'ทดสอบ', 'ไฟดับ', 'approved', NULL, NULL, '2025-07-25 01:39:19', '2025-07-25 01:39:19', 'developer_self_created', 'high', 1, '2025-07-25', 'received', NULL, NULL, NULL, 10, NULL),
-(46, 2, 'เทส', 'งานนะ', 'approved', NULL, NULL, '2025-07-25 02:11:15', '2025-07-25 10:07:38', 'developer_self_created', 'urgent', 3, '2025-07-27', 'completed', NULL, NULL, NULL, 9, NULL),
-(47, 2, '่ะด่', '่ะ่', 'approved', NULL, NULL, '2025-07-25 02:13:16', '2025-07-25 02:59:03', 'developer_self_created', 'medium', 1, '2025-07-26', 'on_hold', NULL, NULL, NULL, 11, NULL),
-(48, 2, 'เเก้ระบบbobby', 'เข้าระบบbobbyไม่ได้', 'approved', NULL, NULL, '2025-07-25 02:37:32', '2025-07-25 10:07:13', 'senior_gm_approved', 'high', 2, NULL, 'received', 'RDC', 'กลับมาเริ่มงานได้', 2, 2, NULL),
-(49, 7, 'พพพพ', 'รรรร', 'div_mgr_review', NULL, NULL, '2025-07-25 07:46:15', '2025-07-25 07:46:15', 'user_submitted', 'medium', NULL, NULL, 'not_assigned', 'RDC', 'นนนนนนนนนน', 2, NULL, NULL),
-(50, 2, 'เน็ตช้าา', 'หน้างานเข้าไม่ได้', 'approved', NULL, NULL, '2025-07-25 07:58:09', '2025-07-25 10:01:06', 'developer_self_created', 'urgent', 3, '2025-07-30', 'received', NULL, NULL, NULL, 9, NULL),
-(51, 2, 'เน็ตช้าา', 'หน้างานเข้าไม่ได้', 'approved', NULL, NULL, '2025-07-25 07:58:18', '2025-07-25 07:58:18', 'developer_self_created', 'urgent', 3, '2025-07-30', 'received', NULL, NULL, NULL, 9, NULL),
-(52, 2, 'เน็ตช้าา', 'หน้างานเข้าไม่ได้', 'approved', NULL, NULL, '2025-07-25 07:58:28', '2025-07-25 07:58:28', 'developer_self_created', 'urgent', 3, '2025-07-30', 'received', NULL, NULL, NULL, 9, NULL),
-(53, 2, 'ggg', 'ggg', 'approved', NULL, NULL, '2025-07-25 10:00:52', '2025-07-25 10:10:39', 'developer_self_created', 'urgent', 2, '2025-07-25', 'on_hold', NULL, NULL, NULL, 10, NULL);
+INSERT INTO `service_requests` (`id`, `user_id`, `title`, `description`, `status`, `rejection_reason`, `assigned_to_admin_id`, `created_at`, `updated_at`, `current_step`, `priority`, `estimated_days`, `deadline`, `developer_status`, `work_category`, `expected_benefits`, `assigned_div_mgr_id`, `service_id`, `employee_id`, `current_workflow`, `approach_ideas`, `related_programs`, `current_tools`, `system_impact`, `related_documents`) VALUES
+(23, 1, 'D44', 'DDD', 'approved', NULL, NULL, '2025-07-22 09:09:23', '2025-07-24 10:09:15', 'senior_gm_approved', 'urgent', 8, NULL, 'received', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(24, 1, 'E55', '55', 'rejected', NULL, NULL, '2025-07-22 09:09:30', '2025-07-23 02:59:55', 'div_mgr_rejected', 'medium', NULL, NULL, 'not_assigned', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(25, 1, 'ทดสอบbolt', 'bolt1', 'approved', NULL, NULL, '2025-07-23 02:57:11', '2025-07-23 03:15:07', 'senior_gm_approved', 'urgent', 24, NULL, 'not_assigned', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(28, 1, 'ระบบล่ม', 'เชื่อมเนตไม่ได้', 'approved', NULL, NULL, '2025-07-23 03:26:41', '2025-07-23 04:25:00', 'senior_gm_approved', 'urgent', 72, NULL, 'accepted', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(29, 1, '123', '123', 'rejected', NULL, NULL, '2025-07-23 03:57:22', '2025-07-24 03:06:48', 'assignor_rejected', 'medium', NULL, NULL, 'not_assigned', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(30, 1, 'ทดเอกสารไฟล์', 'ทดเอกสารไฟล์', 'pending', NULL, NULL, '2025-07-23 08:29:26', '2025-07-23 08:29:26', 'user_submitted', 'medium', NULL, NULL, 'not_assigned', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(31, 1, 'เอกสาร1', 'เอกสาร11', 'approved', NULL, NULL, '2025-07-23 08:43:44', '2025-07-23 09:05:53', 'senior_gm_approved', 'high', 32, NULL, 'accepted', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(32, 2, 'ทดสอบวันที่24', 'ทดสอบรายละเอียดวันที่24', 'approved', NULL, NULL, '2025-07-24 02:27:33', '2025-07-24 02:44:25', 'senior_gm_approved', 'urgent', 29, NULL, 'accepted', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(33, 2, 'เทส1', 'เทส11', 'approved', NULL, NULL, '2025-07-24 03:01:29', '2025-07-24 06:35:23', 'senior_gm_approved', 'high', 3, NULL, 'accepted', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(36, 2, 'เทส4', 'เทส444', 'pending', NULL, NULL, '2025-07-24 03:02:27', '2025-07-24 03:02:27', 'user_submitted', 'medium', NULL, NULL, 'not_assigned', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(37, 2, 'เทส5', 'เทส55', 'pending', NULL, NULL, '2025-07-24 03:02:43', '2025-07-24 03:02:43', 'user_submitted', 'medium', NULL, NULL, 'not_assigned', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(39, 1, 'ทดสอบ', 'ทดสอบครับ44', 'approved', NULL, NULL, '2025-07-24 09:55:07', '2025-07-24 10:09:10', 'developer_self_created', 'high', 4, '2025-07-25', 'received', NULL, NULL, NULL, 12, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(40, 1, '56456', '4564564', 'approved', NULL, NULL, '2025-07-24 10:03:23', '2025-07-24 10:09:20', 'developer_self_created', 'high', 6, '0000-00-00', 'in_progress', NULL, NULL, NULL, 9, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(41, 1, '561456', '564', 'approved', NULL, NULL, '2025-07-24 10:04:52', '2025-07-24 10:09:16', 'developer_self_created', 'urgent', 1, '2025-07-25', 'in_progress', NULL, NULL, NULL, 6, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(42, 2, 'ทดสอบ', 'ไฟดับ', 'approved', NULL, NULL, '2025-07-25 01:30:41', '2025-07-25 02:49:16', 'developer_self_created', 'high', 1, '2025-07-25', 'in_progress', NULL, NULL, NULL, 10, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(43, 2, 'ทดสอบ', 'ไฟดับ', 'approved', NULL, NULL, '2025-07-25 01:39:09', '2025-07-25 01:39:09', 'developer_self_created', 'high', 1, '2025-07-25', 'received', NULL, NULL, NULL, 10, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(44, 2, 'ทดสอบ', 'ไฟดับ', 'approved', NULL, NULL, '2025-07-25 01:39:13', '2025-07-25 01:39:13', 'developer_self_created', 'high', 1, '2025-07-25', 'received', NULL, NULL, NULL, 10, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(45, 2, 'ทดสอบ', 'ไฟดับ', 'approved', NULL, NULL, '2025-07-25 01:39:19', '2025-07-25 01:39:19', 'developer_self_created', 'high', 1, '2025-07-25', 'received', NULL, NULL, NULL, 10, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(46, 2, 'เทส', 'งานนะ', 'approved', NULL, NULL, '2025-07-25 02:11:15', '2025-07-25 10:07:38', 'developer_self_created', 'urgent', 3, '2025-07-27', 'completed', NULL, NULL, NULL, 9, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(48, 2, 'เเก้ระบบbobby', 'เข้าระบบbobbyไม่ได้', 'approved', NULL, NULL, '2025-07-25 02:37:32', '2025-07-25 10:07:13', 'senior_gm_approved', 'high', 2, NULL, 'received', 'RDC', 'กลับมาเริ่มงานได้', 2, 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(49, 7, 'พพพพ', 'รรรร', 'div_mgr_review', NULL, NULL, '2025-07-25 07:46:15', '2025-07-25 07:46:15', 'user_submitted', 'medium', NULL, NULL, 'not_assigned', 'RDC', 'นนนนนนนนนน', 2, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(50, 2, 'เน็ตช้าา', 'หน้างานเข้าไม่ได้', 'approved', NULL, NULL, '2025-07-25 07:58:09', '2025-07-25 10:01:06', 'developer_self_created', 'urgent', 3, '2025-07-30', 'received', NULL, NULL, NULL, 9, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(51, 2, 'เน็ตช้าา', 'หน้างานเข้าไม่ได้', 'approved', NULL, NULL, '2025-07-25 07:58:18', '2025-07-25 07:58:18', 'developer_self_created', 'urgent', 3, '2025-07-30', 'received', NULL, NULL, NULL, 9, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(52, 2, 'เน็ตช้าา', 'หน้างานเข้าไม่ได้', 'approved', NULL, NULL, '2025-07-25 07:58:28', '2025-07-25 07:58:28', 'developer_self_created', 'urgent', 3, '2025-07-30', 'received', NULL, NULL, NULL, 9, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(53, 2, 'ggg', 'ggg', 'approved', NULL, NULL, '2025-07-25 10:00:52', '2025-07-25 10:10:39', 'developer_self_created', 'urgent', 2, '2025-07-25', 'on_hold', NULL, NULL, NULL, 10, NULL, NULL, NULL, NULL, NULL, NULL, NULL),
+(54, 2, 'โปรเเกรมคำนวณสินค้า', 'โปรเเกรมที่สามารถคำนวณได้อัตโนมัติ', 'div_mgr_review', NULL, NULL, '2025-07-28 06:12:46', '2025-07-28 06:12:46', 'user_submitted', 'medium', NULL, NULL, 'not_assigned', 'RDC', 'อยากมารถทำงานได้ไวขึ้น', 2, 1, NULL, 'ใช้โปรเเกรมคิดเอง', 'อยากได้ที่คำนวณได้อัตโนมัติ', 'ไม่ทราบครับ', 'word', 'bobbyบางโปรเเกรม', '');
 
 -- --------------------------------------------------------
 
@@ -547,22 +657,17 @@ CREATE TABLE `tasks` (
 --
 
 INSERT INTO `tasks` (`id`, `service_request_id`, `developer_user_id`, `task_status`, `progress_percentage`, `developer_notes`, `started_at`, `completed_at`, `estimated_completion`, `actual_hours`, `created_at`, `updated_at`, `accepted_at`) VALUES
-(1, 27, 1, 'completed', 100, '', '2025-07-23 03:36:15', '2025-07-24 01:47:09', NULL, NULL, '2025-07-23 03:34:15', '2025-07-24 01:47:09', '2025-07-23 10:36:15'),
 (2, 28, 1, 'accepted', 100, NULL, '2025-07-23 03:35:44', NULL, NULL, NULL, '2025-07-23 03:34:30', '2025-07-23 04:25:00', '2025-07-23 10:35:44'),
 (4, 23, 1, 'received', 10, '', '2025-07-24 06:56:51', '2025-07-24 06:57:27', NULL, NULL, '2025-07-23 04:05:14', '2025-07-24 10:09:15', '2025-07-24 13:56:51'),
 (5, 31, 1, 'accepted', 100, '', NULL, '2025-07-23 09:04:35', NULL, NULL, '2025-07-23 08:56:19', '2025-07-23 09:05:53', NULL),
 (6, 32, 2, 'accepted', 100, '', NULL, '2025-07-24 02:42:34', NULL, NULL, '2025-07-24 02:39:41', '2025-07-24 02:44:25', NULL),
-(7, 34, 1, 'accepted', 100, '', '2025-07-24 03:11:28', '2025-07-24 03:12:29', NULL, NULL, '2025-07-24 03:09:59', '2025-07-24 03:16:04', '2025-07-24 10:11:28'),
 (8, 33, 1, 'accepted', 100, '', '2025-07-24 03:12:15', '2025-07-24 06:33:24', NULL, NULL, '2025-07-24 03:10:10', '2025-07-24 06:35:23', '2025-07-24 10:12:15'),
-(9, 38, 1, 'in_progress', 50, '', NULL, NULL, NULL, NULL, '2025-07-24 09:19:13', '2025-07-24 10:09:22', NULL),
 (10, 39, 1, 'received', 10, '', '2025-07-24 09:55:07', '2025-07-24 09:55:21', '2025-07-25', NULL, '2025-07-24 09:55:07', '2025-07-24 10:09:10', '2025-07-24 16:55:07'),
 (11, 40, 1, 'in_progress', 50, '', '2025-07-24 10:03:23', NULL, '2025-07-30', NULL, '2025-07-24 10:03:23', '2025-07-24 10:09:20', '2025-07-24 17:03:23'),
 (12, 41, 1, 'in_progress', 50, '', '2025-07-24 10:04:52', '2025-07-24 10:05:04', '2025-07-25', NULL, '2025-07-24 10:04:52', '2025-07-24 10:09:16', '2025-07-24 17:04:52'),
 (13, 42, 2, 'in_progress', 50, '', '2025-07-25 01:30:41', NULL, '2025-07-25', NULL, '2025-07-25 01:30:41', '2025-07-25 02:49:16', '2025-07-25 08:30:41'),
 (17, 46, 2, 'completed', 100, '', '2025-07-25 02:11:15', '2025-07-25 10:07:38', '2025-07-27', NULL, '2025-07-25 02:11:15', '2025-07-25 10:07:38', '2025-07-25 09:11:15'),
-(18, 47, 2, 'on_hold', 30, '', '2025-07-25 02:13:16', NULL, '2025-07-26', NULL, '2025-07-25 02:13:16', '2025-07-25 02:59:03', '2025-07-25 09:13:16'),
 (19, 48, 2, 'received', 10, '', '2025-07-25 02:43:26', '2025-07-25 02:57:15', NULL, NULL, '2025-07-25 02:42:45', '2025-07-25 10:07:13', '2025-07-25 09:43:26'),
-(20, 35, 2, 'pending', 0, '', NULL, NULL, NULL, NULL, '2025-07-25 02:42:59', '2025-07-25 09:58:01', NULL),
 (21, 50, 2, 'received', 10, '', '2025-07-25 07:58:09', NULL, '2025-07-30', NULL, '2025-07-25 07:58:09', '2025-07-25 10:01:06', '2025-07-25 14:58:09'),
 (24, 53, 2, 'on_hold', 30, '', '2025-07-25 10:00:52', NULL, '2025-07-25', NULL, '2025-07-25 10:00:52', '2025-07-25 10:10:40', '2025-07-25 17:00:52');
 
@@ -588,24 +693,13 @@ CREATE TABLE `task_status_logs` (
 
 INSERT INTO `task_status_logs` (`id`, `task_id`, `old_status`, `new_status`, `changed_by`, `notes`, `created_at`) VALUES
 (1, 2, 'pending', 'received', 1, 'งานได้รับการยอมรับโดยผู้พัฒนา', '2025-07-23 03:35:44'),
-(2, 1, 'pending', 'received', 1, 'งานได้รับการยอมรับโดยผู้พัฒนา', '2025-07-23 03:36:15'),
 (3, 4, 'pending', 'received', 1, 'งานได้รับการยอมรับโดยผู้พัฒนา', '2025-07-23 04:06:11'),
 (6, 4, 'received', 'in_progress', 1, '', '2025-07-23 04:06:33'),
 (7, 2, 'completed', 'accepted', 1, 'ปิดงานครับ', '2025-07-23 04:25:00'),
-(8, 1, '', 'received', 1, '', '2025-07-23 04:35:04'),
 (9, 4, '', 'received', 1, '', '2025-07-23 04:35:09'),
-(10, 1, '', 'in_progress', 1, '', '2025-07-23 04:36:20'),
-(11, 1, '', 'in_progress', 1, '', '2025-07-23 04:36:24'),
-(12, 1, '', 'received', 1, '', '2025-07-23 04:42:16'),
 (13, 4, '', 'in_progress', 1, '', '2025-07-23 04:42:38'),
-(14, 1, '', 'pending', 1, '', '2025-07-23 04:47:46'),
-(15, 1, '', 'received', 1, '', '2025-07-23 04:48:28'),
-(16, 1, '', 'in_progress', 1, '', '2025-07-23 04:48:35'),
 (17, 4, '', 'on_hold', 1, '', '2025-07-23 04:49:08'),
 (18, 4, '', 'completed', 1, '', '2025-07-24 04:49:12'),
-(19, 1, '', 'pending', 1, '', '2025-07-23 07:15:46'),
-(21, 1, '', 'pending', 1, '', '2025-07-23 07:16:35'),
-(22, 1, '', 'received', 1, '', '2025-07-23 07:16:38'),
 (25, 5, '', 'received', 1, '', '2025-07-23 08:57:47'),
 (26, 5, '', 'pending', 1, '', '2025-07-23 08:58:06'),
 (27, 5, '', 'pending', 1, '', '2025-07-23 08:59:10'),
@@ -624,11 +718,6 @@ INSERT INTO `task_status_logs` (`id`, `task_id`, `old_status`, `new_status`, `ch
 (40, 5, 'completed', 'accepted', 1, 'ดีๆ', '2025-07-23 09:05:53'),
 (41, 4, '', 'pending', 1, '', '2025-07-23 09:42:22'),
 (42, 4, '', 'completed', 1, '', '2025-07-23 09:42:26'),
-(43, 1, '', 'pending', 1, '', '2025-07-23 09:58:44'),
-(44, 1, '', 'received', 1, '', '2025-07-23 09:58:53'),
-(45, 1, '', 'in_progress', 1, '', '2025-07-24 01:46:47'),
-(46, 1, '', 'received', 1, '', '2025-07-24 01:46:52'),
-(47, 1, '', 'completed', 1, '', '2025-07-24 01:47:09'),
 (48, 4, '', 'in_progress', 1, '', '2025-07-24 01:51:48'),
 (49, 4, '', 'received', 1, '', '2025-07-24 01:51:59'),
 (50, 4, '', 'pending', 1, '', '2025-07-24 01:52:06'),
@@ -639,11 +728,8 @@ INSERT INTO `task_status_logs` (`id`, `task_id`, `old_status`, `new_status`, `ch
 (55, 6, '', 'in_progress', 2, '', '2025-07-24 02:42:10'),
 (56, 6, '', 'completed', 2, '', '2025-07-24 02:42:34'),
 (57, 6, 'completed', 'accepted', 2, 'ดีครับ', '2025-07-24 02:44:25'),
-(61, 7, 'pending', 'received', 1, 'งานได้รับการยอมรับโดยผู้พัฒนา', '2025-07-24 03:11:28'),
 (62, 8, 'pending', 'received', 1, 'งานได้รับการยอมรับโดยผู้พัฒนา', '2025-07-24 03:12:15'),
 (63, 8, '', 'in_progress', 1, '', '2025-07-24 03:12:25'),
-(64, 7, '', 'completed', 1, '', '2025-07-24 03:12:29'),
-(65, 7, 'completed', 'accepted', 2, 'ดดีีเยี่ยมมม', '2025-07-24 03:16:04'),
 (66, 8, '', 'on_hold', 1, '', '2025-07-24 03:53:09'),
 (67, 8, '', 'in_progress', 1, '', '2025-07-24 03:53:15'),
 (68, 8, '', 'on_hold', 1, '', '2025-07-24 06:10:03'),
@@ -661,48 +747,33 @@ INSERT INTO `task_status_logs` (`id`, `task_id`, `old_status`, `new_status`, `ch
 (80, 4, '', 'on_hold', 1, '', '2025-07-24 06:57:16'),
 (81, 4, '', 'in_progress', 1, '', '2025-07-24 06:57:19'),
 (82, 4, '', 'completed', 1, '1531351', '2025-07-24 06:57:27'),
-(83, 9, '', 'received', 1, '', '2025-07-24 09:54:24'),
-(84, 9, '', 'pending', 1, '', '2025-07-24 09:54:25'),
-(85, 9, '', 'received', 1, '', '2025-07-24 09:54:26'),
 (86, 10, '', 'in_progress', 1, '', '2025-07-24 09:55:15'),
 (87, 10, '', 'on_hold', 1, '', '2025-07-24 09:55:20'),
 (88, 10, '', 'completed', 1, '', '2025-07-24 09:55:21'),
 (89, 10, '', 'received', 1, '', '2025-07-24 09:55:23'),
-(90, 9, '', 'received', 1, '', '2025-07-24 09:55:28'),
-(91, 9, '', 'in_progress', 1, '', '2025-07-24 09:55:30'),
-(92, 9, '', 'in_progress', 1, '', '2025-07-24 09:55:31'),
-(93, 9, '', 'received', 1, '', '2025-07-24 09:55:32'),
 (94, 10, '', 'pending', 1, '', '2025-07-24 09:55:46'),
 (95, 10, '', 'received', 1, '', '2025-07-24 09:55:52'),
 (96, 10, '', 'in_progress', 1, '', '2025-07-24 09:56:55'),
 (97, 10, '', 'in_progress', 1, '', '2025-07-24 10:00:54'),
 (98, 10, '', 'on_hold', 1, '', '2025-07-24 10:00:55'),
 (99, 10, '', 'in_progress', 1, '', '2025-07-24 10:00:56'),
-(100, 9, '', 'received', 1, '', '2025-07-24 10:00:56'),
 (101, 11, '', 'received', 1, '', '2025-07-24 10:03:31'),
 (102, 11, '', 'received', 1, '', '2025-07-24 10:03:32'),
 (103, 10, '', 'received', 1, '', '2025-07-24 10:03:33'),
 (104, 10, '', 'in_progress', 1, '', '2025-07-24 10:03:34'),
 (105, 11, '', 'received', 1, '', '2025-07-24 10:03:35'),
 (106, 11, '', 'in_progress', 1, '', '2025-07-24 10:03:36'),
-(107, 9, '', 'on_hold', 1, '', '2025-07-24 10:03:38'),
 (108, 11, '', 'received', 1, '', '2025-07-24 10:03:40'),
 (109, 10, '', 'received', 1, '', '2025-07-24 10:03:40'),
-(110, 9, '', 'in_progress', 1, '', '2025-07-24 10:03:43'),
 (111, 11, '', 'received', 1, '', '2025-07-24 10:03:46'),
-(112, 9, '', 'pending', 1, '', '2025-07-24 10:03:49'),
 (113, 11, '', 'in_progress', 1, '', '2025-07-24 10:03:50'),
-(114, 9, '', 'received', 1, '', '2025-07-24 10:04:07'),
 (115, 10, '', 'in_progress', 1, '', '2025-07-24 10:04:08'),
 (116, 12, '', 'in_progress', 1, '', '2025-07-24 10:04:56'),
 (117, 11, '', 'on_hold', 1, '', '2025-07-24 10:04:58'),
 (118, 11, '', 'in_progress', 1, '', '2025-07-24 10:04:59'),
 (119, 12, '', 'on_hold', 1, '', '2025-07-24 10:05:02'),
 (120, 12, '', 'completed', 1, '', '2025-07-24 10:05:04'),
-(121, 9, '', 'in_progress', 1, '', '2025-07-24 10:05:58'),
-(122, 9, '', 'received', 1, '', '2025-07-24 10:06:00'),
 (123, 11, '', 'received', 1, '', '2025-07-24 10:06:14'),
-(124, 9, '', 'received', 1, '', '2025-07-24 10:06:15'),
 (125, 10, '', 'received', 1, '', '2025-07-24 10:06:16'),
 (126, 11, '', 'in_progress', 1, '', '2025-07-24 10:06:17'),
 (127, 11, '', 'received', 1, '', '2025-07-24 10:06:28'),
@@ -716,78 +787,31 @@ INSERT INTO `task_status_logs` (`id`, `task_id`, `old_status`, `new_status`, `ch
 (135, 11, '', 'in_progress', 1, '', '2025-07-24 10:06:55'),
 (136, 11, '', 'received', 1, '', '2025-07-24 10:06:56'),
 (137, 11, '', 'in_progress', 1, '', '2025-07-24 10:06:57'),
-(138, 9, '', 'in_progress', 1, '', '2025-07-24 10:06:58'),
 (139, 11, '', 'received', 1, '', '2025-07-24 10:07:00'),
-(140, 9, '', 'in_progress', 1, '', '2025-07-24 10:07:01'),
 (141, 11, '', 'in_progress', 1, '', '2025-07-24 10:07:02'),
-(142, 9, '', 'received', 1, '', '2025-07-24 10:07:03'),
-(143, 9, '', 'in_progress', 1, '', '2025-07-24 10:07:09'),
-(144, 9, '', 'received', 1, '', '2025-07-24 10:07:13'),
-(145, 9, '', 'received', 1, '', '2025-07-24 10:07:15'),
-(146, 9, '', 'in_progress', 1, '', '2025-07-24 10:07:16'),
-(147, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:18'),
-(148, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:26'),
-(149, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:27'),
-(150, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:29'),
-(151, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:30'),
-(152, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:31'),
-(153, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:33'),
-(154, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:34'),
-(155, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:36'),
-(156, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:37'),
-(157, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:38'),
-(158, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:39'),
-(159, 9, '', 'in_progress', 1, '', '2025-07-24 10:07:40'),
-(160, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:42'),
 (161, 4, '', 'on_hold', 1, '', '2025-07-24 10:07:43'),
-(162, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:54'),
-(163, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:58'),
-(164, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:59'),
-(165, 9, '', 'on_hold', 1, '', '2025-07-24 10:07:59'),
-(166, 9, '', 'on_hold', 1, '', '2025-07-24 10:08:00'),
-(167, 9, '', 'on_hold', 1, '', '2025-07-24 10:08:02'),
-(168, 9, '', 'on_hold', 1, '', '2025-07-24 10:08:03'),
-(169, 9, '', 'in_progress', 1, '', '2025-07-24 10:08:05'),
-(170, 9, '', 'in_progress', 1, '', '2025-07-24 10:08:06'),
-(171, 9, '', 'in_progress', 1, '', '2025-07-24 10:08:07'),
-(172, 9, '', 'in_progress', 1, '', '2025-07-24 10:08:08'),
-(173, 9, '', 'in_progress', 1, '', '2025-07-24 10:08:08'),
-(174, 9, '', 'received', 1, '', '2025-07-24 10:08:10'),
 (175, 11, '', 'received', 1, '', '2025-07-24 10:08:11'),
-(176, 9, '', 'in_progress', 1, '', '2025-07-24 10:08:12'),
 (177, 11, '', 'received', 1, '', '2025-07-24 10:08:13'),
 (178, 11, '', 'in_progress', 1, '', '2025-07-24 10:08:14'),
 (179, 11, '', 'received', 1, '', '2025-07-24 10:08:15'),
-(180, 9, '', 'received', 1, '', '2025-07-24 10:08:16'),
-(181, 9, '', 'in_progress', 1, '', '2025-07-24 10:08:17'),
 (182, 11, '', 'in_progress', 1, '', '2025-07-24 10:08:17'),
 (183, 11, '', 'received', 1, '', '2025-07-24 10:08:19'),
-(184, 9, '', 'received', 1, '', '2025-07-24 10:08:20'),
-(185, 9, '', 'received', 1, '', '2025-07-24 10:08:21'),
 (186, 11, '', 'in_progress', 1, '', '2025-07-24 10:08:22'),
-(187, 9, '', 'in_progress', 1, '', '2025-07-24 10:08:23'),
 (188, 11, '', 'on_hold', 1, '', '2025-07-24 10:08:28'),
-(189, 9, '', 'on_hold', 1, '', '2025-07-24 10:08:29'),
-(190, 9, '', 'on_hold', 1, '', '2025-07-24 10:08:37'),
 (191, 10, '', 'received', 1, '', '2025-07-24 10:08:44'),
 (192, 12, '', 'received', 1, '', '2025-07-24 10:08:46'),
-(193, 9, '', 'in_progress', 1, '', '2025-07-24 10:08:47'),
 (194, 11, '', 'in_progress', 1, '', '2025-07-24 10:08:48'),
 (195, 4, '', 'in_progress', 1, '', '2025-07-24 10:08:49'),
-(196, 9, '', 'received', 1, '', '2025-07-24 10:08:52'),
 (197, 4, '', 'received', 1, '', '2025-07-24 10:08:53'),
 (198, 10, '', 'pending', 1, '', '2025-07-24 10:08:59'),
 (199, 12, '', 'pending', 1, '', '2025-07-24 10:09:00'),
-(200, 9, '', 'in_progress', 1, '', '2025-07-24 10:09:02'),
 (201, 4, '', 'in_progress', 1, '', '2025-07-24 10:09:06'),
 (202, 12, '', 'received', 1, '', '2025-07-24 10:09:09'),
 (203, 10, '', 'received', 1, '', '2025-07-24 10:09:10'),
 (204, 11, '', 'received', 1, '', '2025-07-24 10:09:11'),
-(205, 9, '', 'received', 1, '', '2025-07-24 10:09:14'),
 (206, 4, '', 'received', 1, '', '2025-07-24 10:09:15'),
 (207, 12, '', 'in_progress', 1, '', '2025-07-24 10:09:16'),
 (208, 11, '', 'in_progress', 1, '', '2025-07-24 10:09:20'),
-(209, 9, '', 'in_progress', 1, '', '2025-07-24 10:09:22'),
 (211, 13, '', 'in_progress', 2, '', '2025-07-25 01:40:34'),
 (212, 13, '', 'received', 2, '', '2025-07-25 01:40:36'),
 (213, 13, '', 'in_progress', 2, '', '2025-07-25 01:40:37'),
@@ -810,53 +834,34 @@ INSERT INTO `task_status_logs` (`id`, `task_id`, `old_status`, `new_status`, `ch
 (230, 17, '', 'on_hold', 2, '', '2025-07-25 02:13:06'),
 (231, 17, '', 'in_progress', 2, '', '2025-07-25 02:13:20'),
 (232, 13, '', 'in_progress', 2, '', '2025-07-25 02:13:21'),
-(233, 18, '', 'in_progress', 2, '', '2025-07-25 02:13:22'),
-(234, 18, '', 'in_progress', 2, '', '2025-07-25 02:13:25'),
 (235, 17, '', 'in_progress', 2, '', '2025-07-25 02:13:27'),
-(236, 18, '', 'in_progress', 2, '', '2025-07-25 02:13:27'),
 (237, 17, '', 'in_progress', 2, '', '2025-07-25 02:13:28'),
 (238, 17, '', 'in_progress', 2, '', '2025-07-25 02:32:00'),
 (239, 13, '', 'in_progress', 2, '', '2025-07-25 02:32:01'),
-(240, 18, '', 'received', 2, '', '2025-07-25 02:33:41'),
 (241, 13, '', 'received', 2, '', '2025-07-25 02:33:43'),
 (242, 17, '', 'received', 2, '', '2025-07-25 02:33:44'),
 (243, 17, '', 'received', 2, '', '2025-07-25 02:33:45'),
 (244, 17, '', 'received', 2, '', '2025-07-25 02:33:46'),
-(245, 18, '', 'in_progress', 2, '', '2025-07-25 02:33:46'),
 (246, 13, '', 'received', 2, '', '2025-07-25 02:33:47'),
 (247, 17, '', 'on_hold', 2, '', '2025-07-25 02:33:49'),
 (248, 17, '', 'in_progress', 2, '', '2025-07-25 02:33:50'),
 (249, 19, 'pending', 'received', 2, 'งานได้รับการยอมรับโดยผู้พัฒนา', '2025-07-25 02:43:26'),
 (250, 19, '', 'in_progress', 2, '', '2025-07-25 02:49:07'),
-(251, 18, '', 'in_progress', 2, '', '2025-07-25 02:49:08'),
 (252, 17, '', 'in_progress', 2, '', '2025-07-25 02:49:10'),
-(253, 18, '', 'in_progress', 2, '', '2025-07-25 02:49:14'),
 (254, 19, '', 'in_progress', 2, '', '2025-07-25 02:49:15'),
 (255, 13, '', 'in_progress', 2, '', '2025-07-25 02:49:16'),
 (256, 19, '', 'received', 2, '', '2025-07-25 02:49:18'),
 (257, 17, '', 'in_progress', 2, '', '2025-07-25 02:54:06'),
 (258, 19, '', 'in_progress', 2, '', '2025-07-25 02:54:08'),
 (259, 19, '', 'received', 2, '', '2025-07-25 02:54:10'),
-(260, 20, '', 'received', 2, '', '2025-07-25 02:54:42'),
 (261, 19, '', 'received', 2, '', '2025-07-25 02:54:45'),
-(262, 20, '', 'in_progress', 2, '', '2025-07-25 02:57:04'),
 (263, 19, '', 'in_progress', 2, '', '2025-07-25 02:57:07'),
 (264, 19, '', 'completed', 2, '', '2025-07-25 02:57:15'),
-(265, 20, '', 'in_progress', 2, '', '2025-07-25 02:57:54'),
-(266, 20, '', 'on_hold', 2, '', '2025-07-25 02:58:59'),
 (267, 17, '', 'in_progress', 2, '', '2025-07-25 02:59:01'),
-(268, 18, '', 'on_hold', 2, '', '2025-07-25 02:59:03'),
-(269, 20, '', 'in_progress', 2, '', '2025-07-25 02:59:05'),
 (271, 19, '', 'in_progress', 2, '', '2025-07-25 03:00:41'),
-(272, 20, '', 'in_progress', 2, '', '2025-07-25 06:27:26'),
-(273, 20, '', 'in_progress', 2, '', '2025-07-25 06:27:33'),
-(274, 20, '', 'received', 2, '', '2025-07-25 07:53:04'),
 (275, 17, '', 'on_hold', 2, '', '2025-07-25 07:53:06'),
-(276, 20, '', 'in_progress', 2, '', '2025-07-25 07:58:55'),
 (277, 21, '', 'in_progress', 2, '', '2025-07-25 07:59:05'),
-(278, 20, '', 'received', 2, '', '2025-07-25 07:59:42'),
 (279, 21, '', 'in_progress', 2, '', '2025-07-25 08:01:47'),
-(280, 20, '', 'pending', 2, '', '2025-07-25 09:58:01'),
 (281, 19, '', 'received', 2, '', '2025-07-25 09:58:03'),
 (282, 21, '', 'received', 2, '', '2025-07-25 10:01:06'),
 (283, 24, '', 'in_progress', 2, '', '2025-07-25 10:01:07'),
@@ -930,7 +935,6 @@ INSERT INTO `user_reviews` (`id`, `task_id`, `user_id`, `rating`, `review_commen
 (1, 2, 1, 4, 'ปิดงานครับ', 'accepted', '', '2025-07-23 04:25:00', '2025-07-23 04:25:00'),
 (2, 5, 1, 5, 'ดีๆ', 'accepted', '', '2025-07-23 09:05:53', '2025-07-23 09:05:53'),
 (3, 6, 2, 5, 'ดีครับ', 'accepted', '', '2025-07-24 02:44:25', '2025-07-24 02:44:25'),
-(4, 7, 2, 5, 'ดดีีเยี่ยมมม', 'accepted', '', '2025-07-24 03:16:04', '2025-07-24 03:16:04'),
 (5, 8, 2, 5, '3645345', 'accepted', '', '2025-07-24 06:35:23', '2025-07-24 06:35:23');
 
 --
@@ -961,12 +965,29 @@ ALTER TABLE `assignor_approvals`
   ADD KEY `assigned_developer_id` (`assigned_developer_id`);
 
 --
+-- Indexes for table `departments`
+--
+ALTER TABLE `departments`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_warehouse_code` (`warehouse_number`,`code_name`),
+  ADD KEY `idx_departments_active` (`is_active`);
+
+--
 -- Indexes for table `div_mgr_approvals`
 --
 ALTER TABLE `div_mgr_approvals`
   ADD PRIMARY KEY (`id`),
   ADD KEY `service_request_id` (`service_request_id`),
   ADD KEY `div_mgr_user_id` (`div_mgr_user_id`);
+
+--
+-- Indexes for table `document_numbers`
+--
+ALTER TABLE `document_numbers`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `document_number` (`document_number`),
+  ADD KEY `service_request_id` (`service_request_id`),
+  ADD KEY `idx_warehouse_code_year_month` (`warehouse_number`,`code_name`,`year`,`month`);
 
 --
 -- Indexes for table `document_status_logs`
@@ -983,6 +1004,12 @@ ALTER TABLE `gm_approvals`
   ADD PRIMARY KEY (`id`),
   ADD KEY `service_request_id` (`service_request_id`),
   ADD KEY `gm_user_id` (`gm_user_id`);
+
+--
+-- Indexes for table `programs`
+--
+ALTER TABLE `programs`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `request_attachments`
@@ -1003,7 +1030,8 @@ ALTER TABLE `senior_gm_approvals`
 -- Indexes for table `services`
 --
 ALTER TABLE `services`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_services_active` (`is_active`);
 
 --
 -- Indexes for table `service_requests`
@@ -1016,7 +1044,9 @@ ALTER TABLE `service_requests`
   ADD KEY `idx_service_requests_current_step` (`current_step`),
   ADD KEY `idx_service_requests_dev_status` (`developer_status`),
   ADD KEY `service_id` (`service_id`),
-  ADD KEY `assigned_div_mgr_id` (`assigned_div_mgr_id`);
+  ADD KEY `assigned_div_mgr_id` (`assigned_div_mgr_id`),
+  ADD KEY `idx_service_requests_service_id` (`service_id`),
+  ADD KEY `idx_service_requests_work_category` (`work_category`);
 
 --
 -- Indexes for table `tasks`
@@ -1068,7 +1098,7 @@ ALTER TABLE `admins`
 -- AUTO_INCREMENT for table `admin_logs`
 --
 ALTER TABLE `admin_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=293;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=295;
 
 --
 -- AUTO_INCREMENT for table `assignor_approvals`
@@ -1077,10 +1107,22 @@ ALTER TABLE `assignor_approvals`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
+-- AUTO_INCREMENT for table `departments`
+--
+ALTER TABLE `departments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+
+--
 -- AUTO_INCREMENT for table `div_mgr_approvals`
 --
 ALTER TABLE `div_mgr_approvals`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
+-- AUTO_INCREMENT for table `document_numbers`
+--
+ALTER TABLE `document_numbers`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `document_status_logs`
@@ -1095,10 +1137,16 @@ ALTER TABLE `gm_approvals`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
 
 --
+-- AUTO_INCREMENT for table `programs`
+--
+ALTER TABLE `programs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
+
+--
 -- AUTO_INCREMENT for table `request_attachments`
 --
 ALTER TABLE `request_attachments`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `senior_gm_approvals`
@@ -1116,7 +1164,7 @@ ALTER TABLE `services`
 -- AUTO_INCREMENT for table `service_requests`
 --
 ALTER TABLE `service_requests`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=55;
 
 --
 -- AUTO_INCREMENT for table `tasks`
@@ -1166,6 +1214,12 @@ ALTER TABLE `assignor_approvals`
 ALTER TABLE `div_mgr_approvals`
   ADD CONSTRAINT `div_mgr_approvals_ibfk_1` FOREIGN KEY (`service_request_id`) REFERENCES `service_requests` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `div_mgr_approvals_ibfk_2` FOREIGN KEY (`div_mgr_user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `document_numbers`
+--
+ALTER TABLE `document_numbers`
+  ADD CONSTRAINT `document_numbers_ibfk_1` FOREIGN KEY (`service_request_id`) REFERENCES `service_requests` (`id`) ON DELETE SET NULL;
 
 --
 -- Constraints for table `document_status_logs`
