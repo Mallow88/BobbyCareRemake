@@ -1,18 +1,27 @@
 <?php
 session_start();
-require_once __DIR__ . '/../config/database.php'; // ต้องมี $pdo ในไฟล์นี้
+require_once __DIR__ . '/config/database.php';// ต้องมี $pdo ในไฟล์นี้
 
-// ตรวจสอบว่า login แล้ว
-if (!isset($_SESSION['user_id'])) {
-    header("Location: ../index.php");
-    exit();
+// ลบ session check เพื่อเปิดให้เข้าทุกคน
+// session_start();
+// if (!isset($_SESSION['user_id'])) {
+//     header("Location: ../index.php");
+//     exit();
+// }
+
+$user_id = $_SESSION['user_id'] ?? null; // ใช้แบบไม่บังคับ
+
+// เงื่อนไขดึงเฉพาะของ user ถ้ายังต้องการใช้ user_id
+$conditions = [];
+$params = [];
+
+if ($user_id) {
+    $conditions[] = "sr.user_id = ?";
+    $params[] = $user_id;
+} else {
+    // ไม่กรอง user ก็ไม่ต้องเพิ่มเงื่อนไข
 }
 
-$user_id = $_SESSION['user_id'];
-
-// เริ่มสร้าง query และ parameter
-$conditions = ["sr.user_id = ?"];
-$params = [$user_id];
 
 // ถ้ามีการกรอกคำค้นหา (search by title)
 if (!empty($_GET['search'])) {
@@ -40,6 +49,7 @@ if (!empty($_GET['document_number'])) {
 }
 
 // SQL ดึงข้อมูลคำขอทั้งหมด
+
 $sql = "
 SELECT 
     sr.*, 
@@ -55,14 +65,12 @@ SELECT
     s.name AS service_name,
     s.category AS service_category,
 
-    -- Division Manager
     dma.status AS div_mgr_status,
     dma.reason AS div_mgr_reason,
     dma.reviewed_at AS div_mgr_reviewed_at,
     div_mgr.name AS div_mgr_name,
     div_mgr.lastname AS div_mgr_lastname,
 
-    -- Assignor
     aa.status AS assignor_status,
     aa.reason AS assignor_reason,
     aa.estimated_days,
@@ -73,7 +81,6 @@ SELECT
     dev.name AS dev_name,
     dev.lastname AS dev_lastname,
 
-    -- GM
     gma.status AS gm_status,
     gma.reason AS gm_reason,
     gma.budget_approved,
@@ -81,15 +88,13 @@ SELECT
     gm.name AS gm_name,
     gm.lastname AS gm_lastname,
 
-    -- Senior GM
     sgma.status AS senior_gm_status,
     sgma.reason AS senior_gm_reason,
     sgma.final_notes AS senior_gm_final_notes,
     sgma.reviewed_at AS senior_gm_reviewed_at,
     senior_gm.name AS senior_gm_name,
     senior_gm.lastname AS senior_gm_lastname,
-    
-    -- Task
+
     t.id AS task_id,
     t.task_status,
     t.progress_percentage,
@@ -97,7 +102,6 @@ SELECT
     t.completed_at AS task_completed_at,
     t.developer_notes,
 
-    -- Review
     ur.rating,
     ur.review_comment,
     ur.status AS review_status,
@@ -123,33 +127,13 @@ LEFT JOIN users senior_gm ON sgma.senior_gm_user_id = senior_gm.id
 
 LEFT JOIN tasks t ON sr.id = t.service_request_id
 LEFT JOIN user_reviews ur ON t.id = ur.task_id
-
 LEFT JOIN task_subtasks ts ON t.id = ts.task_id
-
-WHERE " . implode(' AND ', $conditions) . "
-
-GROUP BY sr.id
-ORDER BY sr.created_at DESC
 ";
-
-// ดึงข้อมูล request ทั้งหมด
-// $stmt = $conn ->prepare($sql);
-// $stmt->execute($params);
-// $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// // ดึง subtasks เพิ่มเติมถ้ามี task_id
-// foreach ($requests as &$request) {
-//     $task_id = $request['task_id'];
-
-//     if ($task_id) {
-//         $stmt = $conn->prepare("SELECT * FROM task_subtasks WHERE task_id = ? ORDER BY step_order ASC");
-//         $stmt->execute([$task_id]);
-//         $request['subtasks'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-//     } else {
-//         $request['subtasks'] = []; // ไม่มี task_id
-//     }
-// }
-// ดึงข้อมูล request ทั้งหมด
+// ✅ เพิ่ม WHERE เฉพาะเมื่อมีเงื่อนไข
+if (!empty($conditions)) {
+    $sql .= " WHERE " . implode(' AND ', $conditions);
+}
+$sql .= " GROUP BY sr.id ORDER BY sr.created_at DESC";
 $stmt = $conn->prepare($sql);
 $stmt->execute($params);
 $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -168,7 +152,6 @@ foreach ($requests as &$request) {
         $request['subtasks'] = [];
     }
 }
-
 ?>
 
 
@@ -181,8 +164,8 @@ foreach ($requests as &$request) {
     <title>รายการคำขอบริการ - BobbyCareDev</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/timeline.css">
-    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="requests/css/timeline.css">
+    <link rel="stylesheet" href="requests/css/index.css">
 </head>
 
 <body>
@@ -207,14 +190,8 @@ foreach ($requests as &$request) {
                 <!-- ขวา: ปุ่ม 3 ปุ่มเรียงแนวนอน -->
                 <div class="col-md-4 text-md-end">
                     <div class="d-flex flex-row gap-2 justify-content-end">
-                        <a href="../dashboard.php" class="btn btn-outline-gradient">
-                            <i class="fas fa-home me-2"></i>หน้าหลัก
-                        </a>
-                        <a href="create.php" class="btn btn-outline-gradient">
-                            <i class="fas fa-plus-circle me-2"></i>สร้างคำขอใหม่
-                        </a>
-                        <a href="track_status.php" class="btn btn-gradient">
-                            <i class="fas fa-chart-line me-2"></i>ติดตามสถานะ
+                        <a href="index.php" class="btn btn-outline-gradient">
+                            <i class="fas fa-home me-2"></i>ย้อนกลับ
                         </a>
                     </div>
                 </div>
@@ -259,6 +236,8 @@ foreach ($requests as &$request) {
                 </div>
             </form>
         </div>
+
+
 
         <!-- Request List -->
         <div class="glass-card p-4">

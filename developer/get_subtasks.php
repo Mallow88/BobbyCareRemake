@@ -17,7 +17,7 @@ $developer_id = $_SESSION['user_id'];
 
 // ตรวจสอบว่าเป็นงานของ developer นี้
 $task_check = $conn->prepare("
-    SELECT t.*, sr.title, s.name as service_name
+    SELECT t.*, sr.title, s.name as service_name, sr.id as service_request_id
     FROM tasks t
     JOIN service_requests sr ON t.service_request_id = sr.id
     LEFT JOIN services s ON sr.service_id = s.id
@@ -31,7 +31,7 @@ if (!$task) {
     exit('Access denied');
 }
 
-// ดึงข้อมูล subtasks
+// ดึง subtask ปัจจุบัน
 $subtasks_stmt = $conn->prepare("
     SELECT * FROM task_subtasks 
     WHERE task_id = ? 
@@ -40,7 +40,7 @@ $subtasks_stmt = $conn->prepare("
 $subtasks_stmt->execute([$task_id]);
 $subtasks = $subtasks_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ถ้าไม่มี subtasks ให้สร้างจาก template
+// ถ้ายังไม่มี subtask ใดเลย → สร้างขั้นแรก
 if (empty($subtasks) && $task['service_name']) {
     $template_stmt = $conn->prepare("
         SELECT * FROM subtask_templates 
@@ -49,29 +49,76 @@ if (empty($subtasks) && $task['service_name']) {
     ");
     $template_stmt->execute([$task['service_name']]);
     $templates = $template_stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     if (!empty($templates)) {
-        foreach ($templates as $template) {
+        $first_step = $templates[0];
+        $insert_stmt = $conn->prepare("
+            INSERT INTO task_subtasks (task_id, step_order, step_name, step_description, percentage, status)
+            VALUES (?, ?, ?, ?, ?, 'pending')
+        ");
+        $insert_stmt->execute([
+            $task_id,
+            $first_step['step_order'],
+            $first_step['step_name'],
+            $first_step['step_description'],
+            $first_step['percentage']
+        ]);
+    }
+
+    // โหลดใหม่
+    $subtasks_stmt->execute([$task_id]);
+    $subtasks = $subtasks_stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+// ถ้ามีขั้นเสร็จแล้ว → สร้างขั้นถัดไปจาก template
+if (!empty($subtasks) && $task['service_name']) {
+    $last_completed_order = 0;
+    foreach ($subtasks as $s) {
+        if ($s['status'] === 'completed' && $s['step_order'] > $last_completed_order) {
+            $last_completed_order = $s['step_order'];
+        }
+    }
+
+    $in_progress = false;
+    foreach ($subtasks as $s) {
+        if ($s['status'] === 'pending' || $s['status'] === 'in_progress') {
+            $in_progress = true;
+            break;
+        }
+    }
+
+    if (!$in_progress) {
+        $next_order = $last_completed_order + 1;
+
+        $next_template = $conn->prepare("
+            SELECT * FROM subtask_templates 
+            WHERE service_type = ? AND is_active = 1 AND step_order = ? 
+            LIMIT 1
+        ");
+        $next_template->execute([$task['service_name'], $next_order]);
+        $next = $next_template->fetch(PDO::FETCH_ASSOC);
+
+        if ($next) {
             $insert_stmt = $conn->prepare("
                 INSERT INTO task_subtasks (task_id, step_order, step_name, step_description, percentage, status)
                 VALUES (?, ?, ?, ?, ?, 'pending')
             ");
             $insert_stmt->execute([
-                $task_id, 
-                $template['step_order'], 
-                $template['step_name'], 
-                $template['step_description'], 
-                $template['percentage']
+                $task_id,
+                $next['step_order'],
+                $next['step_name'],
+                $next['step_description'],
+                $next['percentage']
             ]);
+
+            // โหลดใหม่
+            $subtasks_stmt->execute([$task_id]);
+            $subtasks = $subtasks_stmt->fetchAll(PDO::FETCH_ASSOC);
         }
-        
-        // ดึงข้อมูลใหม่
-        $subtasks_stmt->execute([$task_id]);
-        $subtasks = $subtasks_stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 }
 
-// คำนวณ progress รวม
+// คำนวณ progress
 $total_progress = 0;
 $completed_steps = 0;
 foreach ($subtasks as $subtask) {
@@ -81,30 +128,23 @@ foreach ($subtasks as $subtask) {
     }
 }
 
-// อัปเดต progress ในตาราง tasks
+// อัปเดต progress ใน tasks
 $update_progress = $conn->prepare("UPDATE tasks SET progress_percentage = ? WHERE id = ?");
 $update_progress->execute([$total_progress, $task_id]);
 
-// ถ้า progress = 100% ให้เปลี่ยนสถานะเป็น completed
 if ($total_progress >= 100) {
-    $update_status = $conn->prepare("UPDATE tasks SET task_status = 'completed', completed_at = NOW() WHERE id = ? AND task_status != 'completed'");
-    $update_status->execute([$task_id]);
-    
-    $update_sr = $conn->prepare("UPDATE service_requests SET developer_status = 'completed' WHERE id = ?");
-    $update_sr->execute([$task['service_request_id']]);
+    $conn->prepare("UPDATE tasks SET task_status = 'completed', completed_at = NOW() WHERE id = ?")->execute([$task_id]);
+    $conn->prepare("UPDATE service_requests SET developer_status = 'completed' WHERE id = ?")->execute([$task['service_request_id']]);
 }
 ?>
 
+<!-- HTML แสดงความคืบหน้าและขั้นตอน -->
 <div class="overall-progress">
     <h6><i class="fas fa-chart-line me-2"></i>ความคืบหน้ารวม</h6>
     <div class="progress-bar-container">
-        <div class="progress-bar-fill" style="width: <?= $total_progress ?>%">
-            <?= $total_progress ?>%
-        </div>
+        <div class="progress-bar-fill" style="width: <?= $total_progress ?>%"><?= $total_progress ?>%</div>
     </div>
-    <small class="text-muted">
-        เสร็จแล้ว <?= $completed_steps ?> จาก <?= count($subtasks) ?> ขั้นตอน
-    </small>
+    <small class="text-muted">เสร็จแล้ว <?= $completed_steps ?> จาก <?= count($subtasks) ?> ขั้นตอน</small>
 </div>
 
 <div class="task-info mb-3">
@@ -116,105 +156,59 @@ if ($total_progress >= 100) {
     </p>
 </div>
 
-<?php if (empty($subtasks)): ?>
-    <div class="alert alert-info">
-        <i class="fas fa-info-circle me-2"></i>
-        ไม่พบเทมเพลต subtask สำหรับประเภทบริการนี้
-    </div>
-<?php else: ?>
-    <ul class="subtask-list">
-        <?php foreach ($subtasks as $subtask): ?>
-            <li class="subtask-item <?= $subtask['status'] ?>">
-                <div class="subtask-header">
-                    <div class="flex-grow-1">
-                        <div class="subtask-title">
-                            <?= $subtask['step_order'] ?>. <?= htmlspecialchars($subtask['step_name']) ?>
-                        </div>
-                        <div class="subtask-description">
-                            <?= htmlspecialchars($subtask['step_description']) ?>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="subtask-progress">
-                    <div class="subtask-percentage">
-                        <?= $subtask['percentage'] ?>%
-                    </div>
-                    <span class="subtask-status-badge status-<?= $subtask['status'] ?>">
-                        <?php
-                        $status_labels = [
-                            'pending' => 'รอดำเนินการ',
-                            'in_progress' => 'กำลังทำ',
-                            'completed' => 'เสร็จแล้ว'
-                        ];
-                        echo $status_labels[$subtask['status']];
-                        ?>
-                    </span>
-                </div>
-                
-                <?php if ($subtask['status'] !== 'completed'): ?>
-                <div class="subtask-actions">
-                    <?php if ($subtask['status'] === 'pending'): ?>
-                        <?php
-                        // ตรวจสอบว่าขั้นตอนก่อนหน้าเสร็จแล้วหรือยัง
-                        $can_start = true;
-                        if ($subtask['step_order'] > 1) {
-                            $prev_step_completed = false;
-                            foreach ($subtasks as $prev_subtask) {
-                                if ($prev_subtask['step_order'] == ($subtask['step_order'] - 1)) {
-                                    $prev_step_completed = ($prev_subtask['status'] === 'completed');
-                                    break;
-                                }
-                            }
-                            $can_start = $prev_step_completed;
-                        }
-                        ?>
-                        
-                        <?php if ($can_start): ?>
-                            <button class="subtask-btn btn-start" 
-                                    onclick="updateSubtaskStatus(<?= $subtask['id'] ?>, 'in_progress')">
-                                <i class="fas fa-play me-1"></i>เริ่มทำ
-                            </button>
-                        <?php else: ?>
-                            <button class="subtask-btn btn-disabled" disabled title="ต้องทำขั้นตอนก่อนหน้าให้เสร็จก่อน">
-                                <i class="fas fa-lock me-1"></i>รอขั้นตอนก่อนหน้า
-                            </button>
-                        <?php endif; ?>
-                    <?php elseif ($subtask['status'] === 'in_progress'): ?>
-                        <button class="subtask-btn btn-finish" 
-                                onclick="updateSubtaskStatus(<?= $subtask['id'] ?>, 'completed')">
-                            <i class="fas fa-check me-1"></i>เสร็จแล้ว
-                        </button>
-                    <?php endif; ?>
-                </div>
-                <?php endif; ?>
-                
-                <div class="subtask-notes">
-                    <textarea id="notes_<?= $subtask['id'] ?>" 
-                              placeholder="หมายเหตุสำหรับขั้นตอนนี้..."
-                              class="form-control"><?= htmlspecialchars($subtask['notes'] ?? '') ?></textarea>
-                              onblur="updateSubtaskNotes(<?= $subtask['id'] ?>)"><?= htmlspecialchars($subtask['notes'] ?? '') ?></textarea>
-                </div>
-                
-                <?php if ($subtask['started_at'] || $subtask['completed_at']): ?>
-                <div class="subtask-dates">
-                    <?php if ($subtask['started_at']): ?>
-                        <i class="fas fa-play me-1"></i>
-                        เริ่ม: <?= date('d/m/Y H:i', strtotime($subtask['started_at'])) ?>
-                    <?php endif; ?>
-                    <?php if ($subtask['completed_at']): ?>
-                        <span class="ms-3">
-                            <i class="fas fa-check me-1"></i>
-                            เสร็จ: <?= date('d/m/Y H:i', strtotime($subtask['completed_at'])) ?>
-                        </span>
-                    <?php endif; ?>
-                </div>
-                <?php endif; ?>
-            </li>
-        <?php endforeach; ?>
-    </ul>
-<?php endif; ?>
+<ul class="subtask-list">
+    <?php foreach ($subtasks as $subtask): ?>
+    <li class="subtask-item <?= $subtask['status'] ?>">
+        <div class="subtask-header">
+            <div class="flex-grow-1">
+                <div class="subtask-title"><?= $subtask['step_order'] ?>. <?= htmlspecialchars($subtask['step_name']) ?></div>
+                <div class="subtask-description"><?= htmlspecialchars($subtask['step_description']) ?></div>
+            </div>
+        </div>
 
+        <div class="subtask-progress">
+            <div class="subtask-percentage"><?= $subtask['percentage'] ?>%</div>
+            <span class="subtask-status-badge status-<?= $subtask['status'] ?>">
+                <?= ['pending' => 'รอดำเนินการ', 'in_progress' => 'กำลังทำ', 'completed' => 'เสร็จแล้ว'][$subtask['status']] ?>
+            </span>
+        </div>
+
+        <?php if ($subtask['status'] !== 'completed'): ?>
+        <div class="subtask-actions">
+            <?php if ($subtask['status'] === 'pending'): ?>
+                <button class="subtask-btn btn-start" onclick="updateSubtaskStatus(<?= $subtask['id'] ?>, 'in_progress')">
+                    <i class="fas fa-play me-1"></i>เริ่มทำ
+                </button>
+            <?php elseif ($subtask['status'] === 'in_progress'): ?>
+                <button class="subtask-btn btn-finish" onclick="updateSubtaskStatus(<?= $subtask['id'] ?>, 'completed')">
+                    <i class="fas fa-check me-1"></i>เสร็จแล้ว
+                </button>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+
+        <div class="subtask-notes">
+            <textarea id="notes_<?= $subtask['id'] ?>" 
+                      placeholder="หมายเหตุสำหรับขั้นตอนนี้..." 
+                      class="form-control"
+                      onblur="updateSubtaskNotes(<?= $subtask['id'] ?>)">
+                <?= htmlspecialchars($subtask['notes'] ?? '') ?>
+            </textarea>
+        </div>
+
+        <?php if ($subtask['started_at'] || $subtask['completed_at']): ?>
+        <div class="subtask-dates">
+            <?php if ($subtask['started_at']): ?>
+                <i class="fas fa-play me-1"></i> เริ่ม: <?= date('d/m/Y H:i', strtotime($subtask['started_at'])) ?>
+            <?php endif; ?>
+            <?php if ($subtask['completed_at']): ?>
+                <span class="ms-3"><i class="fas fa-check me-1"></i> เสร็จ: <?= date('d/m/Y H:i', strtotime($subtask['completed_at'])) ?></span>
+            <?php endif; ?>
+        </div>
+        <?php endif; ?>
+    </li>
+    <?php endforeach; ?>
+</ul>
 
 <script>
 function updateSubtaskStatus(subtaskId, status) {
@@ -229,7 +223,6 @@ function updateSubtaskStatus(subtaskId, status) {
     .then(res => res.json())
     .then(data => {
         if (data.success) {
-            // รีโหลดหน้า เพื่อให้ขั้นตอนถัดไปปลดล็อก
             location.reload();
         } else {
             alert("เกิดข้อผิดพลาด: " + data.message);
@@ -238,6 +231,18 @@ function updateSubtaskStatus(subtaskId, status) {
     .catch(err => {
         console.error(err);
         alert("ไม่สามารถอัปเดตสถานะได้");
+    });
+}
+
+function updateSubtaskNotes(subtaskId) {
+    const textarea = document.getElementById("notes_" + subtaskId);
+    const formData = new FormData();
+    formData.append('subtask_id', subtaskId);
+    formData.append('notes', textarea.value);
+
+    fetch('update_subtask_notes.php', {
+        method: 'POST',
+        body: formData
     });
 }
 </script>

@@ -1,129 +1,117 @@
-<?php 
+<?php
 session_start();
 require_once __DIR__ . '/../config/database.php';
+header('Content-Type: application/json');
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'developer') {
     http_response_code(403);
-    exit('Unauthorized');
-}
-
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    exit('Method not allowed');
+    echo json_encode(['success' => false, 'message' => 'Unauthorized']);
+    exit;
 }
 
 $subtask_id = $_POST['subtask_id'] ?? null;
 $new_status = $_POST['status'] ?? null;
-$developer_id = $_SESSION['user_id'];
 
-if (!$subtask_id || !$new_status) {
-    http_response_code(400);
-    exit('Missing parameters');
+if (!$subtask_id || !in_array($new_status, ['pending', 'in_progress', 'completed'])) {
+    echo json_encode(['success' => false, 'message' => 'Invalid input']);
+    exit;
 }
 
-// ตรวจสอบว่าเป็น subtask ของ developer นี้
-$check_stmt = $conn->prepare("
-    SELECT ts.*, t.developer_user_id, t.id as task_id, t.service_request_id
-    FROM task_subtasks ts
-    JOIN tasks t ON ts.task_id = t.id
-    WHERE ts.id = ? AND t.developer_user_id = ?
-");
-$check_stmt->execute([$subtask_id, $developer_id]);
-$subtask = $check_stmt->fetch(PDO::FETCH_ASSOC);
+// ดึง subtask ปัจจุบัน
+$stmt = $conn->prepare("SELECT * FROM task_subtasks WHERE id = ?");
+$stmt->execute([$subtask_id]);
+$subtask = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$subtask) {
-    http_response_code(403);
-    exit('Access denied');
+    echo json_encode(['success' => false, 'message' => 'Subtask not found']);
+    exit;
 }
 
-// ตรวจสอบลำดับ step_order (ถ้าสถานะใหม่คือ in_progress ต้องให้ step ก่อนหน้าทำเสร็จหมดก่อน)
-if ($new_status === 'in_progress' && $subtask['step_order'] > 1) {
-    $prev_steps_stmt = $conn->prepare("
-        SELECT COUNT(*) as incomplete_count 
-        FROM task_subtasks 
-        WHERE task_id = ? 
-          AND step_order < ? 
-          AND status != 'completed'
-    ");
-    $prev_steps_stmt->execute([$subtask['task_id'], $subtask['step_order']]);
-    $prev_check = $prev_steps_stmt->fetch(PDO::FETCH_ASSOC);
-    
-    if ($prev_check['incomplete_count'] > 0) {
-        http_response_code(400);
-        echo json_encode([
-            'success' => false,
-            'message' => 'ไม่สามารถเริ่มขั้นตอนนี้ได้ กรุณาทำขั้นตอนก่อนหน้าให้เสร็จ'
-        ]);
-        exit;
+// อัปเดตสถานะ subtask
+$update = $conn->prepare("
+    UPDATE task_subtasks 
+    SET status = ?, 
+        started_at = IF(? = 'in_progress' AND started_at IS NULL, NOW(), started_at),
+        completed_at = IF(? = 'completed', NOW(), completed_at)
+    WHERE id = ?
+");
+$update->execute([$new_status, $new_status, $new_status, $subtask_id]);
+
+// ถ้าเสร็จขั้นนี้แล้ว → สร้างขั้นถัดไป
+if ($new_status === 'completed') {
+    echo "Subtask marked as completed\n";
+    $next_order = $subtask['step_order'] + 1;
+
+    // ตรวจว่ามีขั้นถัดไปหรือยัง
+    $check = $conn->prepare("SELECT COUNT(*) FROM task_subtasks WHERE task_id = ? AND step_order = ?");
+    $check->execute([$subtask['task_id'], $next_order]);
+    $exists = $check->fetchColumn();
+    echo "Next step exists? " . $exists . "\n";
+
+    if (!$exists) {
+        // ดึง service_name
+        $service_stmt = $conn->prepare("
+            SELECT sr.service_id, s.name AS service_name
+            FROM tasks t
+            JOIN service_requests sr ON t.service_request_id = sr.id
+            JOIN services s ON sr.service_id = s.id
+            WHERE t.id = ?
+        ");
+        $service_stmt->execute([$subtask['task_id']]);
+        $service = $service_stmt->fetch(PDO::FETCH_ASSOC);
+        echo "Service name: " . $service['service_name'] . "\n";
+
+        // ดึง template ขั้นถัดไป
+        $template_stmt = $conn->prepare("
+            SELECT * FROM subtask_templates 
+            WHERE service_type = ? AND step_order = ?
+        ");
+        $template_stmt->execute([$service['service_name'], $next_order]);
+        $template = $template_stmt->fetch(PDO::FETCH_ASSOC);
+        echo "Template step found? " . ($template ? 'yes' : 'no') . "\n";
+
+        if ($template) {
+            echo "Inserting next step: " . $template['step_name'] . "\n";
+            // สร้าง subtask ขั้นถัดไป
+            $insert = $conn->prepare("
+                INSERT INTO task_subtasks 
+                (task_id, step_order, step_name, step_description, percentage, status)
+                VALUES (?, ?, ?, ?, ?, 'pending')
+            ");
+            $insert->execute([
+                $subtask['task_id'],
+                $template['step_order'],
+                $template['step_name'],
+                $template['step_description'],
+                $template['percentage']
+            ]);
+        }
     }
 }
 
-try {
-    $conn->beginTransaction();
-    
-    // อัปเดตสถานะ subtask
-    $update_stmt = $conn->prepare("
-        UPDATE task_subtasks 
-        SET status = ?, 
-            started_at = CASE WHEN ? = 'in_progress' AND started_at IS NULL THEN NOW() ELSE started_at END,
-            completed_at = CASE WHEN ? = 'completed' THEN NOW() ELSE completed_at END,
-            updated_at = NOW()
-        WHERE id = ?
-    ");
-    $update_stmt->execute([$new_status, $new_status, $new_status, $subtask_id]);
-    
-    // บันทึก log
-    $log_stmt = $conn->prepare("
-        INSERT INTO subtask_logs (subtask_id, old_status, new_status, changed_by, created_at)
-        VALUES (?, ?, ?, ?, NOW())
-    ");
-    $log_stmt->execute([$subtask_id, $subtask['status'], $new_status, $developer_id]);
-    
-    // คำนวณ progress รวม
-    $progress_stmt = $conn->prepare("
-        SELECT SUM(percentage) as total_progress
-        FROM task_subtasks 
-        WHERE task_id = ? AND status = 'completed'
-    ");
-    $progress_stmt->execute([$subtask['task_id']]);
-    $progress_result = $progress_stmt->fetch(PDO::FETCH_ASSOC);
-    $total_progress = $progress_result['total_progress'] ?? 0;
-    
-    // อัปเดต progress ในตาราง tasks
-    $update_task = $conn->prepare("UPDATE tasks SET progress_percentage = ? WHERE id = ?");
-    $update_task->execute([$total_progress, $subtask['task_id']]);
-    
-    // ถ้า progress = 100% ให้เปลี่ยนสถานะเป็น completed
-    if ($total_progress >= 100) {
-        $update_status = $conn->prepare("
-            UPDATE tasks 
-            SET task_status = 'completed', completed_at = NOW() 
-            WHERE id = ? AND task_status != 'completed'
-        ");
-        $update_status->execute([$subtask['task_id']]);
-        
-        $update_sr = $conn->prepare("
-            UPDATE service_requests 
-            SET developer_status = 'completed' 
-            WHERE id = ?
-        ");
-        $update_sr->execute([$subtask['service_request_id']]);
-    }
-    
-    $conn->commit();
-    
-    echo json_encode([
-        'success' => true,
-        'message' => 'อัปเดตสถานะเรียบร้อย',
-        'total_progress' => $total_progress
-    ]);
-    
-} catch (Exception $e) {
-    $conn->rollBack();
-    http_response_code(500);
-    echo json_encode([
-        'success' => false,
-        'message' => 'เกิดข้อผิดพลาด: ' . $e->getMessage()
-    ]);
+
+
+// คำนวณความคืบหน้าใหม่
+$sum_stmt = $conn->prepare("
+    SELECT SUM(percentage) FROM task_subtasks 
+    WHERE task_id = ? AND status = 'completed'
+");
+$sum_stmt->execute([$subtask['task_id']]);
+$total_progress = $sum_stmt->fetchColumn() ?? 0;
+
+$update_task = $conn->prepare("UPDATE tasks SET progress_percentage = ? WHERE id = ?");
+$update_task->execute([$total_progress, $subtask['task_id']]);
+
+// ถ้าครบ 100% → ปิดงาน
+if ($total_progress >= 100) {
+    $conn->prepare("UPDATE tasks SET task_status = 'completed', completed_at = NOW() WHERE id = ?")
+         ->execute([$subtask['task_id']]);
+
+    $conn->prepare("
+        UPDATE service_requests 
+        SET developer_status = 'completed'
+        WHERE id = (SELECT service_request_id FROM tasks WHERE id = ?)
+    ")->execute([$subtask['task_id']]);
 }
-?>
+
+echo json_encode(['success' => true]);

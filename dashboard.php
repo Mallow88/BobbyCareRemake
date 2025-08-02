@@ -294,20 +294,20 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
                 <p class="text-muted mb-0">เริ่มต้นคำขอบริการใหม่</p>
             </a>
             
-            <a href="requests/track_status.php" class="action-card">
-                <div class="action-icon track">
-                    <i class="fas fa-chart-line"></i>
-                </div>
-                <h5 class="fw-bold">ติดตามสถานะ</h5>
-                <p class="text-muted mb-0">ดูความคืบหน้าคำขอ</p>
-            </a>
-            
             <a href="requests/index.php" class="action-card">
                 <div class="action-icon list">
                     <i class="fas fa-list-alt"></i>
                 </div>
                 <h5 class="fw-bold">รายการคำขอ</h5>
                 <p class="text-muted mb-0">จัดการคำขอทั้งหมด</p>
+            </a>
+
+              <a href="requests/track_status.php" class="action-card">
+                <div class="action-icon track">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <h5 class="fw-bold">ติดตามสถานะ</h5>
+                <p class="text-muted mb-0">ดูความคืบหน้าคำขอ</p>
             </a>
         </div>
 

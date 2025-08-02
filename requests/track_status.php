@@ -9,6 +9,42 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
+// รับค่าการค้นหาและกรอง
+$search = $_GET['search'] ?? '';
+$status_filter = $_GET['status'] ?? '';
+$date_filter = $_GET['date'] ?? '';
+
+// สร้าง WHERE clause สำหรับการกรอง
+$where_conditions = ["sr.user_id = ?"];
+$params = [$user_id];
+
+if (!empty($search)) {
+    $where_conditions[] = "(sr.title LIKE ? OR sr.description LIKE ?)";
+    $params[] = "%$search%";
+    $params[] = "%$search%";
+}
+
+if (!empty($status_filter)) {
+    $where_conditions[] = "sr.status = ?";
+    $params[] = $status_filter;
+}
+
+if (!empty($date_filter)) {
+    switch ($date_filter) {
+        case 'today':
+            $where_conditions[] = "DATE(sr.created_at) = CURDATE()";
+            break;
+        case 'week':
+            $where_conditions[] = "sr.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+            break;
+        case 'month':
+            $where_conditions[] = "sr.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+            break;
+    }
+}
+
+$where_clause = implode(' AND ', $where_conditions);
+
 // ดึงรายการคำขอของผู้ใช้พร้อมสถานะการอนุมัติ
 $stmt = $conn->prepare("
     SELECT 
@@ -64,19 +100,19 @@ $stmt = $conn->prepare("
     LEFT JOIN users senior_gm ON sgma.senior_gm_user_id = senior_gm.id
     LEFT JOIN tasks t ON sr.id = t.service_request_id
     LEFT JOIN user_reviews ur ON t.id = ur.task_id
-    WHERE sr.user_id = ?
+    WHERE $where_clause
     ORDER BY sr.created_at DESC
 ");
-$stmt->execute([$user_id]);
+$stmt->execute($params);
 $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 function getStatusBadge($status) {
     $badges = [
         'pending' => '<span class="badge pending">รอดำเนินการ</span>',
-        'div_mgr_review' => '<span class="badge in-review">ผู้จัดการฝ่ายพิจารณา</span>',
-        'assignor_review' => '<span class="badge in-review">ผู้จัดการแผนกพิจารณา</span>',
-        'gm_review' => '<span class="badge in-review">ผู้จัดการทั่วไปพิจารณา</span>',
-        'senior_gm_review' => '<span class="badge in-review">ผู้จัดการอาวุโสพิจารณา</span>',
+        'div_mgr_review' => '<span class="badge in-review">รอผู้จัดการฝ่ายพิจารณา</span>',
+        'assignor_review' => '<span class="badge in-review">รอผู้จัดการแผนกพิจารณา</span>',
+        'gm_review' => '<span class="badge in-review">รอผู้จัดการทั่วไปพิจารณา</span>',
+        'senior_gm_review' => '<span class="badge in-review">รอผู้จัดการอาวุโสพิจารณา</span>',
         'approved' => '<span class="badge approved">อนุมัติแล้ว</span>',
         'rejected' => '<span class="badge rejected">ไม่อนุมัติ</span>',
         'developer_assigned' => '<span class="badge assigned">มอบหมายงานแล้ว</span>',
@@ -171,52 +207,178 @@ function getApprovalStatus($status) {
             box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
         }
 
+        /* Filter Section */
+        .filter-section {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .filter-form {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr auto auto;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #4a5568;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .form-control {
+            padding: 10px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4299e1;
+            box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4299e1, #3182ce);
+            color: white;
+            box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(66, 153, 225, 0.4);
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #4a5568;
+        }
+
+        .btn-secondary:hover {
+            background: #cbd5e0;
+            transform: translateY(-1px);
+        }
+
+        /* Stats Section */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #4299e1;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2d3748;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #718096;
+            font-weight: 500;
+        }
+
         .requests-container {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
+            border-radius: 15px;
+            padding: 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Grid Layout for Cards */
+        .requests-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
         }
 
         .request-card {
             background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
+            border-radius: 12px;
+             padding: 25px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
             border-left: 5px solid #4299e1;
-            
+            transition: all 0.3s ease;
+            height: fit-content;
+        }
+
+        .request-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
         }
 
         .request-header {
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-            gap: 15px;
+            margin-bottom: 15px;
+            gap: 10px;
         }
 
         .request-title {
-            font-size: 1.4rem;
+            font-size: 1.1rem;
             font-weight: 700;
             color: #2d3748;
             margin-bottom: 5px;
+            line-height: 1.3;
         }
 
         .request-date {
             color: #718096;
-            font-size: 0.9rem;
+            font-size: 0.8rem;
         }
 
         .badge {
-            padding: 6px 12px;
+           padding: 6px 12px;
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
+            white-space: nowrap;
         }
 
         .badge.pending {
@@ -255,65 +417,126 @@ function getApprovalStatus($status) {
         }
 
         .progress-timeline {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 15px 0;
+            padding: 15px;
+            background: #f8fafc;
+            border-radius: 10px;
+            overflow-x: auto;
+            gap: 10px;
         }
 
         .timeline-step {
-            background: #f7fafc;
-            border-radius: 12px;
-            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 60px;
             text-align: center;
             position: relative;
+            flex-shrink: 0;
+        }
+
+        .timeline-step:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 15px;
+            right: -15px;
+            width: 20px;
+            height: 2px;
+            background: #e2e8f0;
+            z-index: 1;
+        }
+
+        .timeline-step.completed:not(:last-child)::after {
+            background: #48bb78;
+        }
+
+        .step-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8rem;
+            margin-bottom: 5px;
+            position: relative;
+            z-index: 2;
+            background: #e2e8f0;
+            color: #718096;
         }
 
         .timeline-step.completed {
-            background: #c6f6d5;
-            border: 2px solid #48bb78;
+        }
+
+        .timeline-step.completed .step-icon {
+            background: #48bb78;
+            color: white;
         }
 
         .timeline-step.current {
-            background: #fef5e7;
-            border: 2px solid #d69e2e;
+        }
+
+        .timeline-step.current .step-icon {
+            background: #d69e2e;
+            color: white;
+            animation: pulse 2s infinite;
         }
 
         .timeline-step.rejected {
-            background: #fed7d7;
-            border: 2px solid #f56565;
+        }
+
+        .timeline-step.rejected .step-icon {
+            background: #f56565;
+            color: white;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
         }
 
         .step-title {
             font-weight: 600;
             color: #2d3748;
-            margin-bottom: 8px;
+            font-size: 0.7rem;
+            margin-bottom: 3px;
+            text-align: center;
+            line-height: 1.2;
         }
 
         .step-status {
             font-size: 0.9rem;
-            margin-bottom: 5px;
+            color: #718096;
         }
 
         .step-date {
             font-size: 0.8rem;
             color: #718096;
+            margin-top: 2px;
         }
 
         .step-reviewer {
-            font-size: 0.8rem;
+             font-size: 0.8rem;
             color: #4a5568;
             margin-top: 5px;
         }
 
         .task-progress {
-            background: #f7fafc;
+          background: #f7fafc;
             border-radius: 12px;
             padding: 20px;
             margin-top: 20px;
         }
 
-        .progress-bar {
+        .task-progress h4 {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+        }
+
+       .progress-bar {
             background: #e2e8f0;
             border-radius: 10px;
             height: 20px;
@@ -325,6 +548,11 @@ function getApprovalStatus($status) {
             background: linear-gradient(90deg, #48bb78, #38a169);
             height: 100%;
             transition: width 0.3s ease;
+        }
+
+        .compact-attachments {
+            max-height: 100px;
+            overflow-y: auto;
         }
 
         .text-success { color: #48bb78; }
@@ -344,22 +572,56 @@ function getApprovalStatus($status) {
             color: #cbd5e0;
         }
 
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
+       @media (max-width: 768px) {
+    .page-title {
+        font-size: 2rem;
+        text-align: center;
+    }
+    .container {
+        padding: 1rem;
+    }
+
+
 
             .header h1 {
                 font-size: 2rem;
             }
 
-            .progress-timeline {
+            .filter-form {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .requests-grid {
                 grid-template-columns: 1fr;
             }
 
-            .request-header {
-                flex-direction: column;
-                align-items: flex-start;
+            .progress-timeline {
+                padding: 10px;
+                gap: 5px;
+            }
+
+            .timeline-step {
+                min-width: 50px;
+            }
+
+            .step-icon {
+                width: 25px;
+                height: 25px;
+                font-size: 0.7rem;
+            }
+
+            .step-title {
+                font-size: 0.6rem;
+            }
+
+            .timeline-step:not(:last-child)::after {
+                right: -10px;
+                width: 15px;
             }
         }
         
@@ -382,9 +644,7 @@ function getApprovalStatus($status) {
                     <i class="fas fa-plus"></i> สร้างคำขอใหม่
                 </a>
                  </a>
-                  <a href="tt.php" class="nav-btn secondary">
-                    <i class="fas fa-plus"></i> สร้างคำขอใหม่
-                </a>
+                
             </div>
         </div>
           <!-- ส่วนกรองข้อมูล -->
@@ -436,6 +696,32 @@ function getApprovalStatus($status) {
             </form>
         </div>
 
+        <!-- สถิติสรุป -->
+        <?php
+        $total_requests = count($requests);
+        $pending_requests = count(array_filter($requests, fn($r) => in_array($r['status'], ['pending', 'div_mgr_review', 'assignor_review', 'gm_review', 'senior_gm_review'])));
+        $approved_requests = count(array_filter($requests, fn($r) => $r['status'] === 'approved' || $r['senior_gm_status'] === 'approved'));
+        $completed_requests = count(array_filter($requests, fn($r) => $r['status'] === 'completed' || $r['task_status'] === 'accepted'));
+        ?>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number"><?= $total_requests ?></div>
+                <div class="stat-label"><i class="fas fa-list"></i> คำขอทั้งหมด</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?= $pending_requests ?></div>
+                <div class="stat-label"><i class="fas fa-clock"></i> รอดำเนินการ</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?= $approved_requests ?></div>
+                <div class="stat-label"><i class="fas fa-check"></i> อนุมัติแล้ว</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number"><?= $completed_requests ?></div>
+                <div class="stat-label"><i class="fas fa-star"></i> เสร็จสิ้น</div>
+            </div>
+        </div>
+
         <div class="requests-container">
             <?php if (empty($requests)): ?>
                 <div class="empty-state">
@@ -444,47 +730,69 @@ function getApprovalStatus($status) {
                     <p>เริ่มต้นด้วยการสร้างคำขอบริการใหม่</p>
                 </div>
             <?php else: ?>
-                <?php foreach ($requests as $req): ?>
-                    <div class="request-card">
-                        <div class="request-header">
-                            <div>
-                                <div class="request-title"><?= htmlspecialchars($req['title']) ?></div>
-                                <div class="request-date">
-                                    <i class="fas fa-calendar"></i>
-                                    ส่งคำขอเมื่อ: <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
+                <div class="requests-grid">
+                    <?php foreach ($requests as $req): ?>
+                        <div class="request-card">
+                            <div class="request-header">
+                                <div>
+                                    <div class="request-title"><?= htmlspecialchars($req['title']) ?></div>
+                                    <div class="request-date">
+                                        <i class="fas fa-calendar"></i>
+                                        <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
+                                    </div>
+                                </div>
+                                <div>
+                                    <?= getStatusBadge($req['status']) ?>
                                 </div>
                             </div>
-                            <div>
-                                <?= getStatusBadge($req['status']) ?>
-                            </div>
-                        </div>
 
-                        <div class="progress-timeline">
-                            <!-- ขั้นตอนที่ 1: ผู้จัดการฝ่าย -->
-                            <div class="timeline-step <?= 
-                                $req['div_mgr_status'] === 'approved' ? 'completed' : 
-                                ($req['div_mgr_status'] === 'rejected' ? 'rejected' : 
-                                ($req['div_mgr_status'] === 'pending' ? 'current' : '')) 
-                            ?>">
-                                <div class="step-title">1. ผู้จัดการฝ่าย</div>
-                                <div class="step-status"><?= getApprovalStatus($req['div_mgr_status']) ?></div>
-                                <?php if ($req['div_mgr_reviewed_at']): ?>
+                            <div class="progress-timeline">
+                                <!-- ขั้นตอนที่ 1: ผู้จัดการฝ่าย -->
+                                <div class="timeline-step <?= 
+                                    $req['div_mgr_status'] === 'approved' ? 'completed' : 
+                                    ($req['div_mgr_status'] === 'rejected' ? 'rejected' : 
+                                    ($req['div_mgr_status'] === 'pending' ? 'current' : '')) 
+                                ?>">
+                                    <div class="step-icon">
+                                        <?php if ($req['div_mgr_status'] === 'approved'): ?>
+                                            <i class="fas fa-check"></i>
+                                        <?php elseif ($req['div_mgr_status'] === 'rejected'): ?>
+                                            <i class="fas fa-times"></i>
+                                        <?php elseif ($req['div_mgr_status'] === 'pending'): ?>
+                                            <i class="fas fa-clock"></i>
+                                        <?php else: ?>
+                                            1
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="step-title">ผู้จัดการฝ่าย</div>
+                                     <?php if ($req['div_mgr_reviewed_at']): ?>
                                     <div class="step-date"><?= date('d/m/Y H:i', strtotime($req['div_mgr_reviewed_at'])) ?></div>
                                 <?php endif; ?>
                                 <?php if ($req['div_mgr_name']): ?>
                                     <div class="step-reviewer">โดย: <?= htmlspecialchars($req['div_mgr_name']) ?></div>
                                 <?php endif; ?>
-                            </div>
+                                    
+                                </div>
 
-                            <!-- ขั้นตอนที่ 2: ผู้จัดการแผนก -->
-                            <div class="timeline-step <?= 
-                                $req['assignor_status'] === 'approved' ? 'completed' : 
-                                ($req['assignor_status'] === 'rejected' ? 'rejected' : 
-                                ($req['assignor_status'] === 'pending' && $req['div_mgr_status'] === 'approved' ? 'current' : '')) 
-                            ?>">
-                                <div class="step-title">2. ผู้จัดการแผนก</div>
-                                <div class="step-status"><?= getApprovalStatus($req['assignor_status']) ?></div>
-                                <?php if ($req['assignor_reviewed_at']): ?>
+                                <!-- ขั้นตอนที่ 2: ผู้จัดการแผนก -->
+                                <div class="timeline-step <?= 
+                                    $req['assignor_status'] === 'approved' ? 'completed' : 
+                                    ($req['assignor_status'] === 'rejected' ? 'rejected' : 
+                                    ($req['assignor_status'] === 'pending' && $req['div_mgr_status'] === 'approved' ? 'current' : '')) 
+                                ?>">
+                                    <div class="step-icon">
+                                        <?php if ($req['assignor_status'] === 'approved'): ?>
+                                            <i class="fas fa-check"></i>
+                                        <?php elseif ($req['assignor_status'] === 'rejected'): ?>
+                                            <i class="fas fa-times"></i>
+                                        <?php elseif ($req['assignor_status'] === 'pending' && $req['div_mgr_status'] === 'approved'): ?>
+                                            <i class="fas fa-clock"></i>
+                                        <?php else: ?>
+                                            2
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="step-title">ผู้จัดการแผนก</div>
+                                    <?php if ($req['assignor_reviewed_at']): ?>
                                     <div class="step-date"><?= date('d/m/Y H:i', strtotime($req['assignor_reviewed_at'])) ?></div>
                                 <?php endif; ?>
                                 <?php if ($req['assignor_name']): ?>
@@ -496,17 +804,27 @@ function getApprovalStatus($status) {
                                         ผู้พัฒนาระบบงาน: <?= htmlspecialchars($req['assigned_dev_name'] . ' ' . $req['assigned_dev_lastname']) ?>
                                     </div>
                                 <?php endif; ?>
-                            </div>
+                                </div>
 
-                            <!-- ขั้นตอนที่ 3: ผู้จัดการทั่วไป -->
-                            <div class="timeline-step <?= 
-                                $req['gm_status'] === 'approved' ? 'completed' : 
-                                ($req['gm_status'] === 'rejected' ? 'rejected' : 
-                                ($req['gm_status'] === 'pending' && $req['assignor_status'] === 'approved' ? 'current' : '')) 
-                            ?>">
-                                <div class="step-title">3. ผู้จัดการทั่วไป</div>
-                                <div class="step-status"><?= getApprovalStatus($req['gm_status']) ?></div>
-                                <?php if ($req['gm_reviewed_at']): ?>
+                                <!-- ขั้นตอนที่ 3: ผู้จัดการทั่วไป -->
+                                <div class="timeline-step <?= 
+                                    $req['gm_status'] === 'approved' ? 'completed' : 
+                                    ($req['gm_status'] === 'rejected' ? 'rejected' : 
+                                    ($req['gm_status'] === 'pending' && $req['assignor_status'] === 'approved' ? 'current' : '')) 
+                                ?>">
+                                    <div class="step-icon">
+                                        <?php if ($req['gm_status'] === 'approved'): ?>
+                                            <i class="fas fa-check"></i>
+                                        <?php elseif ($req['gm_status'] === 'rejected'): ?>
+                                            <i class="fas fa-times"></i>
+                                        <?php elseif ($req['gm_status'] === 'pending' && $req['assignor_status'] === 'approved'): ?>
+                                            <i class="fas fa-clock"></i>
+                                        <?php else: ?>
+                                            3
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="step-title">ผู้จัดการทั่วไป</div>
+                                   <?php if ($req['gm_reviewed_at']): ?>
                                     <div class="step-date"><?= date('d/m/Y H:i', strtotime($req['gm_reviewed_at'])) ?></div>
                                 <?php endif; ?>
                                 <?php if ($req['gm_name']): ?>
@@ -518,17 +836,27 @@ function getApprovalStatus($status) {
                                         ผู้พัฒนาระบบงาน: <?= htmlspecialchars($req['assigned_dev_name'] . ' ' . $req['assigned_dev_lastname']) ?>
                                     </div>
                                 <?php endif; ?>
-                            </div>
+                                </div>
 
-                            <!-- ขั้นตอนที่ 4: ผู้จัดการอาวุโส -->
-                            <div class="timeline-step <?= 
-                                $req['senior_gm_status'] === 'approved' ? 'completed' : 
-                                ($req['senior_gm_status'] === 'rejected' ? 'rejected' : 
-                                ($req['senior_gm_status'] === 'pending' && $req['gm_status'] === 'approved' ? 'current' : '')) 
-                            ?>">
-                                <div class="step-title">4. ผู้จัดการอาวุโส</div>
-                                <div class="step-status"><?= getApprovalStatus($req['senior_gm_status']) ?></div>
-                                <?php if ($req['senior_gm_reviewed_at']): ?>
+                                <!-- ขั้นตอนที่ 4: ผู้จัดการอาวุโส -->
+                                <div class="timeline-step <?= 
+                                    $req['senior_gm_status'] === 'approved' ? 'completed' : 
+                                    ($req['senior_gm_status'] === 'rejected' ? 'rejected' : 
+                                    ($req['senior_gm_status'] === 'pending' && $req['gm_status'] === 'approved' ? 'current' : '')) 
+                                ?>">
+                                    <div class="step-icon">
+                                        <?php if ($req['senior_gm_status'] === 'approved'): ?>
+                                            <i class="fas fa-check"></i>
+                                        <?php elseif ($req['senior_gm_status'] === 'rejected'): ?>
+                                            <i class="fas fa-times"></i>
+                                        <?php elseif ($req['senior_gm_status'] === 'pending' && $req['gm_status'] === 'approved'): ?>
+                                            <i class="fas fa-clock"></i>
+                                        <?php else: ?>
+                                            4
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="step-title">ผู้จัดการอาวุโส</div>
+                                     <?php if ($req['senior_gm_reviewed_at']): ?>
                                     <div class="step-date"><?= date('d/m/Y H:i', strtotime($req['senior_gm_reviewed_at'])) ?></div>
                                 <?php endif; ?>
                                 <?php if ($req['senior_gm_name']): ?>
@@ -540,127 +868,118 @@ function getApprovalStatus($status) {
                                         ผู้พัฒนาระบบงาน: <?= htmlspecialchars($req['assigned_dev_name'] . ' ' . $req['assigned_dev_lastname']) ?>
                                     </div>
                                 <?php endif; ?>
-                            </div>
+                                </div>
 
-                            <!-- ขั้นตอนที่ 5: การพัฒนา -->
-                            <?php if ($req['task_status']): ?>
-                            <div class="timeline-step <?= 
-                                in_array($req['task_status'], ['completed', 'accepted']) ? 'completed' : 
-                                (in_array($req['task_status'], ['received', 'in_progress', 'on_hold']) ? 'current' : '') 
-                            ?>">
-                                <div class="step-title">5. การพัฒนา</div>
-                                <div class="step-status">
-                                    <?php
-                                    $task_statuses = [
-                                        'pending' => '<i class="fas fa-clock text-warning"></i> รอรับงาน',
-                                        'received' => '<i class="fas fa-check text-success"></i> รับงานแล้ว',
-                                        'in_progress' => '<i class="fas fa-cog fa-spin text-primary"></i> กำลังดำเนินการ',
-                                        'on_hold' => '<i class="fas fa-pause text-warning"></i> พักงาน',
-                                        'completed' => '<i class="fas fa-check-double text-success"></i> เสร็จสิ้น - รอรีวิว',
-                                        'accepted' => '<i class="fas fa-star text-success"></i> ยอมรับงาน'
-                                    ];
-                                    echo $task_statuses[$req['task_status']] ?? '';
-                                    ?>
-                                </div>
-                                <?php if ($req['task_started_at']): ?>
-                                    <div class="step-date">เริ่ม: <?= date('d/m/Y H:i', strtotime($req['task_started_at'])) ?></div>
-                                <?php endif; ?>
-                                <?php if ($req['task_completed_at']): ?>
-                                    <div class="step-date">เสร็จ: <?= date('d/m/Y H:i', strtotime($req['task_completed_at'])) ?></div>
-                                <?php endif; ?>
-                                <?php if ($req['developer_notes']): ?>
-                                    <div class="step-reviewer">หมายเหตุ: <?= htmlspecialchars($req['developer_notes']) ?></div>
-                                <?php endif; ?>
-                            </div>
-                            <?php endif; ?>
-                            
-                            <!-- ขั้นตอนที่ 6: การรีวิวของผู้ใช้ -->
-                            <?php if ($req['task_status'] === 'completed'): ?>
-                            <div class="timeline-step current">
-                                <div class="step-title">6. รีวิวและยอมรับงาน</div>
-                                <div class="step-status">
-                                    <i class="fas fa-clock text-warning"></i> รอการรีวิวจากคุณ
-                                </div>
-                                <div style="margin-top: 10px;">
-                                    <a href="review_task.php?request_id=<?= $req['id'] ?>" 
-                                       class="btn btn-primary" style="background: #4299e1; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
-                                        <i class="fas fa-star"></i> รีวิวงาน
-                                    </a>
-                                </div>
-                            </div>
-                            <?php elseif ($req['review_status']): ?>
-                            <div class="timeline-step completed">
-                                <div class="step-title">6. รีวิวและยอมรับงาน</div>
-                                <div class="step-status">
-                                    <?php if ($req['review_status'] === 'accepted'): ?>
-                                        <i class="fas fa-star text-success"></i> ยอมรับงานแล้ว
-                                        <?php if ($req['rating']): ?>
-                                            <br>คะแนน: <?= str_repeat('⭐', $req['rating']) ?>
+                                <!-- ขั้นตอนที่ 5: การพัฒนา -->
+                                <?php if ($req['task_status']): ?>
+                                <div class="timeline-step <?= 
+                                    in_array($req['task_status'], ['completed', 'accepted']) ? 'completed' : 
+                                    (in_array($req['task_status'], ['received', 'in_progress', 'on_hold']) ? 'current' : '') 
+                                ?>">
+                                    <div class="step-icon">
+                                        <?php if (in_array($req['task_status'], ['completed', 'accepted'])): ?>
+                                            <i class="fas fa-check"></i>
+                                        <?php elseif (in_array($req['task_status'], ['received', 'in_progress', 'on_hold'])): ?>
+                                            <i class="fas fa-cog"></i>
+                                        <?php else: ?>
+                                            5
                                         <?php endif; ?>
-                                    <?php elseif ($req['review_status'] === 'revision_requested'): ?>
-                                        <i class="fas fa-redo text-warning"></i> ขอแก้ไข
+                                    </div>
+                                    <div class="step-title">พัฒนา</div>
+                                    <?php if ($req['task_started_at']): ?>
+                                        <div class="step-date"><?= date('d/m', strtotime($req['task_started_at'])) ?></div>
                                     <?php endif; ?>
                                 </div>
-                                <?php if ($req['user_reviewed_at']): ?>
-                                    <div class="step-date">รีวิวเมื่อ: <?= date('d/m/Y H:i', strtotime($req['user_reviewed_at'])) ?></div>
                                 <?php endif; ?>
-                                <?php if ($req['review_comment']): ?>
-                                    <div class="step-reviewer">ความเห็น: <?= htmlspecialchars($req['review_comment']) ?></div>
+                                
+                                <!-- ขั้นตอนที่ 6: การรีวิวของผู้ใช้ -->
+                                <?php if ($req['task_status'] === 'completed'): ?>
+                                <div class="timeline-step current">
+                                    <div class="step-icon">
+                                        <i class="fas fa-star"></i>
+                                    </div>
+                                    <div class="step-title">รีวิว</div>
+                                </div>
+                                <?php elseif ($req['review_status']): ?>
+                                <div class="timeline-step completed">
+                                    <div class="step-icon">
+                                        <i class="fas fa-check"></i>
+                                    </div>
+                                    <div class="step-title">รีวิว</div>
+                                    <?php if ($req['user_reviewed_at']): ?>
+                                        <div class="step-date"><?= date('d/m', strtotime($req['user_reviewed_at'])) ?></div>
+                                    <?php endif; ?>
+                                </div>
                                 <?php endif; ?>
+                            </div>
+
+                            <!-- ข้อมูลเพิ่มเติม -->
+                            <?php if ($req['assigned_dev_name']): ?>
+                            <div style="background: #f0f8ff; padding: 8px; border-radius: 6px; margin: 10px 0; font-size: 0.8rem;">
+                                <i class="fas fa-user-cog text-primary"></i> 
+                                <strong>ผู้พัฒนา:</strong> <?= htmlspecialchars($req['assigned_dev_name'] . ' ' . $req['assigned_dev_lastname']) ?>
+                            </div>
+                            <?php endif; ?>
+
+                            <!-- แสดงความคืบหน้าของงาน -->
+                            <?php if ($req['task_status'] && $req['progress_percentage'] !== null): ?>
+                            <div class="task-progress">
+                                <h4><i class="fas fa-tasks"></i> ความคืบหน้า <?= $req['progress_percentage'] ?>%</h4>
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: <?= $req['progress_percentage'] ?>%"></div>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+
+                            <!-- ปุ่มรีวิวงาน -->
+                            <?php if ($req['task_status'] === 'completed'): ?>
+                            <div style="text-align: center; margin-top: 10px;">
+                                <a href="review_task.php?request_id=<?= $req['id'] ?>" 
+                                   class="btn btn-primary" style="background: #4299e1; color: white; padding: 8px 16px; border-radius: 6px; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                                    <i class="fas fa-star"></i> รีวิวงาน
+                                </a>
+                            </div>
+                            <?php endif; ?>
+
+                            <!-- ไฟล์แนบ -->
+                            <div class="compact-attachments" style="margin-top: 10px;">
+                                <?php
+                                require_once __DIR__ . '/../includes/attachment_display.php';
+                                displayAttachments($req['id']);
+                                ?>
+                            </div>
+
+                            <!-- แสดงเหตุผลการไม่อนุมัติ (ถ้ามี) -->
+                            <?php 
+                            $rejections = [];
+                            if ($req['div_mgr_status'] === 'rejected' && $req['div_mgr_reason']) {
+                                $rejections[] = "ผู้จัดการฝ่าย: " . $req['div_mgr_reason'];
+                            }
+                            if ($req['assignor_status'] === 'rejected' && $req['assignor_reason']) {
+                                $rejections[] = "ผู้จัดการแผนก: " . $req['assignor_reason'];
+                            }
+                            if ($req['gm_status'] === 'rejected' && $req['gm_reason']) {
+                                $rejections[] = "ผู้จัดการทั่วไป: " . $req['gm_reason'];
+                            }
+                            if ($req['senior_gm_status'] === 'rejected' && $req['senior_gm_reason']) {
+                                $rejections[] = "ผู้จัดการอาวุโส: " . $req['senior_gm_reason'];
+                            }
+                            ?>
+                            
+                            <?php if (!empty($rejections)): ?>
+                            <div style="background: #fed7d7; border-radius: 8px; padding: 10px; margin-top: 10px;">
+                                <h4 style="color: #c53030; margin-bottom: 5px; font-size: 0.9rem;">
+                                    <i class="fas fa-exclamation-triangle"></i> เหตุผลการไม่อนุมัติ
+                                </h4>
+                                <?php foreach ($rejections as $rejection): ?>
+                                    <p style="color: #c53030; margin-bottom: 3px; font-size: 0.8rem;">• <?= htmlspecialchars($rejection) ?></p>
+                                <?php endforeach; ?>
                             </div>
                             <?php endif; ?>
                         </div>
-
-                       <div class="border rounded p-2 bg-light" style="max-width: 300px; max-height: 200px; overflow: auto;">
-    <?php
-    require_once __DIR__ . '/../includes/attachment_display.php';
-    displayAttachments($req['id']);
-    ?>
-</div>
-
-
-                        <!-- แสดงความคืบหน้าของงาน -->
-                        <?php if ($req['task_status'] && $req['progress_percentage'] !== null): ?>
-                        <div class="task-progress">
-                            <h4><i class="fas fa-tasks"></i> ความคืบหน้าการพัฒนา</h4>
-                            <div class="progress-bar">
-                                <div class="progress-fill" style="width: <?= $req['progress_percentage'] ?>%"></div>
-                            </div>
-                            <div style="text-align: center; margin-top: 10px;">
-                                <strong><?= $req['progress_percentage'] ?>%</strong> เสร็จสิ้น
-                            </div>
-                        </div>
-                        <?php endif; ?>
-
-                        <!-- แสดงเหตุผลการไม่อนุมัติ (ถ้ามี) -->
-                        <?php 
-                        $rejections = [];
-                        if ($req['div_mgr_status'] === 'rejected' && $req['div_mgr_reason']) {
-                            $rejections[] = "ผู้จัดการฝ่าย: " . $req['div_mgr_reason'];
-                        }
-                        if ($req['assignor_status'] === 'rejected' && $req['assignor_reason']) {
-                            $rejections[] = "ผู้จัดการแผนก: " . $req['assignor_reason'];
-                        }
-                        if ($req['gm_status'] === 'rejected' && $req['gm_reason']) {
-                            $rejections[] = "ผู้จัดการทั่วไป: " . $req['gm_reason'];
-                        }
-                        if ($req['senior_gm_status'] === 'rejected' && $req['senior_gm_reason']) {
-                            $rejections[] = "ผู้จัดการอาวุโส: " . $req['senior_gm_reason'];
-                        }
-                        ?>
-                        
-                        <?php if (!empty($rejections)): ?>
-                        <div style="background: #fed7d7; border-radius: 8px; padding: 15px; margin-top: 15px;">
-                            <h4 style="color: #c53030; margin-bottom: 10px;">
-                                <i class="fas fa-exclamation-triangle"></i> เหตุผลการไม่อนุมัติ
-                            </h4>
-                            <?php foreach ($rejections as $rejection): ?>
-                                <p style="color: #c53030; margin-bottom: 5px;">• <?= htmlspecialchars($rejection) ?></p>
-                            <?php endforeach; ?>
-                        </div>
-                        <?php endif; ?>
-                    </div>
-                <?php endforeach; ?>
+                    <?php endforeach; ?>
+                </div>
+                </div>
             <?php endif; ?>
         </div>
     </div>

@@ -58,6 +58,7 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -152,12 +153,29 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
             font-size: 0.9rem;
         }
 
-        .info-icon.employee { background: #667eea; }
-        .info-icon.user { background: #10b981; }
-        .info-icon.position { background: #f59e0b; }
-        .info-icon.department { background: #8b5cf6; }
-        .info-icon.phone { background: #ef4444; }
-        .info-icon.email { background: #06b6d4; }
+        .info-icon.employee {
+            background: #667eea;
+        }
+
+        .info-icon.user {
+            background: #10b981;
+        }
+
+        .info-icon.position {
+            background: #f59e0b;
+        }
+
+        .info-icon.department {
+            background: #8b5cf6;
+        }
+
+        .info-icon.phone {
+            background: #ef4444;
+        }
+
+        .info-icon.email {
+            background: #06b6d4;
+        }
 
         .service-badge {
             padding: 8px 16px;
@@ -206,14 +224,16 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
             color: #4a5568;
         }
 
-        .form-control, .form-select {
+        .form-control,
+        .form-select {
             border: 2px solid #e9ecef;
             border-radius: 10px;
             padding: 12px 15px;
             transition: all 0.3s ease;
         }
 
-        .form-control:focus, .form-select:focus {
+        .form-control:focus,
+        .form-select:focus {
             border-color: #667eea;
             box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
         }
@@ -298,23 +318,25 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
             color: #d1d5db;
             opacity: 0.7;
         }
-   @media (max-width: 768px) {
-    .page-title {
-        font-size: 2rem;
-        text-align: center;
-    }
-    .container {
-        padding: 1rem;
-    }
-            
+
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+                text-align: center;
+            }
+
+            .container {
+                padding: 1rem;
+            }
+
             .user-info-grid {
                 grid-template-columns: 1fr;
             }
-            
+
             .form-row {
                 grid-template-columns: 1fr;
             }
-            
+
             .radio-group {
                 flex-direction: column;
                 gap: 10px;
@@ -322,6 +344,7 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
         }
     </style>
 </head>
+
 <body>
     <div class="container mt-5">
         <!-- Header -->
@@ -370,14 +393,14 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div class="flex-grow-1">
 
-                                      <!-- ข้อมูลเลขที่เอกสาร -->
+                                <!-- ข้อมูลเลขที่เอกสาร -->
                                 <?php if (!empty($req['document_number'])): ?>
-    <div class="text-muted mb-2">
-        <i class="fas fa-file-alt me-1"></i> เลขที่เอกสาร: <?= htmlspecialchars($req['document_number']) ?>
-    </div>
-    <!-- ส่งค่า document_number ไปใน form ด้วย -->
-    <input type="hidden" name="document_number" value="<?= htmlspecialchars($req['document_number']) ?>">
-<?php endif; ?>
+                                    <div class="text-muted mb-2">
+                                        <i class="fas fa-file-alt me-1"></i> เลขที่เอกสาร: <?= htmlspecialchars($req['document_number']) ?>
+                                    </div>
+                                    <!-- ส่งค่า document_number ไปใน form ด้วย -->
+                                    <input type="hidden" name="document_number" value="<?= htmlspecialchars($req['document_number']) ?>">
+                                <?php endif; ?>
                                 <!-- หัวข้อ -->
                                 <div class="request-title"><?= htmlspecialchars($req['title']) ?></div>
 
@@ -392,7 +415,7 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
                             </div>
                             <div class="text-muted">
                                 <i class="fas fa-calendar me-1"></i>
-                               วันที่ขอดำเนินเรื่อง: <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
+                                วันที่ขอดำเนินเรื่อง: <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
                             </div>
                         </div>
 
@@ -454,64 +477,64 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
                             </div>
                         </div>
 
-                      
-<?php if ($req['service_category'] === 'development'): ?>
-    <div class="bg-info bg-opacity-10 p-3 rounded-3 mb-3 border-start border-info border-4">
-        <h6 class="fw-bold text-info mb-3">
-            <i class="fas fa-code me-2"></i>ข้อมูล Development
-        </h6>
-        <div class="row">
-            <?php
-                $fields = [
-                    'program_purpose' => 'วัตถุประสงค์',
-                    'target_users' => 'กลุ่มผู้ใช้งาน',
-                    'main_functions' => 'ฟังก์ชันหลัก',
-                    'data_requirements' => 'ข้อมูลที่ต้องใช้',
-                    'current_program_name' => 'โปรแกรมที่มีปัญหา',
-                    'problem_description' => 'รายละเอียดปัญหา',
-                    'error_frequency' => 'ความถี่ของปัญหา',
-                    'steps_to_reproduce' => 'ขั้นตอนการทำให้เกิดปัญหา',
-                    'program_name_change' => 'โปรแกรมที่ต้องการเปลี่ยนข้อมูล',
-                    'data_to_change' => 'ข้อมูลที่ต้องการเปลี่ยน',
-                    'new_data_value' => 'ข้อมูลใหม่ที่ต้องการ',
-                    'change_reason' => 'เหตุผลในการเปลี่ยนแปลง',
-                    'program_name_function' => 'โปรแกรมที่ต้องการเพิ่มฟังก์ชั่น',
-                    'new_functions' => 'ฟังก์ชั่นใหม่ที่ต้องการ',
-                    'function_benefits' => 'ประโยชน์ของฟังก์ชั่นใหม่',
-                    'integration_requirements' => 'ความต้องการเชื่อมต่อ',
-                    'program_name_decorate' => 'โปรแกรมที่ต้องการตกแต่ง',
-                    'decoration_type' => 'ประเภทการตกแต่ง',
-                    'reference_examples' => 'ตัวอย่างอ้างอิง',
-                    'current_workflow' => 'ขั้นตอนการทำงานเดิม',
-                    'approach_ideas' => 'แนวทาง/ไอเดีย',
-                    'related_programs' => 'โปรแกรมที่คาดว่าจะเกี่ยวข้อง',
-                    'current_tools' => 'ปกติใช้โปรแกรมอะไรทำงานอยู่',
-                    'system_impact' => 'ผลกระทบต่อระบบ',
-                    'related_documents' => 'เอกสารการทำงานที่เกี่ยวข้อง',
-                ];
 
-                foreach ($fields as $key => $label):
-                    if (!empty($req[$key])):
-            ?>
-            <div class="col-md-6 mb-3">
-                <strong><?= $label ?>:</strong><br>
-                <?= nl2br(htmlspecialchars($req[$key])) ?>
-            </div>
-            <?php
-                    endif;
-                endforeach;
-            ?>
-        </div>
-    </div>
-<?php endif; ?>
-<?php if ($req['expected_benefits']): ?>
-    <div class="bg-success bg-opacity-10 p-3 rounded-3 mb-3 border-start border-success border-4">
-        <h6 class="fw-bold text-success mb-2">
-            <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
-        </h6>
-        <p class="mb-0"><?= nl2br(htmlspecialchars($req['expected_benefits'])) ?></p>
-    </div>
-<?php endif; ?>
+                        <?php if ($req['service_category'] === 'development'): ?>
+                            <div class="bg-info bg-opacity-10 p-3 rounded-3 mb-3 border-start border-info border-4">
+                                <h6 class="fw-bold text-info mb-3">
+                                    <i class="fas fa-code me-2"></i>ข้อมูล Development
+                                </h6>
+                                <div class="row">
+                                    <?php
+                                    $fields = [
+                                        'program_purpose' => 'วัตถุประสงค์',
+                                        'target_users' => 'กลุ่มผู้ใช้งาน',
+                                        'main_functions' => 'ฟังก์ชันหลัก',
+                                        'data_requirements' => 'ข้อมูลที่ต้องใช้',
+                                        'current_program_name' => 'โปรแกรมที่มีปัญหา',
+                                        'problem_description' => 'รายละเอียดปัญหา',
+                                        'error_frequency' => 'ความถี่ของปัญหา',
+                                        'steps_to_reproduce' => 'ขั้นตอนการทำให้เกิดปัญหา',
+                                        'program_name_change' => 'โปรแกรมที่ต้องการเปลี่ยนข้อมูล',
+                                        'data_to_change' => 'ข้อมูลที่ต้องการเปลี่ยน',
+                                        'new_data_value' => 'ข้อมูลใหม่ที่ต้องการ',
+                                        'change_reason' => 'เหตุผลในการเปลี่ยนแปลง',
+                                        'program_name_function' => 'โปรแกรมที่ต้องการเพิ่มฟังก์ชั่น',
+                                        'new_functions' => 'ฟังก์ชั่นใหม่ที่ต้องการ',
+                                        'function_benefits' => 'ประโยชน์ของฟังก์ชั่นใหม่',
+                                        'integration_requirements' => 'ความต้องการเชื่อมต่อ',
+                                        'program_name_decorate' => 'โปรแกรมที่ต้องการตกแต่ง',
+                                        'decoration_type' => 'ประเภทการตกแต่ง',
+                                        'reference_examples' => 'ตัวอย่างอ้างอิง',
+                                        'current_workflow' => 'ขั้นตอนการทำงานเดิม',
+                                        'approach_ideas' => 'แนวทาง/ไอเดีย',
+                                        'related_programs' => 'โปรแกรมที่คาดว่าจะเกี่ยวข้อง',
+                                        'current_tools' => 'ปกติใช้โปรแกรมอะไรทำงานอยู่',
+                                        'system_impact' => 'ผลกระทบต่อระบบ',
+                                        'related_documents' => 'เอกสารการทำงานที่เกี่ยวข้อง',
+                                    ];
+
+                                    foreach ($fields as $key => $label):
+                                        if (!empty($req[$key])):
+                                    ?>
+                                            <div class="col-md-6 mb-3">
+                                                <strong><?= $label ?>:</strong><br>
+                                                <?= nl2br(htmlspecialchars($req[$key])) ?>
+                                            </div>
+                                    <?php
+                                        endif;
+                                    endforeach;
+                                    ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                        <?php if ($req['expected_benefits']): ?>
+                            <div class="bg-success bg-opacity-10 p-3 rounded-3 mb-3 border-start border-success border-4">
+                                <h6 class="fw-bold text-success mb-2">
+                                    <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+                                </h6>
+                                <p class="mb-0"><?= nl2br(htmlspecialchars($req['expected_benefits'])) ?></p>
+                            </div>
+                        <?php endif; ?>
 
 
                         <?php
@@ -525,7 +548,7 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <i class="fas fa-check-circle me-2"></i>อนุมัติโดยผู้จัดการฝ่าย
                             </h6>
                             <p class="mb-1">
-                                <strong>โดย:</strong> <?= htmlspecialchars($req['div_mgr_name']) ?> 
+                                <strong>โดย:</strong> <?= htmlspecialchars($req['div_mgr_name']) ?>
                                 <strong class="ms-3">เมื่อ:</strong> <?= date('d/m/Y H:i', strtotime($req['div_mgr_reviewed_at'])) ?>
                             </p>
                             <?php if ($req['div_mgr_reason']): ?>
@@ -535,13 +558,13 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
 
                         <form method="post" action="assign_status.php" class="approval-form">
                             <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-                            
+
                             <h5 class="fw-bold mb-3">
                                 <i class="fas fa-tasks me-2"></i>มอบหมายงานและพิจารณา
                             </h5>
-                            
+
                             <!-- เลือก Service ประเภท Development -->
-                       
+
 
                             <div class="form-row">
                                 <div class="form-group">
@@ -570,13 +593,24 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
                                     </select>
                                 </div>
                             </div>
-
-                            <div class="form-group">
+                            <div class="form-group mb-3">
                                 <label for="estimated_days_<?= $req['id'] ?>">
                                     <i class="fas fa-calendar-alt me-2"></i>ประมาณการเวลา (วัน):
                                 </label>
                                 <input type="number" name="estimated_days" id="estimated_days_<?= $req['id'] ?>" class="form-control" min="1" max="365" placeholder="จำนวนวันที่คาดว่าจะใช้">
                             </div>
+
+                            <div class="form-group mb-3">
+                                <label for="deadline_<?= $req['id'] ?>">
+                                    <i class="fas fa-clock me-2"></i>กำหนดเสร็จ (วันและเวลา):
+                                </label>
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                                    <input type="datetime-local" name="deadline" id="deadline_<?= $req['id'] ?>" class="form-control">
+                                </div>
+                                <div class="form-text text-muted">เลือกวันและเวลาที่ต้องการให้เสร็จงาน</div>
+                            </div>
+
 
                             <div class="form-group">
                                 <label>การพิจารณา:</label>
@@ -596,13 +630,12 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
 
                             <div class="form-group">
                                 <label for="reason_<?= $req['id'] ?>">เหตุผล/ข้อเสนอแนะ:</label>
-                                <textarea 
-                                    name="reason" 
-                                    id="reason_<?= $req['id'] ?>" 
+                                <textarea
+                                    name="reason"
+                                    id="reason_<?= $req['id'] ?>"
                                     class="form-control"
                                     placeholder="ระบุเหตุผลหรือข้อเสนอแนะ"
-                                    rows="3"
-                                ></textarea>
+                                    rows="3"></textarea>
                             </div>
 
                             <button type="submit" class="submit-btn">
@@ -626,7 +659,7 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
                 const prioritySelect = form.querySelector('select[name="priority_level"]');
                 const daysInput = form.querySelector('input[name="estimated_days"]');
                 const textarea = form.querySelector('textarea');
-                
+
                 if (this.value === 'approved') {
                     form.querySelector('select[name="development_service_id"]').required = true;
                     form.querySelector('select[name="development_service_id"]').disabled = false;
@@ -649,4 +682,5 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
         });
     </script>
 </body>
+
 </html>

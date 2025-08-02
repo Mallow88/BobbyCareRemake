@@ -2,56 +2,46 @@
 session_start();
 require_once __DIR__ . '/../config/database.php';
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'gmapprover') {
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'assignor') {
     header("Location: ../index.php");
     exit();
 }
 
-$gm_id = $_SESSION['user_id'];
+$assignor_id = $_SESSION['user_id'];
 
-// รับพารามิเตอร์การฟิลเตอร์และ pagination
+// รับพารามิเตอร์การฟิลเตอร์
 $filter_type = $_GET['filter'] ?? 'all';
 $filter_date = $_GET['date'] ?? date('Y-m-d');
 $filter_month = $_GET['month'] ?? date('Y-m');
 $filter_year = $_GET['year'] ?? date('Y');
-$page = max(1, (int)($_GET['page'] ?? 1));
-$limit = 10;
-$offset = ($page - 1) * $limit;
 
 // สร้าง WHERE clause ตามการฟิลเตอร์
-$where_clause = "WHERE gma.gm_user_id = ? AND gma.status IN ('approved', 'rejected')";
-$params = [$gm_id];
+$where_clause = "WHERE aa.assignor_user_id = ? AND aa.status IN ('approved', 'rejected')";
+$params = [$assignor_id];
 
 switch ($filter_type) {
     case 'day':
-        $where_clause .= " AND DATE(gma.reviewed_at) = ?";
+        $where_clause .= " AND DATE(aa.reviewed_at) = ?";
         $params[] = $filter_date;
         break;
     case 'month':
-        $where_clause .= " AND DATE_FORMAT(gma.reviewed_at, '%Y-%m') = ?";
+        $where_clause .= " AND DATE_FORMAT(aa.reviewed_at, '%Y-%m') = ?";
         $params[] = $filter_month;
         break;
     case 'year':
-        $where_clause .= " AND YEAR(gma.reviewed_at) = ?";
+        $where_clause .= " AND YEAR(aa.reviewed_at) = ?";
         $params[] = $filter_year;
         break;
+    case 'all':
+    default:
+        // ไม่มีเงื่อนไขเพิ่ม
+        break;
 }
-
-// นับจำนวนรายการทั้งหมด
-$count_stmt = $conn->prepare("
-    SELECT COUNT(*) as total
-    FROM gm_approvals gma
-    JOIN service_requests sr ON gma.service_request_id = sr.id
-    $where_clause
-");
-$count_stmt->execute($params);
-$total_records = $count_stmt->fetch(PDO::FETCH_ASSOC)['total'];
-$total_pages = ceil($total_records / $limit);
 
 // ดึงรายการที่อนุมัติแล้ว
 $stmt = $conn->prepare("
     SELECT 
-        gma.*,
+        aa.*,
         sr.title,
         sr.description,
         sr.created_at as request_date,
@@ -60,10 +50,6 @@ $stmt = $conn->prepare("
         requester.name AS requester_name,
         requester.lastname AS requester_lastname,
         requester.department as requester_department,
-        aa.estimated_days,
-        aa.priority_level,
-        assignor.name as assignor_name,
-        assignor.lastname as assignor_lastname,
         dev.name as dev_name,
         dev.lastname as dev_lastname,
         s.name as service_name,
@@ -75,18 +61,15 @@ $stmt = $conn->prepare("
         ur.rating,
         ur.review_comment,
         ur.status as review_status
-    FROM gm_approvals gma
-    JOIN service_requests sr ON gma.service_request_id = sr.id
+    FROM assignor_approvals aa
+    JOIN service_requests sr ON aa.service_request_id = sr.id
     JOIN users requester ON sr.user_id = requester.id
-    LEFT JOIN assignor_approvals aa ON sr.id = aa.service_request_id
-    LEFT JOIN users assignor ON aa.assignor_user_id = assignor.id
     LEFT JOIN users dev ON aa.assigned_developer_id = dev.id
     LEFT JOIN services s ON sr.service_id = s.id
     LEFT JOIN tasks t ON sr.id = t.service_request_id
     LEFT JOIN user_reviews ur ON t.id = ur.task_id
     $where_clause
-    ORDER BY gma.reviewed_at DESC
-    LIMIT $limit OFFSET $offset
+    ORDER BY aa.reviewed_at DESC
 ");
 $stmt->execute($params);
 $approvals = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -116,7 +99,7 @@ foreach ($approvals as $approval) {
     }
 }
 
-$approval_rate = $total_records > 0 ? round(($approved_count / $total_records) * 100, 1) : 0;
+$approval_rate = $total_approvals > 0 ? round(($approved_count / $total_approvals) * 100, 1) : 0;
 $completion_rate = $approved_count > 0 ? round(($completed_count / $approved_count) * 100, 1) : 0;
 $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 0;
 ?>
@@ -126,7 +109,7 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>รายการที่อนุมัติแล้ว - ผู้จัดการทั่วไป</title>
+    <title>รายการที่อนุมัติแล้ว - ผู้จัดการแผนก</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
@@ -306,7 +289,7 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
 
         .approval-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: between;
             align-items: flex-start;
             margin-bottom: 15px;
             flex-wrap: wrap;
@@ -363,6 +346,11 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
             color: #c53030;
         }
 
+        .status-pending {
+            background: #fef5e7;
+            color: #d69e2e;
+        }
+
         .task-progress {
             background: #f8f9fa;
             border-radius: 10px;
@@ -394,52 +382,6 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
             color: #fbbf24;
             font-size: 1.2rem;
             margin-bottom: 10px;
-        }
-
-        .pagination-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 10px;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-
-        .pagination-btn {
-            background: white;
-            border: 2px solid #e9ecef;
-            color: #6b7280;
-            padding: 8px 12px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            min-width: 40px;
-            text-align: center;
-        }
-
-        .pagination-btn:hover {
-            border-color: #667eea;
-            color: #667eea;
-        }
-
-        .pagination-btn.active {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-            border-color: transparent;
-        }
-
-        .pagination-btn.disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-
-        .pagination-info {
-            background: #f8f9fa;
-            padding: 10px 15px;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            color: #6b7280;
         }
 
         .empty-state {
@@ -476,11 +418,6 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
                 flex-direction: column;
                 align-items: flex-start;
             }
-
-            .pagination-container {
-                flex-direction: column;
-                gap: 15px;
-            }
         }
     </style>
 </head>
@@ -502,11 +439,11 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
                 </div>
                 <div class="col-lg-4 text-lg-end">
                     <div class="d-flex gap-2 justify-content-lg-end justify-content-start flex-wrap">
-                        <a href="gmindex.php" class="btn btn-gradient">
+                        <a href="index.php" class="btn btn-gradient">
                             <i class="fas fa-arrow-left me-2"></i>กลับหน้าหลัก
                         </a>
-                        <a href="developer_dashboard.php" class="btn btn-gradient">
-                            <i class="fas fa-chart-line me-2"></i>Developer Dashboard
+                        <a href="view_requests.php" class="btn btn-gradient">
+                            <i class="fas fa-clipboard-check me-2"></i>คำขอรอพิจารณา
                         </a>
                     </div>
                 </div>
@@ -516,7 +453,7 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
         <!-- สถิติ -->
         <div class="stats-grid">
             <div class="stat-card total">
-                <div class="stat-number"><?= $total_records ?></div>
+                <div class="stat-number"><?= $total_approvals ?></div>
                 <div class="stat-label">ทั้งหมด</div>
             </div>
             <div class="stat-card approval">
@@ -592,8 +529,9 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
                         </small>
                     <?php endif; ?>
                 </h2>
-                <div class="pagination-info">
-                    หน้า <?= $page ?> จาก <?= $total_pages ?> (<?= $total_records ?> รายการ)
+                <div class="text-muted">
+                    <i class="fas fa-clipboard-list me-1"></i>
+                    <?= $total_approvals ?> รายการ
                 </div>
             </div>
 
@@ -624,16 +562,10 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
                                             <?= htmlspecialchars($approval['requester_department']) ?>
                                         </span>
                                     <?php endif; ?>
-                                    <?php if ($approval['assignor_name']): ?>
-                                        <span class="ms-2">
-                                            <i class="fas fa-user-tie me-1"></i>
-                                            ผู้จัดการแผนก: <?= htmlspecialchars($approval['assignor_name'] . ' ' . $approval['assignor_lastname']) ?>
-                                        </span>
-                                    <?php endif; ?>
                                     <?php if ($approval['dev_name']): ?>
                                         <span class="ms-2">
                                             <i class="fas fa-user-cog me-1"></i>
-                                            ผู้พัฒนา: <?= htmlspecialchars($approval['dev_name'] . ' ' . $approval['dev_lastname']) ?>
+                                            มอบหมาย: <?= htmlspecialchars($approval['dev_name'] . ' ' . $approval['dev_lastname']) ?>
                                         </span>
                                     <?php endif; ?>
                                 </div>
@@ -682,13 +614,32 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
                             </div>
                         <?php endif; ?>
 
-                        <!-- งบประมาณที่อนุมัติ -->
-                        <?php if ($approval['budget_approved']): ?>
+                        <!-- ข้อมูลการมอบหมาย -->
+                        <?php if ($approval['status'] === 'approved' && $approval['dev_name']): ?>
                             <div class="bg-info bg-opacity-10 p-3 rounded border-start border-info border-4 mb-3">
                                 <h6 class="fw-bold text-info mb-2">
-                                    <i class="fas fa-money-bill-wave me-2"></i>งบประมาณที่อนุมัติ
+                                    <i class="fas fa-user-cog me-2"></i>ข้อมูลการมอบหมาย
                                 </h6>
-                                <?= number_format($approval['budget_approved'], 2) ?> บาท
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>ผู้พัฒนา:</strong> <?= htmlspecialchars($approval['dev_name'] . ' ' . $approval['dev_lastname']) ?>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>ประมาณการ:</strong> <?= $approval['estimated_days'] ?? 'ไม่ระบุ' ?> วัน
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>ความสำคัญ:</strong> 
+                                        <?php
+                                        $priority_labels = [
+                                            'low' => 'ต่ำ',
+                                            'medium' => 'ปานกลาง',
+                                            'high' => 'สูง',
+                                            'urgent' => 'เร่งด่วน'
+                                        ];
+                                        echo $priority_labels[$approval['priority_level']] ?? 'ปานกลาง';
+                                        ?>
+                                    </div>
+                                </div>
                             </div>
                         <?php endif; ?>
 
@@ -754,59 +705,6 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
                         <?php endif; ?>
                     </div>
                 <?php endforeach; ?>
-
-                <!-- Pagination -->
-                <?php if ($total_pages > 1): ?>
-                    <div class="pagination-container">
-                        <!-- Previous Button -->
-                        <?php if ($page > 1): ?>
-                            <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page - 1])) ?>" class="pagination-btn">
-                                <i class="fas fa-chevron-left"></i>
-                            </a>
-                        <?php else: ?>
-                            <span class="pagination-btn disabled">
-                                <i class="fas fa-chevron-left"></i>
-                            </span>
-                        <?php endif; ?>
-
-                        <!-- Page Numbers -->
-                        <?php
-                        $start_page = max(1, $page - 2);
-                        $end_page = min($total_pages, $page + 2);
-                        
-                        if ($start_page > 1): ?>
-                            <a href="?<?= http_build_query(array_merge($_GET, ['page' => 1])) ?>" class="pagination-btn">1</a>
-                            <?php if ($start_page > 2): ?>
-                                <span class="pagination-btn disabled">...</span>
-                            <?php endif; ?>
-                        <?php endif; ?>
-
-                        <?php for ($i = $start_page; $i <= $end_page; $i++): ?>
-                            <a href="?<?= http_build_query(array_merge($_GET, ['page' => $i])) ?>" 
-                               class="pagination-btn <?= $i === $page ? 'active' : '' ?>">
-                                <?= $i ?>
-                            </a>
-                        <?php endfor; ?>
-
-                        <?php if ($end_page < $total_pages): ?>
-                            <?php if ($end_page < $total_pages - 1): ?>
-                                <span class="pagination-btn disabled">...</span>
-                            <?php endif; ?>
-                            <a href="?<?= http_build_query(array_merge($_GET, ['page' => $total_pages])) ?>" class="pagination-btn"><?= $total_pages ?></a>
-                        <?php endif; ?>
-
-                        <!-- Next Button -->
-                        <?php if ($page < $total_pages): ?>
-                            <a href="?<?= http_build_query(array_merge($_GET, ['page' => $page + 1])) ?>" class="pagination-btn">
-                                <i class="fas fa-chevron-right"></i>
-                            </a>
-                        <?php else: ?>
-                            <span class="pagination-btn disabled">
-                                <i class="fas fa-chevron-right"></i>
-                            </span>
-                        <?php endif; ?>
-                    </div>
-                <?php endif; ?>
             <?php endif; ?>
         </div>
     </div>
@@ -838,7 +736,6 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
         function applyFilter() {
             let url = new URL(window.location);
             url.searchParams.set('filter', currentFilter);
-            url.searchParams.delete('page'); // รีเซ็ตหน้า
             
             switch (currentFilter) {
                 case 'day':

@@ -499,6 +499,11 @@ if (isset($_SESSION['user_id'])) {
                             <i class="fab fa-line"></i>
                             เข้าสู่ระบบด้วย LINE
                         </a>
+
+                         <a href="track_documents.php" class="btn-admin">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <span class="code-font">ค้นหาเอกสาร</span>
+                        </a>
                         
                         <a href="admin/login.php" class="btn-admin">
                             <i class="fas fa-user-shield"></i>
