@@ -35,6 +35,7 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -144,10 +145,21 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
             letter-spacing: 0.5px;
         }
 
-        .stat-card.total .stat-number { color: #667eea; }
-        .stat-card.pending .stat-number { color: #f59e0b; }
-        .stat-card.approved .stat-number { color: #10b981; }
-        .stat-card.rejected .stat-number { color: #ef4444; }
+        .stat-card.total .stat-number {
+            color: #667eea;
+        }
+
+        .stat-card.pending .stat-number {
+            color: #f59e0b;
+        }
+
+        .stat-card.approved .stat-number {
+            color: #10b981;
+        }
+
+        .stat-card.rejected .stat-number {
+            color: #ef4444;
+        }
 
         .recent-card {
             background: white;
@@ -173,9 +185,20 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
             text-transform: uppercase;
         }
 
-        .status-pending { background: #fef3c7; color: #d97706; }
-        .status-approved { background: #d1fae5; color: #065f46; }
-        .status-rejected { background: #fee2e2; color: #dc2626; }
+        .status-pending {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .status-approved {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #dc2626;
+        }
 
         .welcome-section {
             background: linear-gradient(135deg, #8d9de2ff, #b792dbff);
@@ -194,13 +217,20 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
             right: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
             animation: float 6s ease-in-out infinite;
         }
 
         @keyframes float {
-            0%, 100% { transform: translateY(0px) rotate(0deg); }
-            50% { transform: translateY(-20px) rotate(180deg); }
+
+            0%,
+            100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+
+            50% {
+                transform: translateY(-20px) rotate(180deg);
+            }
         }
 
         .quick-actions {
@@ -239,32 +269,68 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
             color: white;
         }
 
-        .action-icon.create { background: linear-gradient(135deg, #10b981, #059669); }
-        .action-icon.track { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-        .action-icon.list { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+        .action-icon.create {
+            background: linear-gradient(135deg, #10b981, #059669);
+        }
 
-       @media (max-width: 768px) {
-    .page-title {
-        font-size: 2rem;
-        text-align: center;
-    }
-    .container {
-        padding: 1rem;
-    }
+        .action-icon.track {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+        }
+
+        .action-icon.list {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        }
+
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+                text-align: center;
+            }
+
+            .container {
+                padding: 1rem;
+            }
 
 
-            
+
             .stat-number {
                 font-size: 2rem;
             }
         }
+
+        .dropdown-menu {
+            z-index: 1055;
+            /* สูงพอจะอยู่เหนือ element ส่วนใหญ่ */
+            position: absolute;
+        }
+
+        /* จัดความสูงสูงสุด + scroll ถ้าเมนูเยอะ */
+        .dropdown-menu-custom {
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 2000;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 10px;
+            margin-top: 5px;
+        }
+
+        /* เมนูแต่ละรายการให้ดูทันสมัย */
+        .dropdown-item {
+            padding: 10px 20px;
+            transition: background-color 0.2s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f0f0f0;
+        }
     </style>
 </head>
+
 <body>
     <div class="container mt-5">
         <!-- Welcome Section -->
         <div class="welcome-section">
-            <div class="row align-items-center">
+            <!-- <div class="row align-items-center">
                 <div class="col-lg-8">
                     <h1 class="display-4 fw-bold mb-3">
                         สวัสดี, <?= htmlspecialchars($_SESSION['name']) ?>! 👋
@@ -279,13 +345,78 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
                         <a href="logout.php" class="btn btn-outline-light">
                             <i class="fas fa-sign-out-alt me-2"></i>ออกจากระบบ
                         </a>
+
+                        <div class="dropdown">
+                            <a class="btn btn-outline-light dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fa-solid fa-bars me-2"></i>รายการ
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-custom">
+                                <li><a class="dropdown-item" href="#">เมนูที่ 5</a></li>
+                                <li><a class="dropdown-item" href="#">เมนูที่ 2</a></li>
+                                <li><a class="dropdown-item" href="#">เมนูที่ 3</a></li>
+                            </ul>
+                        </div>
+
+
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
 
+
+          <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+
+        <div class="container">
+            <!-- โลโก้ + ชื่อระบบ -->
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="dashboard.php">
+                <img src="img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
+                <span class="page-title"> สวัสดี, <?= htmlspecialchars($_SESSION['name']) ?>! </span>
+            </a>
+
+            <!-- ปุ่ม toggle สำหรับ mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- เมนู -->
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <!-- ซ้าย: เมนูหลัก -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <!-- <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> หน้าหลัก</a>
+                    </li> -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="requests/create.php"><i class="fas fa-tasks me-1"></i>สร้างคำขอบริการ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="requests/index.php"><i class="fas fa-chart-bar me-1"></i> รายการคำขอ</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" href="requests/track_status.php"><i class="fas fa-chart-bar me-1"></i>ติดตามสถานะ</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" href="profile.php"><i class="fas fa-chart-bar me-1"></i>โปรไฟล์</a>
+                    </li>
+                </ul>
+                <!-- ขวา: ผู้ใช้งาน -->
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <!-- <li class="nav-item d-flex align-items-center text-dark me-3">
+                        <i class="fas fa-user-circle me-2"></i>
+                      
+                    </li> -->
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="logout.php">
+                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
         <!-- Quick Actions -->
-        <div class="quick-actions">
+        <!-- <div class="quick-actions">
             <a href="requests/create.php" class="action-card">
                 <div class="action-icon create">
                     <i class="fas fa-plus"></i>
@@ -293,7 +424,7 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
                 <h5 class="fw-bold">สร้างคำขอใหม่</h5>
                 <p class="text-muted mb-0">เริ่มต้นคำขอบริการใหม่</p>
             </a>
-            
+
             <a href="requests/index.php" class="action-card">
                 <div class="action-icon list">
                     <i class="fas fa-list-alt"></i>
@@ -302,18 +433,18 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
                 <p class="text-muted mb-0">จัดการคำขอทั้งหมด</p>
             </a>
 
-              <a href="requests/track_status.php" class="action-card">
+            <a href="requests/track_status.php" class="action-card">
                 <div class="action-icon track">
                     <i class="fas fa-chart-line"></i>
                 </div>
                 <h5 class="fw-bold">ติดตามสถานะ</h5>
                 <p class="text-muted mb-0">ดูความคืบหน้าคำขอ</p>
             </a>
-        </div>
+        </div> -->
 
         <div class="row">
             <!-- Statistics -->
-            <div class="col-lg-8">
+            <div class="col-lg-20">
                 <div class="glass-card p-4 mb-4">
                     <h3 class="fw-bold mb-4">
                         <i class="fas fa-chart-bar me-2 text-primary"></i>สถิติคำขอของคุณ
@@ -347,8 +478,12 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
             </div>
 
-            <!-- Recent Requests -->
-            <div class="col-lg-4">
+           
+            
+        </div>
+
+         <!-- Recent Requests -->
+            <div class="col-lg-20">
                 <div class="glass-card p-4">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h4 class="fw-bold mb-0">
@@ -373,8 +508,7 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <div class="d-flex justify-content-between align-items-start mb-2">
                                     <h6 class="fw-bold mb-0"><?= htmlspecialchars(substr($request['title'], 0, 30)) ?><?= strlen($request['title']) > 30 ? '...' : '' ?></h6>
                                     <?php
-                                    $status_class = in_array($request['status'], ['approved', 'completed']) ? 'status-approved' : 
-                                                   ($request['status'] === 'rejected' ? 'status-rejected' : 'status-pending');
+                                    $status_class = in_array($request['status'], ['approved', 'completed']) ? 'status-approved' : ($request['status'] === 'rejected' ? 'status-rejected' : 'status-pending');
                                     ?>
                                     <span class="status-badge <?= $status_class ?>">
                                         <?= $request['status'] ?>
@@ -389,9 +523,9 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
                     <?php endif; ?>
                 </div>
             </div>
-        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

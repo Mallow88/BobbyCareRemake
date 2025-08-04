@@ -297,26 +297,64 @@ $recent_approvals = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
 </head>
 <body>
     <div class="container mt-5">
+
+
+
+
+      <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+
+        <div class="container">
+            <!-- โลโก้ + ชื่อระบบ -->
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="index.php">
+                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
+                <span class="page-title"> ผู้จัดการแผนก, <?= htmlspecialchars($_SESSION['name']) ?>! </span>
+            </a>
+
+            <!-- ปุ่ม toggle สำหรับ mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- เมนู -->
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <!-- ซ้าย: เมนูหลัก -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <!-- <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> หน้าหลัก</a>
+                    </li> -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="view_requests.php"><i class="fas fa-tasks me-1"></i>ตรวจสอบคำขอ
+                    </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="approved_list.php"><i class="fas fa-chart-bar me-1"></i> รายการที่อนุมัติ</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" href="view_completed_tasks.php"><i class="fas fa-chart-bar me-1"></i>UserReviews</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" href="assignor_dashboard.php"><i class="fas fa-chart-bar me-1"></i>Dashboard_DEV</a>
+                    </li>
+                </ul>
+                <!-- ขวา: ผู้ใช้งาน -->
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <!-- <li class="nav-item d-flex align-items-center text-dark me-3">
+                        <i class="fas fa-user-circle me-2"></i>
+                      
+                    </li> -->
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="../logout.php">
+                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
         <!-- Welcome Section -->
         <div class="welcome-section">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <h1 class="display-4 fw-bold mb-3">
-                        สวัสดี, <?= htmlspecialchars($_SESSION['name']) ?>! 👨‍💼
-                    </h1>
-                    <p class="lead mb-0">ยินดีต้อนรับสู่ระบบจัดการคำขอบริการ - ผู้จัดการแผนก</p>
-                </div>
-                <div class="col-lg-4 text-lg-end">
-                    <div class="d-flex gap-2 justify-content-lg-end justify-content-start flex-wrap">
-                        <a href="../profile.php" class="btn btn-light">
-                            <i class="fas fa-user me-2"></i>โปรไฟล์
-                        </a>
-                        <a href="../logout.php" class="btn btn-outline-light">
-                            <i class="fas fa-sign-out-alt me-2"></i>ออกจากระบบ
-                        </a>
-                    </div>
-                </div>
-            </div>
         </div>
 
         <!-- Statistics -->
@@ -339,38 +377,6 @@ $recent_approvals = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
 
-        <!-- Quick Actions -->
-        <div class="quick-actions">
-            <a href="view_requests.php" class="action-card">
-                <div class="action-icon pending">
-                    <i class="fas fa-clipboard-check"></i>
-                    <?php if ($pending_count > 0): ?>
-                        <span class="notification-badge"><?= $pending_count ?></span>
-                    <?php endif; ?>
-                </div>
-                <h5 class="fw-bold">ตรวจสอบคำขอ</h5>
-                <p class="text-muted mb-0">พิจารณาและมอบหมายงาน</p>
-                <?php if ($pending_count > 0): ?>
-                    <small class="text-warning fw-bold">มี <?= $pending_count ?> คำขอรอพิจารณา</small>
-                <?php endif; ?>
-            </a>
-            
-            <a href="approved_list.php" class="action-card">
-                <div class="action-icon approved">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <h5 class="fw-bold">รายการที่อนุมัติ</h5>
-                <p class="text-muted mb-0">ดูคำขอที่อนุมัติแล้ว</p>
-            </a>
-            
-            <a href="view_completed_tasks.php" class="action-card">
-                <div class="action-icon completed">
-                    <i class="fas fa-star"></i>
-                </div>
-                <h5 class="fw-bold">งานที่เสร็จแล้ว</h5>
-                <p class="text-muted mb-0">ดูงานที่ทำเสร็จและรีวิว</p>
-            </a>
-        </div>
 
         <div class="row">
             <!-- Recent Approvals -->

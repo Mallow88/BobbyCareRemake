@@ -225,6 +225,7 @@ if ($export_type === 'excel') {
                     <td><?= htmlspecialchars($task['requester_name'] . ' ' . $task['requester_lastname']) ?></td>
                     <td><?= htmlspecialchars($task['service_name'] ?? 'ไม่ระบุ') ?></td>
                     <td><?= $task['started_at'] ? date('d/m/Y', strtotime($task['started_at'])) : 'ไม่ระบุ' ?></td>
+
                     <td><?= date('d/m/Y', strtotime($task['completed_at'])) ?></td>
                     <td><?= $task['days_used'] ?? 'ไม่ระบุ' ?> วัน</td>
                     <td><?= $task['rating'] ? $task['rating'] . '/5' : 'ไม่มี' ?></td>
@@ -240,13 +241,14 @@ if ($export_type === 'excel') {
         </tbody>
     </table>
 
-    <div class="no-print" style="margin-top: 30px; text-align: center;">
-        <button onclick="window.print()" style="background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-            <i class="fas fa-print"></i> พิมพ์รายงาน
-        </button>
-        <button onclick="window.close()" style="background: #6b7280; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-left: 10px;">
-            ปิดหน้าต่าง
-        </button>
-    </div>
+   <div class="no-print" style="margin-top: 30px; text-align: center;">
+    <button onclick="window.print()" style="background: #667eea; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+        <i class="fas fa-print"></i> พิมพ์รายงาน
+    </button>
+    <button onclick="window.history.back()" style="background: #10b981; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-left: 10px;">
+        <i class="fas fa-arrow-left"></i> ย้อนกลับ
+    </button>
+</div>
+
 </body>
 </html>

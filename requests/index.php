@@ -187,39 +187,62 @@ foreach ($requests as &$request) {
 
 <body>
     <div class="container-lg my-5">
-
         <!-- Header -->
-        <div class="header-card p-4 mb-4">
-            <div class="row align-items-center g-3">
-                <!-- ซ้าย: หัวเรื่อง -->
-                <div class="col-md-8">
-                    <div class="d-flex align-items-center">
-                        <div class="icon-circle me-3">
-                            <i class="fas fa-list-alt text-white fs-3"></i>
-                        </div>
-                        <div>
-                            <h1 class="page-title mb-1">รายการคำขอบริการ</h1>
-                            <p class="text-muted mb-0 fs-6">จัดการและติดตามคำขอบริการของคุณ</p>
-                        </div>
-                    </div>
-                </div>
+        <div class="header-card p-4 mb-4">         
+        </div>
 
-                <!-- ขวา: ปุ่ม 3 ปุ่มเรียงแนวนอน -->
-                <div class="col-md-4 text-md-end">
-                    <div class="d-flex flex-row gap-2 justify-content-end">
-                        <a href="../dashboard.php" class="btn btn-outline-gradient">
-                            <i class="fas fa-home me-2"></i>หน้าหลัก
+            <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+
+        <div class="container">
+            <!-- โลโก้ + ชื่อระบบ -->
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="../dashboard.php">
+                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
+                <span class="page-title"> สวัสดี, <?= htmlspecialchars($_SESSION['name']) ?>! </span>
+            </a>
+
+            <!-- ปุ่ม toggle สำหรับ mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- เมนู -->
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <!-- ซ้าย: เมนูหลัก -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <!-- <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> หน้าหลัก</a>
+                    </li> -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="create.php"><i class="fas fa-tasks me-1"></i>สร้างคำขอบริการ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.php"><i class="fas fa-chart-bar me-1"></i> รายการคำขอ</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" href="track_status.php"><i class="fas fa-chart-bar me-1"></i>ติดตามสถานะ</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" href="../profile.php"><i class="fas fa-chart-bar me-1"></i>โปรไฟล์</a>
+                    </li>
+                </ul>
+                <!-- ขวา: ผู้ใช้งาน -->
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <!-- <li class="nav-item d-flex align-items-center text-dark me-3">
+                        <i class="fas fa-user-circle me-2"></i>
+                      
+                    </li> -->
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="../logout.php">
+                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
                         </a>
-                        <a href="create.php" class="btn btn-outline-gradient">
-                            <i class="fas fa-plus-circle me-2"></i>สร้างคำขอใหม่
-                        </a>
-                        <a href="track_status.php" class="btn btn-gradient">
-                            <i class="fas fa-chart-line me-2"></i>ติดตามสถานะ
-                        </a>
-                    </div>
-                </div>
+                    </li>
+                </ul>
             </div>
         </div>
+    </nav>
+
+
 
         <!-- Filter Form -->
         <div class="glass-card p-4 mb-4">
@@ -397,7 +420,11 @@ foreach ($requests as &$request) {
 
                                     <!-- ปุ่มดูสถานะและแก้ไข -->
                                     <div class="d-flex gap-2">
-                                        <button class="btn btn-outline-primary btn-sm" type="button" data-bs-toggle="collapse" data-bs-target="#status_<?= $req['id'] ?>" aria-expanded="false">
+                                        <button class="btn btn-outline-primary btn-sm" type="button"
+                                            data-bs-toggle="collapse"
+                                            data-bs-target="#status_<?= $req['id'] ?>"
+                                            aria-expanded="false"
+                                            aria-controls="status_<?= $req['id'] ?>">
                                             <i class="fas fa-eye me-1"></i>ดูสถานะการอนุมัติ
                                         </button>
                                         <?php if (in_array($req['status'], ['pending', 'rejected'])): ?>
@@ -768,13 +795,16 @@ foreach ($requests as &$request) {
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- ต้องมี Bootstrap Bundle ที่รวม Popper -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
         // Auto-refresh every 30 seconds
-        setInterval(function() {
-            if (document.visibilityState === 'visible') {
-                location.reload();
-            }
-        }, 30000);
+        // setInterval(function() {
+        //     if (document.visibilityState === 'visible') {
+        //         location.reload();
+        //     }
+        // }, 30000);
 
         // Smooth scroll to opened status
         document.addEventListener('DOMContentLoaded', function() {

@@ -246,18 +246,60 @@ $acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews)
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+    
+     <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+
         <div class="container">
-            <a class="navbar-brand fw-bold" href="#">
-                <i class="fas fa-star text-primary me-2"></i>
+            <!-- โลโก้ + ชื่อระบบ -->
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="dev_index.php">
+                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
                 <span class="page-title">Reviews</span>
             </a>
-            <div class="navbar-nav ms-auto">
-                <span class="navbar-text me-3">
-                    <i class="fas fa-user-circle me-2"></i>
-                    <?= htmlspecialchars($_SESSION['name']) ?>
-                </span>
+
+
+            <!-- ปุ่ม toggle สำหรับ mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- เมนู -->
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <!-- ซ้าย: เมนูหลัก -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <!-- <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> หน้าหลัก</a>
+                    </li> -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="tasks_board.php">
+                            <i class="fas fa-clipboard-list me-1"></i>
+                            บอร์ดงาน
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="calendar.php"><i class="fas fa-tasks me-1"></i> ปฏิทิน</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="completed_reviews.php"><i class="fas fa-chart-bar me-1"></i> งานที่รีวิว</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" href="export_report.php"><i class="fas fa-chart-bar me-1"></i>Report</a>
+                    </li>
+                </ul>
+
+                <!-- ขวา: ผู้ใช้งาน -->
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <li class="nav-item d-flex align-items-center text-dark me-3">
+                        <i class="fas fa-user-circle me-2"></i>
+                        <?= htmlspecialchars($_SESSION['name']) ?>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="../logout.php">
+                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>

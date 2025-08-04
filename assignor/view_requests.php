@@ -347,31 +347,62 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <body>
     <div class="container mt-5">
+
+  <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+
+        <div class="container">
+            <!-- โลโก้ + ชื่อระบบ -->
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="index.php">
+                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
+                <span class="page-title"> ผู้จัดการแผนก, <?= htmlspecialchars($_SESSION['name']) ?>! </span>
+            </a>
+
+            <!-- ปุ่ม toggle สำหรับ mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- เมนู -->
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <!-- ซ้าย: เมนูหลัก -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <!-- <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> หน้าหลัก</a>
+                    </li> -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="view_requests.php"><i class="fas fa-tasks me-1"></i>ตรวจสอบคำขอ
+                    </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="approved_list.php"><i class="fas fa-chart-bar me-1"></i> รายการที่อนุมัติ</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" href="view_completed_tasks.php"><i class="fas fa-chart-bar me-1"></i>UserReviews</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" href="assignor_dashboard.php"><i class="fas fa-chart-bar me-1"></i>Dashboard_DEV</a>
+                    </li>
+                </ul>
+                <!-- ขวา: ผู้ใช้งาน -->
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <!-- <li class="nav-item d-flex align-items-center text-dark me-3">
+                        <i class="fas fa-user-circle me-2"></i>
+                      
+                    </li> -->
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="../logout.php">
+                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
         <!-- Header -->
         <div class="header-card p-5 mb-5">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-4" style="width: 70px; height: 70px;">
-                            <i class="fas fa-user-cog text-white fs-2"></i>
-                        </div>
-                        <div>
-                            <h1 class="page-title mb-2">ผู้จัดการแผนก</h1>
-                            <p class="text-muted mb-0 fs-5">พิจารณาคำขอและมอบหมายงานให้ผู้พัฒนา</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 text-lg-end">
-                    <div class="d-flex gap-2 justify-content-lg-end justify-content-start flex-wrap">
-                        <a href="index.php" class="btn btn-gradient">
-                            <i class="fas fa-arrow-left me-2"></i>กลับหน้าหลัก
-                        </a>
-                        <a href="view_completed_tasks.php" class="btn btn-gradient">
-                            <i class="fas fa-star me-2"></i>งานที่เสร็จแล้ว
-                        </a>
-                    </div>
-                </div>
-            </div>
+            
         </div>
 
         <!-- Content -->

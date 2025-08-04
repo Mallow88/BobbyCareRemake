@@ -45,11 +45,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accept_request_id']))
         // อัปเดตสถานะใน tasks
         $update = $conn->prepare("UPDATE tasks SET task_status = 'received', progress_percentage = 10, started_at = NOW(), accepted_at = NOW() WHERE id = ? AND developer_user_id = ?");
         $update->execute([$task_id, $developer_id]);
-        
+
         // อัปเดตสถานะใน service_requests
         $update_sr = $conn->prepare("UPDATE service_requests SET developer_status = 'received' WHERE id = ?");
         $update_sr->execute([$service_request_id]);
-        
+
         // บันทึก log
         $log_stmt = $conn->prepare("INSERT INTO task_status_logs (task_id, old_status, new_status, changed_by, notes) VALUES (?, 'pending', 'received', ?, 'งานได้รับการยอมรับโดยผู้พัฒนา')");
         $log_stmt->execute([$task_id, $developer_id]);
@@ -66,6 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accept_request_id']))
 
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -286,6 +287,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accept_request_id']))
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -300,77 +302,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accept_request_id']))
             0% {
                 box-shadow: 0 0 0 0 rgba(102, 126, 234, 0.7);
             }
+
             70% {
                 box-shadow: 0 0 0 10px rgba(102, 126, 234, 0);
             }
+
             100% {
                 box-shadow: 0 0 0 0 rgba(102, 126, 234, 0);
             }
         }
     </style>
 </head>
+
 <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+
         <div class="container">
-            <a class="navbar-brand fw-bold" href="#">
-                <i class="fas fa-code text-primary me-2"></i>
-                <span class="page-title">Developer Portal</span>
+            <!-- โลโก้ + ชื่อระบบ -->
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="dev_index.php">
+                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
+                <span class="page-title">Developer</span>
             </a>
-            <div class="navbar-nav ms-auto">
-                <span class="navbar-text me-3">
-                    <i class="fas fa-user-circle me-2"></i>
-                    <?= htmlspecialchars($_SESSION['name']) ?>
-                </span>
+
+
+            <!-- ปุ่ม toggle สำหรับ mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- เมนู -->
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <!-- ซ้าย: เมนูหลัก -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <!-- <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> หน้าหลัก</a>
+                    </li> -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="tasks_board.php">
+                            <i class="fas fa-clipboard-list me-1"></i>
+                            บอร์ดงาน
+                            <span class="badge bg-danger ms-1"><?= count($requests) ?></span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="calendar.php"><i class="fas fa-tasks me-1"></i> ปฏิทิน</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="completed_reviews.php"><i class="fas fa-chart-bar me-1"></i> งานที่รีวิว</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" href="completed_reviews.php"><i class="fas fa-chart-bar me-1"></i>Report</a>
+                    </li>
+                </ul>
+
+                <!-- ขวา: ผู้ใช้งาน -->
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <li class="nav-item d-flex align-items-center text-dark me-3">
+                        <i class="fas fa-user-circle me-2"></i>
+                        <?= htmlspecialchars($_SESSION['name']) ?>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="../logout.php">
+                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>
 
-    <div class="container mt-5 pt-5">
-        <!-- Header Section -->
-        <div class="header-card p-5 mb-5 animate-fade-in">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="icon-box icon-primary me-4">
-                            <i class="fas fa-laptop-code"></i>
-                        </div>
-                        <div>
-                            <h1 class="page-title mb-2">งานของผู้พัฒนา</h1>
-                            <p class="text-muted mb-0 fs-5">จัดการและติดตามงานพัฒนาของคุณ</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 text-lg-end">
-                    <div class="stats-card">
-                        <div class="stats-number"><?= count($requests) ?></div>
-                        <div>งานที่รอรับ</div>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <br>
 
-        <!-- Navigation Buttons -->
-        <div class="row mb-5">
-            <div class="col-12">
-                <div class="glass-card p-4">
-                    <div class="d-flex flex-wrap gap-3 justify-content-center">
-                        <a href="tasks_board.php" class="btn btn-gradient">
-                            <i class="fas fa-tasks me-2"></i>บอร์ดงาน
-                        </a>
-                        <a href="completed_reviews.php" class="btn btn-gradient">
-                            <i class="fas fa-star me-2"></i>รีวิวงาน
-                        </a>
-                        <a href="calendar.php" class="btn btn-gradient">
-                            <i class="fas fa-calendar-alt me-2"></i>ปฏิทินงาน
-                        </a>
-                        <a href="../logout.php" class="btn btn-danger-gradient">
-                            <i class="fas fa-sign-out-alt me-2"></i>ออกจากระบบ
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="container mt-5 pt-5">
+
+
 
         <!-- Main Content -->
         <div class="glass-card p-4 animate-fade-in">
@@ -378,7 +385,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accept_request_id']))
                 <i class="fas fa-inbox text-primary me-3 fs-3"></i>
                 <h2 class="mb-0 fw-bold">งานที่รอรับ</h2>
             </div>
-            
+
             <?php if (!empty($error)): ?>
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <i class="fas fa-exclamation-triangle me-2"></i>
@@ -449,8 +456,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accept_request_id']))
                                             <form method="post" class="d-inline">
                                                 <input type="hidden" name="accept_request_id" value="<?= $req['task_id'] ?>">
                                                 <input type="hidden" name="service_request_id" value="<?= $req['id'] ?>">
-                                                <button type="submit" class="btn btn-success-gradient pulse-animation" 
-                                                        onclick="return confirm('ยืนยันการรับงาน?')">
+                                                <button type="submit" class="btn btn-success-gradient pulse-animation"
+                                                    onclick="return confirm('ยืนยันการรับงาน?')">
                                                     <i class="fas fa-check me-2"></i>รับงาน
                                                 </button>
                                             </form>
@@ -538,4 +545,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accept_request_id']))
         }
     </style>
 </body>
+
 </html>

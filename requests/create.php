@@ -34,7 +34,7 @@ $dept_by_warehouse = [];
 foreach ($departments as $dept) {
     $warehouse_names = [
         '01' => 'RDC',
-        '02' => 'CDC', 
+        '02' => 'CDC',
         '03' => 'BDC'
     ];
     $warehouse_name = $warehouse_names[$dept['warehouse_number']] ?? $dept['warehouse_number'];
@@ -42,10 +42,11 @@ foreach ($departments as $dept) {
 }
 
 // ฟังก์ชันสร้างเลขที่เอกสาร
-function generateDocumentNumber($conn, $warehouse_number, $code_name) {
+function generateDocumentNumber($conn, $warehouse_number, $code_name)
+{
     try {
         $conn->beginTransaction();
-        
+
         $current_year = date('y');  // 2 หลัก เช่น 25
         $current_month = date('n'); // 1-12 (ถ้าอยากได้เลขเต็ม 2 หลัก ใช้ 'm')
 
@@ -76,7 +77,6 @@ function generateDocumentNumber($conn, $warehouse_number, $code_name) {
         $conn->commit();
 
         return ['document_number' => $document_number, 'document_id' => $document_id];
-
     } catch (Exception $e) {
         $conn->rollBack();
         error_log("Error generating document number: " . $e->getMessage());
@@ -88,69 +88,69 @@ function generateDocumentNumber($conn, $warehouse_number, $code_name) {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         error_log("=== CREATE FORM SUBMISSION START ===");
-        
+
         // รับข้อมูลพื้นฐาน
         $service_id = $_POST['service_id'] ?? null;
         $work_category = $_POST['work_category'] ?? null;
         $title = $_POST['title'] ?? '';
-        
+
         error_log("Basic data - Service ID: $service_id, Work Category: $work_category, Title: $title");
         $assigned_div_mgr_id = !empty($_POST['assigned_div_mgr_id']) ? (int)$_POST['assigned_div_mgr_id'] : null;
-        
+
         // Validation พื้นฐาน
         if (!$service_id) {
             throw new Exception("กรุณาเลือกประเภทบริการ");
         }
-        
+
         if (!$work_category) {
             throw new Exception("กรุณาเลือกหัวข้องานคลัง");
         }
-        
+
         if (!$assigned_div_mgr_id) {
             throw new Exception("กรุณาเลือกผู้จัดการฝ่าย");
         }
-        
+
         if (empty(trim($title))) {
             throw new Exception("กรุณากรอกหัวข้อคำขอ");
         }
-        
+
         // ดึงข้อมูล service
         $service_stmt = $conn->prepare("SELECT * FROM services WHERE id = ?");
         $service_stmt->execute([$service_id]);
         $service = $service_stmt->fetch(PDO::FETCH_ASSOC);
-        
+
         if (!$service) {
             throw new Exception("ไม่พบประเภทบริการที่เลือก");
         }
-        
+
         error_log("Service found: " . $service['name'] . " (" . $service['category'] . ")");
-        
+
         // แยก warehouse และ code จาก work_category
         $work_parts = explode('-', $work_category);
         if (count($work_parts) !== 2) {
             throw new Exception("รูปแบบหัวข้องานคลังไม่ถูกต้อง");
         }
-        
+
         $warehouse_number = $work_parts[0];
         $code_name = $work_parts[1];
-        
+
         error_log("Warehouse: $warehouse_number, Code: $code_name");
-        
+
         // สร้างเลขที่เอกสาร
         $doc_result = generateDocumentNumber($conn, $warehouse_number, $code_name);
         $document_number = $doc_result['document_number'];
         $document_id = $doc_result['document_id'];
-        
+
         error_log("Generated document number: $document_number");
-        
+
         // // เลือก div manager แรก (หรือสามารถให้ผู้ใช้เลือกได้)
         // $div_mgr_id = null;
         // if (!empty($div_managers)) {
         //     $div_mgr_id = $div_managers[0]['id'];
         // }
-        
+
         $conn->beginTransaction();
-        
+
         // เตรียมข้อมูลสำหรับบันทึก
         $insert_data = [
             'user_id' => $user_id,
@@ -162,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'status' => 'pending',  //สถานะส่งให้ผู้จัดการฝ่าย 
             'current_step' => 'user_submitted'
         ];
-        
+
         // รับข้อมูลเพิ่มเติมตามประเภทบริการ
         if ($service['category'] === 'development') {
             // ข้อมูลทั่วไป
@@ -173,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $insert_data['system_impact'] = $_POST['system_impact'] ?? null;
             $insert_data['related_documents'] = $_POST['related_documents'] ?? null;
             $insert_data['expected_benefits'] = $_POST['expected_benefits'] ?? null;
-            
+
             // ข้อมูลตามประเภทบริการ
             switch ($service['name']) {
                 case 'โปรแกรมใหม่':
@@ -181,32 +181,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $insert_data['target_users'] = $_POST['target_users'] ?? null;
                     $insert_data['main_functions'] = $_POST['main_functions'] ?? null;
                     $insert_data['data_requirements'] = $_POST['data_requirements'] ?? null;
-                      $insert_data['expected_benefits'] = $_POST['expected_benefits'] ?? null;
+                    $insert_data['expected_benefits'] = $_POST['expected_benefits'] ?? null;
                     break;
-                    
+
                 case 'โปรแกรมเดิม (แก้ปัญหา)':
                     $insert_data['current_program_name'] = $_POST['current_program_name'] ?? null;
                     $insert_data['problem_description'] = $_POST['problem_description'] ?? null;
                     $insert_data['error_frequency'] = $_POST['error_frequency'] ?? null;
                     $insert_data['steps_to_reproduce'] = $_POST['steps_to_reproduce'] ?? null;
-                      $insert_data['expected_benefits'] = $_POST['expected_benefits'] ?? null;
+                    $insert_data['expected_benefits'] = $_POST['expected_benefits'] ?? null;
                     break;
-                    
+
                 case 'โปรแกรมเดิม (เปลี่ยนข้อมูล)':
                     $insert_data['program_name_change'] = $_POST['program_name_change'] ?? null;
                     $insert_data['data_to_change'] = $_POST['data_to_change'] ?? null;
                     $insert_data['new_data_value'] = $_POST['new_data_value'] ?? null;
                     $insert_data['change_reason'] = $_POST['change_reason'] ?? null;
-                      $insert_data['expected_benefits'] = $_POST['expected_benefits'] ?? null;
+                    $insert_data['expected_benefits'] = $_POST['expected_benefits'] ?? null;
                     break;
-                    
+
                 case 'โปรแกรมเดิม (เพิ่มฟังก์ชั่น)':
                     $insert_data['program_name_function'] = $_POST['program_name_function'] ?? null;
                     $insert_data['new_functions'] = $_POST['new_functions'] ?? null;
                     $insert_data['function_benefits'] = $_POST['function_benefits'] ?? null;
                     $insert_data['integration_requirements'] = $_POST['integration_requirements'] ?? null;
                     break;
-                    
+
                 case 'โปรแกรมเดิม (ตกแต่ง)':
                     $insert_data['program_name_decorate'] = $_POST['program_name_decorate'] ?? null;
                     $decoration_types = $_POST['decoration_type'] ?? [];
@@ -215,15 +215,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $insert_data['expected_benefits'] = $_POST['expected_benefits'] ?? null;
                     break;
             }
-            
-    
         }
-        
+
         // สร้าง description จากข้อมูลที่กรอก
         $description_parts = [];
         $description_parts[] = "ประเภทบริการ: " . $service['name'];
         $description_parts[] = "หัวข้องานคลัง: " . $work_category;
-        
+
         if ($service['category'] === 'development') {
             switch ($service['name']) {
                 case 'โปรแกรมใหม่':
@@ -249,60 +247,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     break;
             }
         }
-        
+
         $insert_data['description'] = implode("\n", $description_parts);
-        
+
         error_log("Insert data prepared: " . print_r($insert_data, true));
-        
+
         // สร้าง SQL query
         $columns = array_keys($insert_data);
         $placeholders = array_fill(0, count($columns), '?');
-        
+
         $sql = "INSERT INTO service_requests (" . implode(', ', $columns) . ") VALUES (" . implode(', ', $placeholders) . ")";
         $values = array_values($insert_data);
-        
+
         error_log("SQL: $sql");
         error_log("Values: " . print_r($values, true));
-        
+
         $stmt = $conn->prepare($sql);
         $result = $stmt->execute($values);
-        
+
         if (!$result) {
             throw new Exception("ไม่สามารถบันทึกคำขอได้: " . implode(', ', $stmt->errorInfo()));
         }
-        
+
         $request_id = $conn->lastInsertId();
         error_log("Service request created with ID: $request_id");
-        
+
         // อัปเดต service_request_id ในตาราง document_numbers
         $update_doc = $conn->prepare("UPDATE document_numbers SET service_request_id = ? WHERE id = ?");
         $update_doc->execute([$request_id, $document_id]);
-        
+
         // จัดการไฟล์แนบ
         if (isset($_FILES['attachments']) && !empty($_FILES['attachments']['name'][0])) {
             $upload_dir = __DIR__ . '/../uploads/';
             if (!is_dir($upload_dir)) {
                 mkdir($upload_dir, 0755, true);
             }
-            
+
             $allowed_types = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'txt', 'zip', 'rar'];
             $max_file_size = 10 * 1024 * 1024; // 10MB
-            
+
             foreach ($_FILES['attachments']['name'] as $key => $filename) {
                 if ($_FILES['attachments']['error'][$key] === UPLOAD_ERR_OK) {
                     $file_extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-                    
+
                     if (!in_array($file_extension, $allowed_types)) {
                         throw new Exception("ไฟล์ $filename ไม่ใช่ประเภทที่อนุญาต");
                     }
-                    
+
                     if ($_FILES['attachments']['size'][$key] > $max_file_size) {
                         throw new Exception("ไฟล์ $filename มีขนาดใหญ่เกินไป");
                     }
 
                     $stored_filename = $request_id . '_' . time() . '_' . $key . '.' . $file_extension;
                     $upload_path = $upload_dir . $stored_filename;
-                    
+
                     if (move_uploaded_file($_FILES['attachments']['tmp_name'][$key], $upload_path)) {
                         $file_stmt = $conn->prepare("
                             INSERT INTO request_attachments (service_request_id, original_filename, stored_filename, file_size, file_type) 
@@ -335,6 +333,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -437,14 +436,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             gap: 20px;
         }
 
-        .form-control, .form-select {
+        .form-control,
+        .form-select {
             border: 2px solid #e9ecef;
             border-radius: 10px;
             padding: 12px 15px;
             transition: all 0.3s ease;
         }
 
-        .form-control:focus, .form-select:focus {
+        .form-control:focus,
+        .form-select:focus {
             border-color: #667eea;
             box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
         }
@@ -475,49 +476,82 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #2f855a;
         }
 
-       @media (max-width: 768px) {
-    .page-title {
-        font-size: 2rem;
-        text-align: center;
-    }
-    .container {
-        padding: 1rem;
-    }
+        @media (max-width: 768px) {
+            .page-title {
+                font-size: 2rem;
+                text-align: center;
+            }
+
+            .container {
+                padding: 1rem;
+            }
 
 
-            
+
             .development-grid {
                 grid-template-columns: 1fr;
             }
         }
     </style>
 </head>
+
 <body>
     <div class="container mt-5">
         <!-- Header -->
         <div class="header-card p-5 mb-5">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-4" style="width: 70px; height: 70px;">
-                            <i class="fas fa-plus-circle text-white fs-2"></i>
-                        </div>
-                        <div>
-                            <h1 class="page-title mb-2">สร้างคำขอบริการ</h1>
-                            <p class="text-muted mb-0 fs-5">กรอกข้อมูลเพื่อสร้างคำขอบริการใหม่</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 text-lg-end">
-                    <a href="../dashboard.php" class="btn btn-outline-primary me-2">
-                        <i class="fas fa-home me-2"></i>หน้าหลัก
-                    </a>
-                    <a href="index.php" class="btn btn-gradient">
-                        <i class="fas fa-list me-2"></i>รายการคำขอ
-                    </a>
-                </div>
+           
+        </div>
+          <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+
+        <div class="container">
+            <!-- โลโก้ + ชื่อระบบ -->
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="../dashboard.php">
+                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
+                <span class="page-title"> สวัสดี, <?= htmlspecialchars($_SESSION['name']) ?>! </span>
+            </a>
+
+            <!-- ปุ่ม toggle สำหรับ mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- เมนู -->
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <!-- ซ้าย: เมนูหลัก -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <!-- <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> หน้าหลัก</a>
+                    </li> -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="create.php"><i class="fas fa-tasks me-1"></i>สร้างคำขอบริการ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index.php"><i class="fas fa-chart-bar me-1"></i> รายการคำขอ</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" href="track_status.php"><i class="fas fa-chart-bar me-1"></i>ติดตามสถานะ</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" href="../profile.php"><i class="fas fa-chart-bar me-1"></i>โปรไฟล์</a>
+                    </li>
+                </ul>
+                <!-- ขวา: ผู้ใช้งาน -->
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <!-- <li class="nav-item d-flex align-items-center text-dark me-3">
+                        <i class="fas fa-user-circle me-2"></i>
+                      
+                    </li> -->
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="../logout.php">
+                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
+    </nav>
+
 
         <!-- Form -->
         <div class="glass-card p-4">
@@ -537,41 +571,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </div>
                         <span>ข้อมูลพื้นฐาน</span>
                     </div>
-                    
-                   <div class="row">
-    <div class="col-md-6 mb-3">
-        <label for="service_id" class="form-label">
-            <i class="fas fa-cogs me-2"></i>ประเภทบริการ <span class="text-danger">*</span>
-        </label>
-        <select class="form-select" id="service_id" name="service_id" required onchange="handleServiceChange()">
-            <option value="">-- เลือกประเภทบริการ --</option>
-            <?php
-            // กรองเอาเฉพาะ services ที่ category = 'development'
-            $current_category = '';
-            foreach ($services as $service):
-                if ($service['category'] !== 'development') continue;  // ข้ามถ้าไม่ใช่ development
-                
-                if ($current_category !== $service['category']):
-                    if ($current_category !== '') echo '</optgroup>';
-                    // ตั้งชื่อกลุ่มแค่ Development เท่านั้น
-                    echo '<optgroup label="งาน Development">';
-                    $current_category = $service['category'];
-                endif;
-            ?>
-                <option value="<?= $service['id'] ?>" data-category="<?= $service['category'] ?>" data-name="<?= htmlspecialchars($service['name']) ?>">
-                    <?= htmlspecialchars($service['name']) ?>
-                </option>
-            <?php endforeach; ?>
-            <?php if ($current_category !== '') echo '</optgroup>'; ?>
-        </select>
-    </div>
-                        
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="service_id" class="form-label">
+                                <i class="fas fa-cogs me-2"></i>ประเภทบริการ <span class="text-danger">*</span>
+                            </label>
+                            <select class="form-select" id="service_id" name="service_id" required onchange="handleServiceChange()">
+                                <option value="">-- เลือกประเภทบริการ --</option>
+                                <?php
+                                // กรองเอาเฉพาะ services ที่ category = 'development'
+                                $current_category = '';
+                                foreach ($services as $service):
+                                    if ($service['category'] !== 'development') continue;  // ข้ามถ้าไม่ใช่ development
+
+                                    if ($current_category !== $service['category']):
+                                        if ($current_category !== '') echo '</optgroup>';
+                                        // ตั้งชื่อกลุ่มแค่ Development เท่านั้น
+                                        echo '<optgroup label="งาน Development">';
+                                        $current_category = $service['category'];
+                                    endif;
+                                ?>
+                                    <option value="<?= $service['id'] ?>" data-category="<?= $service['category'] ?>" data-name="<?= htmlspecialchars($service['name']) ?>">
+                                        <?= htmlspecialchars($service['name']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                                <?php if ($current_category !== '') echo '</optgroup>'; ?>
+                            </select>
+                        </div>
+
                         <div class="col-md-6 mb-3">
                             <label for="work_category" class="form-label">
                                 <i class="fas fa-building me-2"></i>หัวข้องานคลัง <span class="text-danger">*</span>
                             </label>
 
-                            
+
                             <select class="form-select" id="work_category" name="work_category" required>
                                 <option value="">-- เลือกหัวข้องานคลัง --</option>
                                 <?php foreach ($dept_by_warehouse as $warehouse => $depts): ?>
@@ -585,17 +619,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <?php endforeach; ?>
                             </select>
                         </div>
-                        
+
                         <div class="col-12 mb-3">
                             <label for="title" class="form-label">
                                 <i class="fas fa-heading me-2"></i>หัวข้อคำขอ <span class="text-danger">*</span>
                             </label>
-                            <input type="text" class="form-control" id="title" name="title" required 
-                                   placeholder="ระบุหัวข้อคำขอบริการ">
+                            <input type="text" class="form-control" id="title" name="title" required
+                                placeholder="ระบุหัวข้อคำขอบริการ">
+
+                            <!-- กล่องข้อความแจ้งเตือน ซ่อนเริ่มต้น -->
+                            <div id="title-error" class="text-danger mt-1" style="display: none;">
+                                ห้ามกรอกอักขระพิเศษ: / * - +
+                            </div>
                         </div>
+
                     </div>
                 </div>
-                
+
                 <!-- เลือกผู้จัดการฝ่าย -->
                 <div class="row">
                     <div class="col-12 mb-3">
@@ -622,7 +662,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                             <span id="developmentTitle">ข้อมูลเพิ่มเติมสำหรับงาน Development</span>
                         </div>
-                        
+
                         <!-- ฟิลด์สำหรับโปรแกรมใหม่ -->
                         <div id="newProgramFields" class="development-grid" style="display: none;">
                             <div>
@@ -630,49 +670,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <i class="fas fa-bullseye me-2"></i>วัตถุประสงค์ของโปรแกรม <span class="text-danger">*</span>
                                 </label>
                                 <textarea class="form-control" id="program_purpose" name="program_purpose" rows="3"
-                                          placeholder="อธิบายวัตถุประสงค์และเป้าหมายของโปรแกรมที่ต้องการพัฒนา"></textarea>
+                                    placeholder="อธิบายวัตถุประสงค์และเป้าหมายของโปรแกรมที่ต้องการพัฒนา"></textarea>
                             </div>
                             <div>
                                 <label for="target_users" class="form-label">
                                     <i class="fas fa-users me-2"></i>กลุ่มผู้ใช้งาน <span class="text-danger">*</span>
                                 </label>
                                 <textarea class="form-control" id="target_users" name="target_users" rows="2"
-                                          placeholder="ระบุกลุ่มผู้ใช้งานหลัก เช่น พนักงาน, ผู้จัดการ, ลูกค้า"></textarea>
+                                    placeholder="ระบุกลุ่มผู้ใช้งานหลัก เช่น พนักงาน, ผู้จัดการ, ลูกค้า"></textarea>
                             </div>
                             <div>
                                 <label for="main_functions" class="form-label">
                                     <i class="fas fa-list me-2"></i>ฟังก์ชันหลักที่ต้องการ <span class="text-danger">*</span>
                                 </label>
                                 <textarea class="form-control" id="main_functions" name="main_functions" rows="4"
-                                          placeholder="ระบุฟังก์ชันหลักที่ต้องการ เช่น การบันทึกข้อมูล, การออกรายงาน, การคำนวณ"></textarea>
+                                    placeholder="ระบุฟังก์ชันหลักที่ต้องการ เช่น การบันทึกข้อมูล, การออกรายงาน, การคำนวณ"></textarea>
                             </div>
                             <div>
                                 <label for="data_requirements" class="form-label">
                                     <i class="fas fa-database me-2"></i>ข้อมูลที่ต้องใช้ <span class="text-danger">*</span>
                                 </label>
                                 <textarea class="form-control" id="data_requirements" name="data_requirements" rows="3"
-                                          placeholder="ระบุข้อมูลที่ต้องใช้ในระบบ เช่น ข้อมูลลูกค้า, ข้อมูลสินค้า, ข้อมูลการขาย"></textarea>
+                                    placeholder="ระบุข้อมูลที่ต้องใช้ในระบบ เช่น ข้อมูลลูกค้า, ข้อมูลสินค้า, ข้อมูลการขาย"></textarea>
                             </div>
                             <div>
                                 <label for="current_workflow" class="form-label">
                                     <i class="fas fa-list-ol me-2"></i>ขั้นตอนการทำงานเดิม
                                 </label>
                                 <textarea class="form-control" id="current_workflow" name="current_workflow" rows="3"
-                                          placeholder="อธิบายขั้นตอนการทำงานปัจจุบัน เช่น วิธีการทำงาน กระบวนการที่ใช้อยู่"></textarea>
+                                    placeholder="อธิบายขั้นตอนการทำงานปัจจุบัน เช่น วิธีการทำงาน กระบวนการที่ใช้อยู่"></textarea>
                             </div>
                             <div>
                                 <label for="related_programs" class="form-label">
                                     <i class="fas fa-desktop me-2"></i>โปรแกรมที่คาดว่าจะเกี่ยวข้อง
                                 </label>
                                 <textarea class="form-control" id="related_programs" name="related_programs" rows="2"
-                                          placeholder="โปรแกรมหรือระบบที่คาดว่าจะต้องใช้ในการพัฒนา"></textarea>
+                                    placeholder="โปรแกรมหรือระบบที่คาดว่าจะต้องใช้ในการพัฒนา"></textarea>
                             </div>
                             <div>
                                 <label for="expected_benefits" class="form-label">
                                     <i class="fas fa-chart-line me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
                                 </label>
                                 <textarea class="form-control" id="expected_benefits" name="expected_benefits" rows="2"
-                                          placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้"></textarea>
+                                    placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้"></textarea>
                             </div>
                         </div>
 
@@ -696,7 +736,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <i class="fas fa-exclamation-triangle me-2"></i>รายละเอียดปัญหา <span class="text-danger">*</span>
                                 </label>
                                 <textarea class="form-control" id="problem_description" name="problem_description" rows="4"
-                                          placeholder="อธิบายปัญหาที่เกิดขึ้นอย่างละเอียด เช่น error message, พฤติกรรมที่ผิดปกติ"></textarea>
+                                    placeholder="อธิบายปัญหาที่เกิดขึ้นอย่างละเอียด เช่น error message, พฤติกรรมที่ผิดปกติ"></textarea>
                             </div>
                             <div>
                                 <label for="error_frequency" class="form-label">
@@ -715,14 +755,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <i class="fas fa-redo me-2"></i>ขั้นตอนการทำให้เกิดปัญหา
                                 </label>
                                 <textarea class="form-control" id="steps_to_reproduce" name="steps_to_reproduce" rows="3"
-                                          placeholder="ระบุขั้นตอนการใช้งานที่ทำให้เกิดปัญหา"></textarea>
+                                    placeholder="ระบุขั้นตอนการใช้งานที่ทำให้เกิดปัญหา"></textarea>
                             </div>
                             <div>
                                 <label for="expected_benefits" class="form-label">
                                     <i class="fas fa-chart-line me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
                                 </label>
                                 <textarea class="form-control" id="expected_benefits" name="expected_benefits" rows="2"
-                                          placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้"></textarea>
+                                    placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้"></textarea>
                             </div>
                         </div>
 
@@ -746,28 +786,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <i class="fas fa-edit me-2"></i>ข้อมูลที่ต้องการเปลี่ยน <span class="text-danger">*</span>
                                 </label>
                                 <textarea class="form-control" id="data_to_change" name="data_to_change" rows="3"
-                                          placeholder="ระบุข้อมูลที่ต้องการเปลี่ยนแปลง เช่น ข้อความ, ตัวเลข, รายการ"></textarea>
+                                    placeholder="ระบุข้อมูลที่ต้องการเปลี่ยนแปลง เช่น ข้อความ, ตัวเลข, รายการ"></textarea>
                             </div>
                             <div>
                                 <label for="new_data_value" class="form-label">
                                     <i class="fas fa-arrow-right me-2"></i>ข้อมูลใหม่ที่ต้องการ <span class="text-danger">*</span>
                                 </label>
                                 <textarea class="form-control" id="new_data_value" name="new_data_value" rows="3"
-                                          placeholder="ระบุข้อมูลใหม่ที่ต้องการให้แสดงแทน"></textarea>
+                                    placeholder="ระบุข้อมูลใหม่ที่ต้องการให้แสดงแทน"></textarea>
                             </div>
                             <div>
                                 <label for="change_reason" class="form-label">
                                     <i class="fas fa-question-circle me-2"></i>เหตุผลในการเปลี่ยนแปลง <span class="text-danger">*</span>
                                 </label>
                                 <textarea class="form-control" id="change_reason" name="change_reason" rows="2"
-                                          placeholder="อธิบายเหตุผลที่ต้องการเปลี่ยนแปลงข้อมูล"></textarea>
+                                    placeholder="อธิบายเหตุผลที่ต้องการเปลี่ยนแปลงข้อมูล"></textarea>
                             </div>
                             <div>
                                 <label for="expected_benefits" class="form-label">
                                     <i class="fas fa-chart-line me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
                                 </label>
                                 <textarea class="form-control" id="expected_benefits" name="expected_benefits" rows="2"
-                                          placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้"></textarea>
+                                    placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้"></textarea>
                             </div>
                         </div>
 
@@ -791,21 +831,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <i class="fas fa-plus-circle me-2"></i>ฟังก์ชั่นใหม่ที่ต้องการ <span class="text-danger">*</span>
                                 </label>
                                 <textarea class="form-control" id="new_functions" name="new_functions" rows="4"
-                                          placeholder="อธิบายฟังก์ชั่นใหม่ที่ต้องการเพิ่ม เช่น การออกรายงาน, การคำนวณ, การส่งอีเมล"></textarea>
+                                    placeholder="อธิบายฟังก์ชั่นใหม่ที่ต้องการเพิ่ม เช่น การออกรายงาน, การคำนวณ, การส่งอีเมล"></textarea>
                             </div>
                             <div>
                                 <label for="function_benefits" class="form-label">
                                     <i class="fas fa-chart-line me-2"></i>ประโยชน์ของฟังก์ชั่นใหม่ <span class="text-danger">*</span>
                                 </label>
                                 <textarea class="form-control" id="function_benefits" name="function_benefits" rows="3"
-                                          placeholder="อธิบายประโยชน์ที่จะได้รับจากฟังก์ชั่นใหม่"></textarea>
+                                    placeholder="อธิบายประโยชน์ที่จะได้รับจากฟังก์ชั่นใหม่"></textarea>
                             </div>
                             <div>
                                 <label for="integration_requirements" class="form-label">
                                     <i class="fas fa-link me-2"></i>ความต้องการเชื่อมต่อ
                                 </label>
                                 <textarea class="form-control" id="integration_requirements" name="integration_requirements" rows="2"
-                                          placeholder="ต้องการเชื่อมต่อกับระบบอื่นหรือไม่ (ถ้ามี)"></textarea>
+                                    placeholder="ต้องการเชื่อมต่อกับระบบอื่นหรือไม่ (ถ้ามี)"></textarea>
                             </div>
                         </div>
 
@@ -864,14 +904,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <i class="fas fa-images me-2"></i>ตัวอย่างอ้างอิงหรือโปรแกรมที่ใกล้เคียง
                                 </label>
                                 <textarea class="form-control" id="reference_examples" name="reference_examples" rows="2"
-                                          placeholder="มีเว็บไซต์หรือโปรแกรมที่ชอบให้อ้างอิงหรือไม่ (ถ้ามี)"></textarea>
+                                    placeholder="มีเว็บไซต์หรือโปรแกรมที่ชอบให้อ้างอิงหรือไม่ (ถ้ามี)"></textarea>
                             </div>
                             <div>
                                 <label for="expected_benefits" class="form-label">
                                     <i class="fas fa-chart-line me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
                                 </label>
                                 <textarea class="form-control" id="expected_benefits" name="expected_benefits" rows="2"
-                                          placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้"></textarea>
+                                    placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้"></textarea>
                             </div>
                         </div>
                     </div>
@@ -883,15 +923,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="section-icon">
                             <i class="fas fa-paperclip"></i>
                         </div>
-                        <span>ไฟล์แนบ (ไม่บังคับ)</span>
+                        <span>ไฟล์แนบเอกสารที่เกี่ยวข้อกับการทำงาน (SD) หรือสไลด์การทำเสนอ</span>
                     </div>
-                    
+
                     <div class="mb-3">
                         <label for="attachments" class="form-label">
                             <i class="fas fa-upload me-2"></i>เลือกไฟล์แนบ
                         </label>
-                        <input type="file" class="form-control" id="attachments" name="attachments[]" multiple 
-                               accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.txt,.zip,.rar">
+                        <input type="file" class="form-control" id="attachments" name="attachments[]" multiple
+                            accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.txt,.zip,.rar">
                         <div class="form-text">
                             ประเภทไฟล์ที่รองรับ: PDF, DOC, DOCX, JPG, PNG, GIF, TXT, ZIP, RAR (ขนาดไม่เกิน 10MB ต่อไฟล์)
                         </div>
@@ -912,25 +952,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <script>
         function handleServiceChange() {
             console.log('handleServiceChange called');
-            
+
             const serviceSelect = document.getElementById('service_id');
             const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
             const category = selectedOption.getAttribute('data-category');
             const serviceName = selectedOption.getAttribute('data-name');
-            
+
             console.log('Selected service:', serviceName);
             console.log('Category:', category);
-            
+
             // ซ่อนฟิลด์ development ทั้งหมด
             const developmentFields = document.getElementById('developmentFields');
             const allDevFields = [
                 'newProgramFields',
-                'fixProblemFields', 
+                'fixProblemFields',
                 'changeDataFields',
                 'addFunctionFields',
                 'decorateFields'
             ];
-            
+
             // ล้าง required และซ่อนฟิลด์ทั้งหมด
             allDevFields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
@@ -942,15 +982,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     });
                 }
             });
-            
+
             if (category === 'development') {
                 console.log('Showing development fields');
                 developmentFields.style.display = 'block';
-                
+
                 // แสดงฟิลด์ตามประเภทบริการ
                 let targetFieldId = '';
                 let requiredFields = [];
-                
+
                 switch (serviceName) {
                     case 'โปรแกรมใหม่':
                         targetFieldId = 'newProgramFields';
@@ -973,12 +1013,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         requiredFields = ['program_name_decorate'];
                         break;
                 }
-                
+
                 if (targetFieldId) {
                     const targetField = document.getElementById(targetFieldId);
                     if (targetField) {
                         targetField.style.display = 'grid';
-                        
+
                         // เพิ่ม required ให้ฟิลด์ที่จำเป็น
                         requiredFields.forEach(fieldName => {
                             const field = document.getElementById(fieldName);
@@ -986,12 +1026,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 field.setAttribute('required', 'required');
                             }
                         });
-                        
+
                         console.log('Showing field:', targetFieldId);
                         console.log('Required fields:', requiredFields);
                     }
                 }
-                
+
                 // อัปเดตชื่อหัวข้อ
                 const titleElement = document.getElementById('developmentTitle');
                 if (titleElement) {
@@ -1003,39 +1043,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // ตรวจสอบฟอร์มก่อนส่ง
         document.getElementById('createRequestForm').addEventListener('submit', function(e) {
             console.log('Form submission started');
-            
+
             const serviceId = document.getElementById('service_id').value;
             const workCategory = document.getElementById('work_category').value;
-            const title = document.getElementById('title').value;
-            
+            const title = document.getElementById('title').value.trim();
+
+            const errorDiv = document.getElementById('title-error');
+            const forbiddenPattern = /[\/\*\-\+]/;
+
+            // รายการ input IDs ที่จะตรวจ
+            const fieldsToCheck = [
+                'program_purpose',
+                'target_users',
+                'main_functions',
+                'data_requirements',
+                'current_workflow',
+                'related_programs',
+                'expected_benefits',
+                'problem_description',
+                'steps_to_reproduce',
+                'data_to_change',
+                'new_data_value',
+                'change_reason',
+                'expected_benefits',
+                'new_functions',
+                'function_benefits',
+                'integration_requirements',
+                'reference_examples',
+                'expected_benefits',
+                'expected_benefits'
+
+            ];
+
             console.log('Service ID:', serviceId);
             console.log('Work Category:', workCategory);
             console.log('Title:', title);
-            
+
             if (!serviceId) {
                 e.preventDefault();
                 alert('กรุณาเลือกประเภทบริการ');
                 return false;
             }
-            
+
             if (!workCategory) {
                 e.preventDefault();
                 alert('กรุณาเลือกหัวข้องานคลัง');
                 return false;
             }
-            
-            if (!title.trim()) {
+
+            if (!title) {
                 e.preventDefault();
                 alert('กรุณากรอกหัวข้อคำขอ');
                 return false;
             }
-            
+
+            if (forbiddenPattern.test(title)) {
+                errorDiv.style.display = 'block';
+                e.preventDefault();
+                return false;
+            } else {
+                errorDiv.style.display = 'none';
+            }
+
+            for (let fieldId of fieldsToCheck) {
+                const field = document.getElementById(fieldId);
+                if (field) {
+                    const value = field.value.trim();
+                    if (forbiddenPattern.test(value)) {
+                        e.preventDefault();
+                        alert(`ช่อง "${fieldId}" ห้ามมีอักขระพิเศษ เช่น / * - +`);
+                        field.focus();
+                        return false;
+                    }
+                }
+            }
+
             console.log('Form validation passed');
             return true;
         });
     </script>
 </body>
+
 </html>

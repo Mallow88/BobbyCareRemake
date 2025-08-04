@@ -333,31 +333,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </head>
 <body>
     <div class="container mt-5">
+
+
+  <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+
+        <div class="container">
+            <!-- โลโก้ + ชื่อระบบ -->
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="dashboard.php">
+                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
+                <span class="page-title"> ผู้จัดการฝ่าย, <?= htmlspecialchars($_SESSION['name']) ?>! </span>
+            </a>
+
+            <!-- ปุ่ม toggle สำหรับ mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- เมนู -->
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <!-- ซ้าย: เมนูหลัก -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" href="view_logs.php"><i class="fas fa-history me-1"></i> ประวัติการอนุมัติ</a>
+                    </li>
+                </ul>
+                <!-- ขวา: ผู้ใช้งาน -->
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <li class="nav-item">
+                         <a >
+                            
+                        </a>
+                        <a class="nav-link text-danger" href="../logout.php">
+                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
         <!-- Header -->
         <div class="header-card p-5 mb-5">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-4" style="width: 70px; height: 70px;">
-                            <i class="fas fa-user-tie text-white fs-2"></i>
-                        </div>
-                        <div>
-                            <h1 class="page-title mb-2">ผู้จัดการฝ่าย</h1>
-                            <p class="text-muted mb-0 fs-5">พิจารณาและอนุมัติคำขอบริการจากผู้ใช้งาน</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 text-lg-end">
-                    <div class="d-flex gap-2 justify-content-lg-end justify-content-start flex-wrap">
-                        <a href="view_logs.php" class="btn btn-gradient">
-                            <i class="fas fa-history me-2"></i>ประวัติการอนุมัติ
-                        </a>
-                        <a href="../logout.php" class="btn btn-outline-danger">
-                            <i class="fas fa-sign-out-alt me-2"></i>ออกจากระบบ
-                        </a>
-                    </div>
-                </div>
-            </div>
+            
         </div>
 
         <!-- Content -->

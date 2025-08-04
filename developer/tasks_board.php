@@ -78,6 +78,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // สร้างงานใหม่
+// สร้างงานใหม่ 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_task'])) {
     $title = trim($_POST['title'] ?? '');
     $description = trim($_POST['description'] ?? '');
@@ -90,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_task'])) {
         try {
             $conn->beginTransaction();
 
-            // สร้าง service request สำหรับงานส่วนตัว
+            // สร้าง service request
             $stmt = $conn->prepare("
                 INSERT INTO service_requests (
                     user_id, title, description, service_id, priority, 
@@ -110,6 +111,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_task'])) {
             $completion_date = $deadline ?: date('Y-m-d', strtotime('+' . $estimated_days . ' days'));
             $stmt->execute([$request_id, $developer_id, $completion_date]);
 
+            // ✅ จัดการไฟล์แนบ (หลังจากมี $request_id แล้วเท่านั้น)
+            if (isset($_FILES['attachments']) && !empty($_FILES['attachments']['name'][0])) {
+                $upload_dir = __DIR__ . '/../uploads/';
+                if (!is_dir($upload_dir)) {
+                    mkdir($upload_dir, 0755, true);
+                }
+
+                $allowed_types = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'txt', 'zip', 'rar'];
+                $max_file_size = 10 * 1024 * 1024; // 10MB
+
+                foreach ($_FILES['attachments']['name'] as $key => $filename) {
+                    if ($_FILES['attachments']['error'][$key] === UPLOAD_ERR_OK) {
+                        $file_extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
+                        if (!in_array($file_extension, $allowed_types)) {
+                            throw new Exception("ไฟล์ $filename ไม่ใช่ประเภทที่อนุญาต");
+                        }
+
+                        if ($_FILES['attachments']['size'][$key] > $max_file_size) {
+                            throw new Exception("ไฟล์ $filename มีขนาดใหญ่เกินไป");
+                        }
+
+                        $stored_filename = $request_id . '_' . time() . '_' . $key . '.' . $file_extension;
+                        $upload_path = $upload_dir . $stored_filename;
+
+                        if (move_uploaded_file($_FILES['attachments']['tmp_name'][$key], $upload_path)) {
+                            $file_stmt = $conn->prepare("
+                                INSERT INTO request_attachments 
+                                (service_request_id, original_filename, stored_filename, file_size, file_type, uploaded_at, user_id) 
+                                VALUES (?, ?, ?, ?, ?, NOW(), ?)
+                            ");
+                            $file_stmt->execute([
+                                $request_id,
+                                $filename,
+                                $stored_filename,
+                                $_FILES['attachments']['size'][$key],
+                                $file_extension,
+                                $developer_id
+                            ]);
+                        }
+                    }
+                }
+            }
+
             $conn->commit();
             $success = "สร้างงานใหม่เรียบร้อยแล้ว";
         } catch (Exception $e) {
@@ -120,6 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_task'])) {
         $error = "กรุณากรอกข้อมูลให้ครบถ้วน";
     }
 }
+
 
 // อัปเดตสถานะงาน
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
@@ -324,54 +370,62 @@ foreach ($tasks as $task) {
 </head>
 
 <body>
-    <!-- Navigation -->
-    <!-- <nav class="navbar navbar-expand-lg navbar-custom fixed-top">
+     <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+
         <div class="container">
-            <a class="navbar-brand fw-bold" href="#">
-                <i class="fas fa-tasks text-primary me-2"></i>
-                <span class="page-title">Task Board</span>
+            <!-- โลโก้ + ชื่อระบบ -->
+            <a class="navbar-brand fw-bold d-flex align-items-center" href="dev_index.php">
+                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
+                <span class="page-title">Tasks-Board</span>
             </a>
-            <div class="navbar-nav ms-auto">
-                <span class="navbar-text me-3">
-                    <i class="fas fa-user-circle me-2"></i>
-                    <?= htmlspecialchars($_SESSION['name']) ?>
-                </span>
+
+
+            <!-- ปุ่ม toggle สำหรับ mobile -->
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- เมนู -->
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <!-- ซ้าย: เมนูหลัก -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <!-- <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> หน้าหลัก</a>
+                    </li> -->
+                    <li class="nav-item">
+                       
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="calendar.php"><i class="fas fa-tasks me-1"></i> ปฏิทิน</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="completed_reviews.php"><i class="fas fa-chart-bar me-1"></i> งานที่รีวิว</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" href="export_report.php"><i class="fas fa-chart-bar me-1"></i>Report</a>
+                    </li>
+                </ul>
+
+                <!-- ขวา: ผู้ใช้งาน -->
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <li class="nav-item d-flex align-items-center text-dark me-3">
+                        <i class="fas fa-user-circle me-2"></i>
+                        <?= htmlspecialchars($_SESSION['name']) ?>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="../logout.php">
+                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                        </a>
+                    </li>
+                </ul>
             </div>
         </div>
-    </nav> -->
+    </nav>
 
     <div class="container-fluid mt-5 pt-5">
-        <!-- Header Section -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="header-card p-4">
-                    <div class="row align-items-center">
-                        <div class="col-lg-8">
-                            <h1 class="page-title mb-2">
-                                <i class="fas fa-clipboard-list me-3"></i>บอร์ดงาน
-                            </h1>
-                            <p class="text-muted mb-0 fs-5">จัดการงานด้วยระบบ Kanban</p>
-                        </div>
-                        <div class="col-lg-4 text-lg-end">
-                            <div class="d-flex gap-2 justify-content-lg-end justify-content-start flex-wrap">
-                                <button class="btn btn-gradient" data-bs-toggle="modal" data-bs-target="#createTaskModal">
-                                    <i class="fas fa-plus me-2"></i>สร้างงานใหม่
-                                </button>
-                                <a href="dev_index.php" class="btn btn-gradient">
-                                    <i class="fas fa-arrow-left me-2"></i>กลับหน้าหลัก
-                                </a>
-                                <a href="calendar.php" class="btn btn-gradient">
-                                    <i class="fas fa-calendar-alt me-2"></i>ปฏิทิน
-                                </a>
-                                <a href="export_report.php" class="btn btn-gradient">
-                                    <i class="fas fa-calendar-alt me-2"></i>Report
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+       
 
         <?php if (!empty($error)): ?>
             <div class="row mb-4">
@@ -400,59 +454,69 @@ foreach ($tasks as $task) {
         <!-- Kanban Board -->
         <div class="kanban-board">
             <!-- รอรับ -->
+            <!-- คอลัมน์: รอรับ -->
             <div class="kanban-column pending">
-                <div class="column-header">
+                <!-- หัวคอลัมน์ -->
+                <div class="column-header d-flex justify-content-between align-items-center">
                     <div class="column-title">
-                        <i class="fas fa-hourglass-half"></i>
+                        <i class="fas fa-hourglass-half me-1"></i>
                         <span>รอรับ</span>
                     </div>
-                    <span class="task-count"><?= count($tasks_by_status['pending']) ?></span>
+                    <span class="task-count badge bg-secondary"><?= count($tasks_by_status['pending']) ?></span>
                 </div>
+
                 <div class="tasks-container" data-status="pending">
                     <?php if (empty($tasks_by_status['pending'])): ?>
-                        <div class="empty-column">
-                            <i class="fas fa-hourglass-half"></i>
-                            <p>ไม่มีงานที่รอรับ</p>
+                        <div class="empty-column text-center text-muted py-4">
+                            <i class="fas fa-hourglass-half fa-2x mb-2"></i>
+                            <p class="mb-0">ไม่มีงานที่รอรับ</p>
                         </div>
                     <?php else: ?>
                         <?php foreach ($tasks_by_status['pending'] as $task): ?>
-                            <div class="task-card pending <?= $task['current_step'] === 'developer_self_created' ? 'self-created' : '' ?>" data-task-id="<?= $task['id'] ?>">
+                            <div class="task-card pending mb-3 p-3 border rounded <?= $task['current_step'] === 'developer_self_created' ? 'self-created' : '' ?>" data-task-id="<?= $task['id'] ?>">
+
+                                <!-- Badge + ปุ่มลบ สำหรับ self-created -->
                                 <?php if ($task['current_step'] === 'developer_self_created'): ?>
-                                    <span class="self-created-badge">Service</span>
-                                    <button class="delete-btn" onclick="deleteTask(<?= $task['id'] ?>)" title="ลบงาน">
-                                        <i class="fas fa-times"></i>
-                                    </button>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge bg-secondary">Service</span>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTask(<?= $task['id'] ?>)" title="ลบงาน">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
                                 <?php endif; ?>
 
-                                <div class="task-title"><?= htmlspecialchars($task['title']) ?></div>
+                                <!-- ชื่อเรื่อง -->
+                                <h6 class="fw-bold mb-1"><?= htmlspecialchars($task['title']) ?></h6>
 
-                                <div class="task-actions">
-                                    <button class="detail-btn" onclick="showTaskDetail(<?= $task['id'] ?>)" title="ดูรายละเอียด">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-
+                                <!-- Badge ประเภทงาน / ความสำคัญ -->
                                 <?php if ($task['service_name']): ?>
-                                    <span class="service-badge service-<?= $task['service_category'] ?>">
-                                        <?php if ($task['service_category'] === 'development'): ?>
-                                            <i class="fas fa-code me-1"></i>
-                                        <?php else: ?>
-                                            <i class="fas fa-tools me-1"></i>
-                                        <?php endif; ?>
-                                        <?= htmlspecialchars($task['service_name']) ?>
-                                    </span>
-                                    <?php if ($task['priority']): ?>
-                                        <span class="priority-badge priority-<?= $task['priority'] ?>">
-                                            <?php
-                                            $priorities = ['low' => 'ต่ำ', 'medium' => 'ปานกลาง', 'high' => 'สูง', 'urgent' => 'เร่งด่วน'];
-                                            echo $priorities[$task['priority']] ?? 'ปานกลาง';
-                                            ?>
+                                    <div class="mb-2">
+                                        <span class="badge bg-info text-dark me-1">
+                                            <?php if ($task['service_category'] === 'development'): ?>
+                                                <i class="fas fa-code me-1"></i>
+                                            <?php else: ?>
+                                                <i class="fas fa-tools me-1"></i>
+                                            <?php endif; ?>
+                                            <?= htmlspecialchars($task['service_name']) ?>
                                         </span>
-                                    <?php endif; ?>
+                                        <?php if ($task['priority']): ?>
+                                            <span class="badge bg-<?= $task['priority'] === 'urgent' ? 'danger' : ($task['priority'] === 'high' ? 'warning' : 'secondary') ?>">
+                                                <?php
+                                                $priorities = ['low' => 'ต่ำ', 'medium' => 'ปานกลาง', 'high' => 'สูง', 'urgent' => 'เร่งด่วน'];
+                                                echo $priorities[$task['priority']] ?? 'ปานกลาง';
+                                                ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
                                 <?php endif; ?>
 
-                                <div class="task-description"><?= nl2br(htmlspecialchars(substr($task['description'], 0, 100))) ?><?= strlen($task['description']) > 100 ? '...' : '' ?></div>
+                                <!-- คำอธิบาย -->
+                                <p class="small text-muted mb-2">
+                                    <?= nl2br(htmlspecialchars(substr($task['description'], 0, 100))) ?>
+                                    <?= strlen($task['description']) > 100 ? '...' : '' ?>
+                                </p>
 
+                                <!-- ระยะเวลา -->
                                 <?php if ($task['estimated_days']): ?>
                                     <div class="mb-2">
                                         <span class="badge bg-warning text-dark">
@@ -468,28 +532,26 @@ foreach ($tasks as $task) {
                                     </div>
                                 <?php endif; ?>
 
-                                <div class="task-meta">
-                                    <div class="task-requester">
-                                        <i class="fas fa-user"></i>
+                                <!-- ผู้ขอ / วันที่ -->
+                                <div class="d-flex justify-content-between text-muted small mt-2">
+                                    <div>
+                                        <i class="fas fa-user me-1"></i>
                                         <?= htmlspecialchars($task['requester_name'] . ' ' . $task['requester_lastname']) ?>
                                     </div>
-                                    <?php if ($task['service_name']): ?>
-                                        <div class="service-badge service-<?= $task['service_category'] ?>">
-                                            <?php if ($task['service_category'] === 'development'): ?>
-                                                <i class="fas fa-code"></i>
-                                            <?php else: ?>
-                                                <i class="fas fa-tools"></i>
-                                            <?php endif; ?>
-                                            <?= htmlspecialchars($task['service_name']) ?>
-                                        </div>
-                                    <?php endif; ?>
-                                    <div class="priority-badge priority-<?= $task['priority_level'] ?? 'medium' ?>">
-                                        <?= ucfirst($task['priority_level'] ?? 'medium') ?>
+                                    <div>
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        <?= date('d/m/Y', strtotime($task['request_date'])) ?>
                                     </div>
-                                    <div class="task-date"><?= date('d/m/Y', strtotime($task['request_date'])) ?></div>
                                 </div>
-                                <div class="status-buttons">
-                                    <button class="status-btn btn-primary" onclick="updateStatus(<?= $task['id'] ?>, 'received')">รับงาน</button>
+
+                                <!-- ปุ่มดูรายละเอียด + รับงาน -->
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <button class="btn btn-sm btn-primary" onclick="updateStatus(<?= $task['id'] ?>, 'received')">
+                                        รับงาน
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="showTaskDetail(<?= $task['id'] ?>)" title="ดูรายละเอียด">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -497,60 +559,71 @@ foreach ($tasks as $task) {
                 </div>
             </div>
 
-            <!-- รับแล้ว -->
+
+            <!-- คอลัมน์: รับแล้ว -->
             <div class="kanban-column received">
-                <div class="column-header">
+                <!-- หัวคอลัมน์ -->
+                <div class="column-header d-flex justify-content-between align-items-center">
                     <div class="column-title">
-                        <i class="fas fa-check-circle"></i>
+                        <i class="fas fa-check-circle me-1"></i>
                         <span>รับแล้ว</span>
                     </div>
-                    <span class="task-count"><?= count($tasks_by_status['received']) ?></span>
+                    <span class="task-count badge bg-primary"><?= count($tasks_by_status['received']) ?></span>
                 </div>
+
+                <!-- พื้นที่แสดงการ์ดงาน -->
                 <div class="tasks-container" data-status="received">
                     <?php if (empty($tasks_by_status['received'])): ?>
-                        <div class="empty-column">
-                            <i class="fas fa-check-circle"></i>
-                            <p>ไม่มีงานที่รับแล้ว</p>
+                        <div class="empty-column text-center text-muted py-4">
+                            <i class="fas fa-check-circle fa-2x mb-2"></i>
+                            <p class="mb-0">ไม่มีงานที่รับแล้ว</p>
                         </div>
                     <?php else: ?>
                         <?php foreach ($tasks_by_status['received'] as $task): ?>
-                            <div class="task-card received <?= $task['current_step'] === 'developer_self_created' ? 'self-created' : '' ?>" data-task-id="<?= $task['id'] ?>">
+                            <div class="task-card received mb-3 p-3 border rounded <?= $task['current_step'] === 'developer_self_created' ? 'self-created' : '' ?>" data-task-id="<?= $task['id'] ?>">
+
+                                <!-- Badge + ปุ่มลบ สำหรับ self-created -->
                                 <?php if ($task['current_step'] === 'developer_self_created'): ?>
-                                    <span class="self-created-badge">Service</span>
-                                    <button class="delete-btn" onclick="deleteTask(<?= $task['id'] ?>)" title="ลบงาน">
-                                        <i class="fas fa-times"></i>
-                                    </button>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge bg-secondary">Service</span>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTask(<?= $task['id'] ?>)" title="ลบงาน">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
                                 <?php endif; ?>
 
-                                <div class="task-title"><?= htmlspecialchars($task['title']) ?></div>
+                                <!-- ชื่อเรื่อง -->
+                                <h6 class="fw-bold mb-1"><?= htmlspecialchars($task['title']) ?></h6>
 
-                                <div class="task-actions">
-                                    <button class="detail-btn" onclick="showTaskDetail(<?= $task['id'] ?>)" title="ดูรายละเอียด">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-
+                                <!-- Badge ประเภทงาน / ความสำคัญ -->
                                 <?php if ($task['service_name']): ?>
-                                    <span class="service-badge service-<?= $task['service_category'] ?>">
-                                        <?php if ($task['service_category'] === 'development'): ?>
-                                            <i class="fas fa-code me-1"></i>
-                                        <?php else: ?>
-                                            <i class="fas fa-tools me-1"></i>
-                                        <?php endif; ?>
-                                        <?= htmlspecialchars($task['service_name']) ?>
-                                    </span>
-                                    <?php if ($task['priority']): ?>
-                                        <span class="priority-badge priority-<?= $task['priority'] ?>">
-                                            <?php
-                                            $priorities = ['low' => 'ต่ำ', 'medium' => 'ปานกลาง', 'high' => 'สูง', 'urgent' => 'เร่งด่วน'];
-                                            echo $priorities[$task['priority']] ?? 'ปานกลาง';
-                                            ?>
+                                    <div class="mb-2">
+                                        <span class="badge bg-info text-dark me-1">
+                                            <?php if ($task['service_category'] === 'development'): ?>
+                                                <i class="fas fa-code me-1"></i>
+                                            <?php else: ?>
+                                                <i class="fas fa-tools me-1"></i>
+                                            <?php endif; ?>
+                                            <?= htmlspecialchars($task['service_name']) ?>
                                         </span>
-                                    <?php endif; ?>
+                                        <?php if ($task['priority']): ?>
+                                            <span class="badge bg-<?= $task['priority'] === 'urgent' ? 'danger' : ($task['priority'] === 'high' ? 'warning' : 'secondary') ?>">
+                                                <?php
+                                                $priorities = ['low' => 'ต่ำ', 'medium' => 'ปานกลาง', 'high' => 'สูง', 'urgent' => 'เร่งด่วน'];
+                                                echo $priorities[$task['priority']] ?? 'ปานกลาง';
+                                                ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
                                 <?php endif; ?>
 
-                                <div class="task-description"><?= nl2br(htmlspecialchars(substr($task['description'], 0, 100))) ?><?= strlen($task['description']) > 100 ? '...' : '' ?></div>
+                                <!-- คำอธิบาย -->
+                                <p class="small text-muted mb-2">
+                                    <?= nl2br(htmlspecialchars(substr($task['description'], 0, 100))) ?>
+                                    <?= strlen($task['description']) > 100 ? '...' : '' ?>
+                                </p>
 
+                                <!-- ระยะเวลา -->
                                 <?php if ($task['estimated_days']): ?>
                                     <div class="mb-2">
                                         <span class="badge bg-warning text-dark">
@@ -566,22 +639,33 @@ foreach ($tasks as $task) {
                                     </div>
                                 <?php endif; ?>
 
-                                <div class="task-meta">
-                                    <div class="task-requester">
-                                        <i class="fas fa-user"></i>
+                                <!-- ผู้ขอ / วันที่ -->
+                                <div class="d-flex justify-content-between text-muted small mt-2">
+                                    <div>
+                                        <i class="fas fa-user me-1"></i>
                                         <?= htmlspecialchars($task['requester_name'] . ' ' . $task['requester_lastname']) ?>
                                     </div>
-                                    <div class="task-date"><?= date('d/m/Y', strtotime($task['request_date'])) ?></div>
+                                    <div>
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        <?= date('d/m/Y', strtotime($task['request_date'])) ?>
+                                    </div>
                                 </div>
-                                <div class="status-buttons">
-                                    <button class="status-btn btn-success" onclick="updateStatus(<?= $task['id'] ?>, 'in_progress')">เริ่มทำ</button>
 
-                                    <!-- ปุ่มดู Subtasks สำหรับงาน Development -->
-                                    <?php if ($task['service_category'] === 'development' && $task['current_step'] !== 'developer_self_created'): ?>
-                                        <button class="status-btn btn-subtask" onclick="showSubtasks(<?= $task['id'] ?>)">
-                                            <i class="fas fa-tasks"></i> Subtasks
+                                <!-- ปุ่มดำเนินการ -->
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <button class="btn btn-sm btn-success" onclick="updateStatus(<?= $task['id'] ?>, 'in_progress')">
+                                        เริ่มทำ
+                                    </button>
+                                    <div>
+                                        <button class="btn btn-sm btn-outline-primary me-1" onclick="showTaskDetail(<?= $task['id'] ?>)" title="ดูรายละเอียด">
+                                            <i class="fas fa-eye"></i>
                                         </button>
-                                    <?php endif; ?>
+                                        <?php if ($task['service_category'] === 'development' && $task['current_step'] !== 'developer_self_created'): ?>
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="showSubtasks(<?= $task['id'] ?>)">
+                                                <i class="fas fa-tasks"></i> Subtasks
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -589,60 +673,71 @@ foreach ($tasks as $task) {
                 </div>
             </div>
 
+
             <!-- กำลังดำเนินการ -->
+            <!-- คอลัมน์: กำลังดำเนินการ -->
             <div class="kanban-column in_progress">
-                <div class="column-header">
+                <!-- หัวคอลัมน์ -->
+                <div class="column-header d-flex justify-content-between align-items-center">
                     <div class="column-title">
-                        <i class="fas fa-cog fa-spin"></i>
+                        <i class="fas fa-cog fa-spin me-1"></i>
                         <span>กำลังดำเนินการ</span>
                     </div>
-                    <span class="task-count"><?= count($tasks_by_status['in_progress']) ?></span>
+                    <span class="task-count badge bg-warning text-dark"><?= count($tasks_by_status['in_progress']) ?></span>
                 </div>
+
                 <div class="tasks-container" data-status="in_progress">
                     <?php if (empty($tasks_by_status['in_progress'])): ?>
-                        <div class="empty-column">
-                            <i class="fas fa-cog"></i>
-                            <p>ไม่มีงานที่กำลังทำ</p>
+                        <div class="empty-column text-center text-muted py-4">
+                            <i class="fas fa-cog fa-2x mb-2"></i>
+                            <p class="mb-0">ไม่มีงานที่กำลังทำ</p>
                         </div>
                     <?php else: ?>
                         <?php foreach ($tasks_by_status['in_progress'] as $task): ?>
-                            <div class="task-card in_progress <?= $task['current_step'] === 'developer_self_created' ? 'self-created' : '' ?>" data-task-id="<?= $task['id'] ?>">
+                            <div class="task-card in_progress mb-3 p-3 border rounded <?= $task['current_step'] === 'developer_self_created' ? 'self-created' : '' ?>" data-task-id="<?= $task['id'] ?>">
+
+                                <!-- Badge + ปุ่มลบ สำหรับ self-created -->
                                 <?php if ($task['current_step'] === 'developer_self_created'): ?>
-                                    <span class="self-created-badge">Service</span>
-                                    <button class="delete-btn" onclick="deleteTask(<?= $task['id'] ?>)" title="ลบงาน">
-                                        <i class="fas fa-times"></i>
-                                    </button>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge bg-secondary">Service</span>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTask(<?= $task['id'] ?>)" title="ลบงาน">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
                                 <?php endif; ?>
 
-                                <div class="task-title"><?= htmlspecialchars($task['title']) ?></div>
+                                <!-- ชื่อเรื่อง -->
+                                <h6 class="fw-bold mb-1"><?= htmlspecialchars($task['title']) ?></h6>
 
-                                <div class="task-actions">
-                                    <button class="detail-btn" onclick="showTaskDetail(<?= $task['id'] ?>)" title="ดูรายละเอียด">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-
+                                <!-- Badge ประเภทงาน / ความสำคัญ -->
                                 <?php if ($task['service_name']): ?>
-                                    <span class="service-badge service-<?= $task['service_category'] ?>">
-                                        <?php if ($task['service_category'] === 'development'): ?>
-                                            <i class="fas fa-code me-1"></i>
-                                        <?php else: ?>
-                                            <i class="fas fa-tools me-1"></i>
-                                        <?php endif; ?>
-                                        <?= htmlspecialchars($task['service_name']) ?>
-                                    </span>
-                                    <?php if ($task['priority']): ?>
-                                        <span class="priority-badge priority-<?= $task['priority'] ?>">
-                                            <?php
-                                            $priorities = ['low' => 'ต่ำ', 'medium' => 'ปานกลาง', 'high' => 'สูง', 'urgent' => 'เร่งด่วน'];
-                                            echo $priorities[$task['priority']] ?? 'ปานกลาง';
-                                            ?>
+                                    <div class="mb-2">
+                                        <span class="badge bg-info text-dark me-1">
+                                            <?php if ($task['service_category'] === 'development'): ?>
+                                                <i class="fas fa-code me-1"></i>
+                                            <?php else: ?>
+                                                <i class="fas fa-tools me-1"></i>
+                                            <?php endif; ?>
+                                            <?= htmlspecialchars($task['service_name']) ?>
                                         </span>
-                                    <?php endif; ?>
+                                        <?php if ($task['priority']): ?>
+                                            <span class="badge bg-<?= $task['priority'] === 'urgent' ? 'danger' : ($task['priority'] === 'high' ? 'warning' : 'secondary') ?>">
+                                                <?php
+                                                $priorities = ['low' => 'ต่ำ', 'medium' => 'ปานกลาง', 'high' => 'สูง', 'urgent' => 'เร่งด่วน'];
+                                                echo $priorities[$task['priority']] ?? 'ปานกลาง';
+                                                ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
                                 <?php endif; ?>
 
-                                <div class="task-description"><?= nl2br(htmlspecialchars(substr($task['description'], 0, 100))) ?><?= strlen($task['description']) > 100 ? '...' : '' ?></div>
+                                <!-- คำอธิบาย -->
+                                <p class="small text-muted mb-2">
+                                    <?= nl2br(htmlspecialchars(substr($task['description'], 0, 100))) ?>
+                                    <?= strlen($task['description']) > 100 ? '...' : '' ?>
+                                </p>
 
+                                <!-- ระยะเวลา -->
                                 <?php if ($task['estimated_days']): ?>
                                     <div class="mb-2">
                                         <span class="badge bg-warning text-dark">
@@ -658,23 +753,38 @@ foreach ($tasks as $task) {
                                     </div>
                                 <?php endif; ?>
 
-                                <div class="task-meta">
-                                    <div class="task-requester">
-                                        <i class="fas fa-user"></i>
+                                <!-- ผู้ขอ / วันที่ -->
+                                <div class="d-flex justify-content-between text-muted small mt-2">
+                                    <div>
+                                        <i class="fas fa-user me-1"></i>
                                         <?= htmlspecialchars($task['requester_name'] . ' ' . $task['requester_lastname']) ?>
                                     </div>
-                                    <div class="task-date"><?= date('d/m/Y', strtotime($task['request_date'])) ?></div>
+                                    <div>
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        <?= date('d/m/Y', strtotime($task['request_date'])) ?>
+                                    </div>
                                 </div>
-                                <div class="status-buttons">
-                                    <button class="status-btn btn-warning" onclick="updateStatus(<?= $task['id'] ?>, 'on_hold')">พักงาน</button>
-                                    <button class="status-btn btn-success" onclick="showCompleteModal(<?= $task['id'] ?>)">ส่งงาน</button>
 
-                                    <!-- ปุ่มดู Subtasks สำหรับงาน Development -->
-                                    <?php if ($task['service_category'] === 'development' && $task['current_step'] !== 'developer_self_created'): ?>
-                                        <button class="status-btn btn-subtask" onclick="showSubtasks(<?= $task['id'] ?>)">
-                                            <i class="fas fa-tasks"></i> Subtasks
+                                <!-- ปุ่มจัดการสถานะ -->
+                                <div class="d-flex justify-content-between align-items-center mt-3 flex-wrap gap-1">
+                                    <div class="d-flex gap-1 flex-grow-1">
+                                        <button class="btn btn-sm btn-warning flex-grow-1" onclick="updateStatus(<?= $task['id'] ?>, 'on_hold')">
+                                            พักงาน
                                         </button>
-                                    <?php endif; ?>
+                                        <button class="btn btn-sm btn-success flex-grow-1" onclick="showCompleteModal(<?= $task['id'] ?>)">
+                                            ส่งงาน
+                                        </button>
+                                    </div>
+                                    <div class="d-flex gap-1">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="showTaskDetail(<?= $task['id'] ?>)" title="ดูรายละเอียด">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <?php if ($task['service_category'] === 'development' && $task['current_step'] !== 'developer_self_created'): ?>
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="showSubtasks(<?= $task['id'] ?>)">
+                                                <i class="fas fa-tasks"></i>
+                                            </button>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
                             </div>
                         <?php endforeach; ?>
@@ -682,60 +792,70 @@ foreach ($tasks as $task) {
                 </div>
             </div>
 
-            <!-- พักงาน -->
+
+            <!-- คอลัมน์: พักงาน -->
             <div class="kanban-column on_hold">
-                <div class="column-header">
+                <!-- หัวคอลัมน์ -->
+                <div class="column-header d-flex justify-content-between align-items-center">
                     <div class="column-title">
-                        <i class="fas fa-pause-circle"></i>
+                        <i class="fas fa-pause-circle me-1"></i>
                         <span>พักงาน</span>
                     </div>
-                    <span class="task-count"><?= count($tasks_by_status['on_hold']) ?></span>
+                    <span class="task-count badge bg-secondary"><?= count($tasks_by_status['on_hold']) ?></span>
                 </div>
+
                 <div class="tasks-container" data-status="on_hold">
                     <?php if (empty($tasks_by_status['on_hold'])): ?>
-                        <div class="empty-column">
-                            <i class="fas fa-pause-circle"></i>
-                            <p>ไม่มีงานที่พัก</p>
+                        <div class="empty-column text-center text-muted py-4">
+                            <i class="fas fa-pause-circle fa-2x mb-2"></i>
+                            <p class="mb-0">ไม่มีงานที่พัก</p>
                         </div>
                     <?php else: ?>
                         <?php foreach ($tasks_by_status['on_hold'] as $task): ?>
-                            <div class="task-card on_hold <?= $task['current_step'] === 'developer_self_created' ? 'self-created' : '' ?>" data-task-id="<?= $task['id'] ?>">
+                            <div class="task-card on_hold mb-3 p-3 border rounded <?= $task['current_step'] === 'developer_self_created' ? 'self-created' : '' ?>" data-task-id="<?= $task['id'] ?>">
+
+                                <!-- Badge + ปุ่มลบ สำหรับ self-created -->
                                 <?php if ($task['current_step'] === 'developer_self_created'): ?>
-                                    <span class="self-created-badge">Service</span>
-                                    <button class="delete-btn" onclick="deleteTask(<?= $task['id'] ?>)" title="ลบงาน">
-                                        <i class="fas fa-times"></i>
-                                    </button>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span class="badge bg-secondary">Service</span>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTask(<?= $task['id'] ?>)" title="ลบงาน">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                    </div>
                                 <?php endif; ?>
 
-                                <div class="task-title"><?= htmlspecialchars($task['title']) ?></div>
+                                <!-- ชื่อเรื่อง -->
+                                <h6 class="fw-bold mb-1"><?= htmlspecialchars($task['title']) ?></h6>
 
-                                <div class="task-actions">
-                                    <button class="detail-btn" onclick="showTaskDetail(<?= $task['id'] ?>)" title="ดูรายละเอียด">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                </div>
-
+                                <!-- Badge ประเภทงาน / ความสำคัญ -->
                                 <?php if ($task['service_name']): ?>
-                                    <span class="service-badge service-<?= $task['service_category'] ?>">
-                                        <?php if ($task['service_category'] === 'development'): ?>
-                                            <i class="fas fa-code me-1"></i>
-                                        <?php else: ?>
-                                            <i class="fas fa-tools me-1"></i>
-                                        <?php endif; ?>
-                                        <?= htmlspecialchars($task['service_name']) ?>
-                                    </span>
-                                    <?php if ($task['priority']): ?>
-                                        <span class="priority-badge priority-<?= $task['priority'] ?>">
-                                            <?php
-                                            $priorities = ['low' => 'ต่ำ', 'medium' => 'ปานกลาง', 'high' => 'สูง', 'urgent' => 'เร่งด่วน'];
-                                            echo $priorities[$task['priority']] ?? 'ปานกลาง';
-                                            ?>
+                                    <div class="mb-2">
+                                        <span class="badge bg-info text-dark me-1">
+                                            <?php if ($task['service_category'] === 'development'): ?>
+                                                <i class="fas fa-code me-1"></i>
+                                            <?php else: ?>
+                                                <i class="fas fa-tools me-1"></i>
+                                            <?php endif; ?>
+                                            <?= htmlspecialchars($task['service_name']) ?>
                                         </span>
-                                    <?php endif; ?>
+                                        <?php if ($task['priority']): ?>
+                                            <span class="badge bg-<?= $task['priority'] === 'urgent' ? 'danger' : ($task['priority'] === 'high' ? 'warning' : 'secondary') ?>">
+                                                <?php
+                                                $priorities = ['low' => 'ต่ำ', 'medium' => 'ปานกลาง', 'high' => 'สูง', 'urgent' => 'เร่งด่วน'];
+                                                echo $priorities[$task['priority']] ?? 'ปานกลาง';
+                                                ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
                                 <?php endif; ?>
 
-                                <div class="task-description"><?= nl2br(htmlspecialchars(substr($task['description'], 0, 100))) ?><?= strlen($task['description']) > 100 ? '...' : '' ?></div>
+                                <!-- คำอธิบาย -->
+                                <p class="small text-muted mb-2">
+                                    <?= nl2br(htmlspecialchars(substr($task['description'], 0, 100))) ?>
+                                    <?= strlen($task['description']) > 100 ? '...' : '' ?>
+                                </p>
 
+                                <!-- ระยะเวลา -->
                                 <?php if ($task['estimated_days']): ?>
                                     <div class="mb-2">
                                         <span class="badge bg-warning text-dark">
@@ -751,122 +871,154 @@ foreach ($tasks as $task) {
                                     </div>
                                 <?php endif; ?>
 
-                                <div class="task-meta">
-                                    <div class="task-requester">
-                                        <i class="fas fa-user"></i>
+                                <!-- ผู้ขอ / วันที่ -->
+                                <div class="d-flex justify-content-between text-muted small mt-2">
+                                    <div>
+                                        <i class="fas fa-user me-1"></i>
                                         <?= htmlspecialchars($task['requester_name'] . ' ' . $task['requester_lastname']) ?>
                                     </div>
-                                    <div class="task-date"><?= date('d/m/Y', strtotime($task['request_date'])) ?></div>
+                                    <div>
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        <?= date('d/m/Y', strtotime($task['request_date'])) ?>
+                                    </div>
                                 </div>
-                                <div class="status-buttons">
-                                    <button class="status-btn btn-success" onclick="updateStatus(<?= $task['id'] ?>, 'in_progress')">ทำต่อ</button>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </div>
-            </div>
 
-            <!-- เสร็จแล้ว -->
-            <div class="kanban-column completed">
-                <div class="column-header">
-                    <div class="column-title">
-                        <i class="fas fa-check-double"></i>
-                        <span>เสร็จแล้ว</span>
-                    </div>
-                    <span class="task-count"><?= count($tasks_by_status['completed']) ?></span>
-                </div>
-                <div class="tasks-container" data-status="completed">
-                    <?php if (empty($tasks_by_status['completed'])): ?>
-                        <div class="empty-column">
-                            <i class="fas fa-check-double"></i>
-                            <p>ยังไม่มีงานที่เสร็จ</p>
-                        </div>
-                    <?php else: ?>
-                        <?php foreach ($tasks_by_status['completed'] as $task): ?>
-                            <div class="task-card completed <?= $task['current_step'] === 'developer_self_created' ? 'self-created' : '' ?>" data-task-id="<?= $task['id'] ?>">
-                                <?php if ($task['current_step'] === 'developer_self_created'): ?>
-                                    <span class="self-created-badge">Service</span>
-                                <?php endif; ?>
-
-                                <div class="task-title"><?= htmlspecialchars($task['title']) ?></div>
-
-                                <div class="task-actions">
-                                    <button class="detail-btn" onclick="showTaskDetail(<?= $task['id'] ?>)" title="ดูรายละเอียด">
+                                <!-- ปุ่มทำต่อ / รายละเอียด -->
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <button class="btn btn-sm btn-success" onclick="updateStatus(<?= $task['id'] ?>, 'in_progress')">
+                                        ทำต่อ
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="showTaskDetail(<?= $task['id'] ?>)" title="ดูรายละเอียด">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
-
-                                <?php if ($task['service_name']): ?>
-                                    <span class="service-badge service-<?= $task['service_category'] ?>">
-                                        <?php if ($task['service_category'] === 'development'): ?>
-                                            <i class="fas fa-code me-1"></i>
-                                        <?php else: ?>
-                                            <i class="fas fa-tools me-1"></i>
-                                        <?php endif; ?>
-                                        <?= htmlspecialchars($task['service_name']) ?>
-                                    </span>
-                                    <?php if ($task['priority']): ?>
-                                        <span class="priority-badge priority-<?= $task['priority'] ?>">
-                                            <?php
-                                            $priorities = ['low' => 'ต่ำ', 'medium' => 'ปานกลาง', 'high' => 'สูง', 'urgent' => 'เร่งด่วน'];
-                                            echo $priorities[$task['priority']] ?? 'ปานกลาง';
-                                            ?>
-                                        </span>
-                                    <?php endif; ?>
-                                <?php endif; ?>
-
-                                <?php if ($task['review_status']): ?>
-                                    <div class="review-section">
-                                        <div class="fw-bold text-success mb-2">
-                                            <i class="fas fa-star"></i> รีวิวจากผู้ใช้
-                                        </div>
-                                        <?php if ($task['rating']): ?>
-                                            <div class="mb-2">
-                                                <span class="rating-stars"><?= str_repeat('⭐', $task['rating']) ?></span>
-                                                <span class="ms-2">(<?= $task['rating'] ?>/5)</span>
-                                            </div>
-                                        <?php endif; ?>
-                                        <?php if ($task['review_comment']): ?>
-                                            <div class="small text-muted mb-2">
-                                                "<?= htmlspecialchars($task['review_comment']) ?>"
-                                            </div>
-                                        <?php endif; ?>
-                                        <?php if ($task['user_reviewed_at']): ?>
-                                            <div class="small text-muted mb-2">
-                                                <i class="fas fa-clock"></i> รีวิวเมื่อ: <?= date('d/m/Y H:i', strtotime($task['user_reviewed_at'])) ?>
-                                            </div>
-                                        <?php endif; ?>
-                                        <div class="small">
-                                            สถานะ:
-                                            <?php if ($task['review_status'] === 'accepted'): ?>
-                                                <span class="text-success">✅ ยอมรับงาน</span>
-                                            <?php elseif ($task['review_status'] === 'revision_requested'): ?>
-                                                <span class="text-warning">🔄 ขอแก้ไข</span>
-                                            <?php else: ?>
-                                                <span class="text-info">⏳ รอรีวิว</span>
-                                            <?php endif; ?>
-                                        </div>
-                                        <?php if ($task['revision_notes']): ?>
-                                            <div class="mt-2 p-2 bg-warning bg-opacity-10 rounded">
-                                                <strong>ต้องแก้ไข:</strong> <?= htmlspecialchars($task['revision_notes']) ?>
-                                            </div>
-                                        <?php endif; ?>
-                                    </div>
-                                <?php endif; ?>
-
-                                <div class="task-meta">
-                                    <div class="task-requester">
-                                        <i class="fas fa-user"></i>
-                                        <?= htmlspecialchars($task['requester_name'] . ' ' . $task['requester_lastname']) ?>
-                                    </div>
-                                    <div class="task-date"><?= date('d/m/Y', strtotime($task['request_date'])) ?></div>
-                                </div>
                             </div>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </div>
             </div>
+
+
+            <!-- เสร็จแล้ว -->
+           <!-- คอลัมน์งานที่เสร็จแล้ว -->
+<div class="kanban-column completed">
+    <!-- หัวคอลัมน์ -->
+    <div class="column-header d-flex justify-content-between align-items-center bg-success text-white px-3 py-2 rounded-top">
+        <div class="column-title d-flex align-items-center">
+            <i class="fas fa-check-double me-2"></i>
+            <span class="fw-bold">เสร็จแล้ว</span>
+        </div>
+        <span class="task-count badge bg-light text-dark"><?= count($tasks_by_status['completed']) ?></span>
+    </div>
+
+    <!-- โซนการ์ด -->
+    <div class="tasks-container bg-white border border-top-0 rounded-bottom p-2" data-status="completed" style="min-height: 150px;">
+        <?php if (empty($tasks_by_status['completed'])): ?>
+            <div class="empty-column text-center text-muted py-4">
+                <i class="fas fa-check-double fa-2x mb-2"></i>
+                <p class="mb-0">ยังไม่มีงานที่เสร็จ</p>
+            </div>
+        <?php else: ?>
+            <?php foreach ($tasks_by_status['completed'] as $task): ?>
+                <div class="task-card border rounded mb-3 p-3 shadow-sm bg-light completed <?= $task['current_step'] === 'developer_self_created' ? 'self-created' : '' ?>" data-task-id="<?= $task['id'] ?>">
+
+                    <!-- แสดง badge "Service" ถ้าเป็นงานที่ dev สร้างเอง -->
+                    <?php if ($task['current_step'] === 'developer_self_created'): ?>
+                        <span class="badge bg-info text-dark mb-2">Service</span>
+                    <?php endif; ?>
+
+                    <!-- ชื่อเรื่อง -->
+                    <div class="task-title fw-bold mb-2"><?= htmlspecialchars($task['title']) ?></div>
+
+                    <!-- ปุ่มแอคชัน -->
+                    <div class="task-actions position-absolute top-0 end-0 mt-2 me-2">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="showTaskDetail(<?= $task['id'] ?>)" title="ดูรายละเอียด">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+
+                    <!-- หมวดหมู่บริการ + ความสำคัญ -->
+                    <?php if ($task['service_name']): ?>
+                        <div class="d-flex flex-wrap gap-2 mb-2">
+                            <span class="badge bg-secondary">
+                                <?php if ($task['service_category'] === 'development'): ?>
+                                    <i class="fas fa-code me-1"></i>
+                                <?php else: ?>
+                                    <i class="fas fa-tools me-1"></i>
+                                <?php endif; ?>
+                                <?= htmlspecialchars($task['service_name']) ?>
+                            </span>
+                            <?php if ($task['priority']): ?>
+                                <span class="badge bg-<?= $task['priority'] === 'urgent' ? 'danger' : ($task['priority'] === 'high' ? 'warning text-dark' : ($task['priority'] === 'medium' ? 'primary' : 'secondary')) ?>">
+                                    <?= ['low' => 'ต่ำ', 'medium' => 'ปานกลาง', 'high' => 'สูง', 'urgent' => 'เร่งด่วน'][$task['priority']] ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- โซนรีวิว -->
+                    <?php if ($task['review_status']): ?>
+                        <div class="review-section mt-2 p-2 bg-white border rounded small">
+                            <div class="fw-bold text-success mb-1">
+                                <i class="fas fa-star me-1"></i> รีวิวจากผู้ใช้
+                            </div>
+
+                            <?php if ($task['rating']): ?>
+                                <div>
+                                    <span class="rating-stars"><?= str_repeat('⭐', $task['rating']) ?></span>
+                                    <span class="ms-2">(<?= $task['rating'] ?>/5)</span>
+                                </div>
+                            <?php endif; ?>
+
+                            <?php if ($task['review_comment']): ?>
+                                <div class="text-muted fst-italic my-1">"<?= htmlspecialchars($task['review_comment']) ?>"</div>
+                            <?php endif; ?>
+
+                            <?php if ($task['user_reviewed_at']): ?>
+                                <div class="text-muted mb-1">
+                                    <i class="fas fa-clock me-1"></i> รีวิวเมื่อ: <?= date('d/m/Y H:i', strtotime($task['user_reviewed_at'])) ?>
+                                </div>
+                            <?php endif; ?>
+
+                            <div>
+                                สถานะ:
+                                <?php if ($task['review_status'] === 'accepted'): ?>
+                                    <span class="text-success">✅ ยอมรับงาน</span>
+                                <?php elseif ($task['review_status'] === 'revision_requested'): ?>
+                                    <span class="text-warning">🔄 ขอแก้ไข</span>
+                                <?php else: ?>
+                                    <span class="text-info">⏳ รอรีวิว</span>
+                                <?php endif; ?>
+                            </div>
+
+                            <?php if ($task['revision_notes']): ?>
+                                <div class="mt-2 p-2 bg-warning bg-opacity-25 rounded">
+                                    <strong>ต้องแก้ไข:</strong> <?= htmlspecialchars($task['revision_notes']) ?>
+                                </div>
+                            <?php endif; ?>
+                        </div>
+                    <?php endif; ?>
+
+                    <!-- ผู้ร้องขอ + วันที่ -->
+                    <div class="task-meta mt-3 d-flex justify-content-between text-muted small">
+                        <div class="task-requester">
+                            <i class="fas fa-user me-1"></i>
+                            <?= htmlspecialchars($task['requester_name'] . ' ' . $task['requester_lastname']) ?>
+                        </div>
+                        <div class="task-date">
+                            <i class="fas fa-calendar-day me-1"></i>
+                            <?= date('d/m/Y', strtotime($task['request_date'])) ?>
+                        </div>
+                    </div>
+                </div>
+            <?php endforeach; ?>
+        <?php endif; ?>
+    </div>
+</div>
+
+
+
+
         </div>
     </div>
 
@@ -1093,6 +1245,15 @@ foreach ($tasks as $task) {
                                 <div class="mb-3">
                                     <label for="deadline" class="form-label fw-bold">กำหนดเสร็จ (วันและเวลา):</label>
                                     <input type="datetime-local" class="form-control" id="deadline" name="deadline">
+                                </div>
+
+                           
+                                <div class="mb-3">
+                                    <label for="attachments" class="form-label">
+                                        <i class="fas fa-upload me-2"></i>เลือกไฟล์แนบ
+                                    </label>
+                                    <input type="file" class="form-control" id="attachments" name="attachments[]" multiple
+                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.txt,.zip,.rar">
                                 </div>
 
                             </div>
@@ -1428,22 +1589,22 @@ foreach ($tasks as $task) {
     </script>
 
     <script>
-  window.addEventListener('DOMContentLoaded', () => {
-    const deadlineInput = document.getElementById('deadline');
-    const now = new Date();
+        window.addEventListener('DOMContentLoaded', () => {
+            const deadlineInput = document.getElementById('deadline');
+            const now = new Date();
 
-    // แปลงเป็นรูปแบบ 'YYYY-MM-DDTHH:MM'
-    const formattedNow = now.toISOString().slice(0, 16);
+            // แปลงเป็นรูปแบบ 'YYYY-MM-DDTHH:MM'
+            const formattedNow = now.toISOString().slice(0, 16);
 
-    // กำหนดค่าขั้นต่ำของ datetime-local
-    deadlineInput.min = formattedNow;
+            // กำหนดค่าขั้นต่ำของ datetime-local
+            deadlineInput.min = formattedNow;
 
-    // ตัวเลือก: ตั้งค่า default เป็นพรุ่งนี้
-    now.setDate(now.getDate() + 1);
-    const defaultVal = now.toISOString().slice(0, 16);
-    deadlineInput.value = defaultVal;
-  });
-</script>
+            // ตัวเลือก: ตั้งค่า default เป็นพรุ่งนี้
+            now.setDate(now.getDate() + 1);
+            const defaultVal = now.toISOString().slice(0, 16);
+            deadlineInput.value = defaultVal;
+        });
+    </script>
 
 
     <style>
