@@ -694,14 +694,15 @@ $thai_months = [
 </div>
 
 
-        <div class="row">
-            <!-- Developer Status -->
-            <div class="col-lg-3">
-                <div class="glass-card p-4 mb-4">
-                    <h3 class="fw-bold mb-3">
-                        <i class="fas fa-users text-primary me-2"></i>สถานะ Developer
-                    </h3>
-                    
+        <div class="row g-4">
+    <!-- Developer Status -->
+    <div class="col-12 col-lg-4 col-xl-3">
+        <div class="glass-card p-4 h-100">
+            <h3 class="fw-bold mb-4">
+                <i class="fas fa-users text-primary me-2"></i>สถานะ Developer
+            </h3>
+
+
                     <?php if ($selected_dev === 'all'): ?>
                         <?php foreach ($developers as $dev): ?>
                             <?php 
@@ -894,36 +895,35 @@ $thai_months = [
 
            
             <!-- Task Details -->
-            <div class="col-lg-9">
-                <div class="glass-card p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h3 class="fw-bold mb-0">
-                            <i class="fas fa-tasks text-primary me-2"></i>
-                            รายละเอียดงาน
-                        </h3>
-                        <div class="d-flex gap-2 flex-wrap">
-                            <!-- Filters -->
-                            <select class="form-select form-select-sm" id="dateFilter" onchange="filterTasks()" style="width: auto;">
-                                <option value="all">ทั้งหมด</option>
-                                <option value="today">วันนี้</option>
-                                <option value="week">สัปดาห์นี้</option>
-                                <option value="month">เดือนนี้</option>
-                                <option value="year">ปีนี้</option>
-                            </select>
-                            
-                            <select class="form-select form-select-sm" id="statusFilter" onchange="filterTasks()" style="width: auto;">
-                                <option value="all">ทุกสถานะ</option>
-                                <option value="pending">รอรับ</option>
-                                <option value="in_progress">กำลังทำ</option>
-                                <option value="completed">เสร็จแล้ว</option>
-                                <option value="overdue">เลยกำหนด</option>
-                            </select>
-                            
-                            <button class="btn btn-outline-primary btn-sm" onclick="refreshData()">
-                                <i class="fas fa-sync-alt me-1"></i>รีเฟรช
-                            </button>
-                        </div>
-                    </div>
+    <div class="col-12 col-lg-8 col-xl-9">
+        <div class="glass-card p-4">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+                <h3 class="fw-bold mb-0">
+                    <i class="fas fa-tasks text-primary me-2"></i>รายละเอียดงาน
+                </h3>
+                <div class="d-flex flex-wrap gap-2">
+                    <!-- Filters -->
+                    <select class="form-select form-select-sm w-auto" id="dateFilter" onchange="filterTasks()">
+                        <option value="all">ทั้งหมด</option>
+                        <option value="today">วันนี้</option>
+                        <option value="week">สัปดาห์นี้</option>
+                        <option value="month">เดือนนี้</option>
+                        <option value="year">ปีนี้</option>
+                    </select>
+
+                    <select class="form-select form-select-sm w-auto" id="statusFilter" onchange="filterTasks()">
+                        <option value="all">ทุกสถานะ</option>
+                        <option value="pending">รอรับ</option>
+                        <option value="in_progress">กำลังทำ</option>
+                        <option value="completed">เสร็จแล้ว</option>
+                        <option value="overdue">เลยกำหนด</option>
+                    </select>
+
+                    <button class="btn btn-outline-primary btn-sm" onclick="refreshData()">
+                        <i class="fas fa-sync-alt me-1"></i>รีเฟรช
+                    </button>
+                </div>
+            </div>
 
                     <?php if (empty($tasks)): ?>
                         <div class="text-center py-5">
@@ -1047,66 +1047,7 @@ $thai_months = [
                     <?php endif; ?>
                 </div>
             </div>
-
-             <!-- Mini Calendar -->
-            <!-- <div class="col-lg-3">
-                <div class="glass-card p-4 mb-4">
-                    <h3 class="fw-bold mb-3">
-                        <i class="fas fa-calendar-alt text-primary me-2"></i>ปฏิทินงาน
-                    </h3> -->
-                    
-                    <!-- Calendar Navigation -->
-                    <!-- <div class="calendar-nav mb-3">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <button class="btn btn-sm btn-outline-primary" onclick="changeMonth(-1)">
-                                <i class="fas fa-chevron-left"></i>
-                            </button>
-                            <h6 class="mb-0" id="currentMonth"><?= $thai_months[date('n')] ?> <?= date('Y') + 543 ?></h6>
-                            <button class="btn btn-sm btn-outline-primary" onclick="changeMonth(1)">
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div> -->
-                    
-                    <!-- Mini Calendar Grid -->
-                    <!-- <div class="mini-calendar">
-                        <div class="calendar-header">
-                            <div class="day-header">อา</div>
-                            <div class="day-header">จ</div>
-                            <div class="day-header">อ</div>
-                            <div class="day-header">พ</div>
-                            <div class="day-header">พฤ</div>
-                            <div class="day-header">ศ</div>
-                            <div class="day-header">ส</div>
-                        </div>
-                        <div class="calendar-body" id="calendarBody"> -->
-                            <!-- Calendar days will be generated by JavaScript -->
-                        <!-- </div>
-                    </div>
-                     -->
-                    <!-- Calendar Legend -->
-                    <!-- <div class="calendar-legend mt-3">
-                        <div class="legend-item">
-                            <span class="legend-dot pending"></span>
-                            <small>รอรับ</small>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-dot in-progress"></span>
-                            <small>กำลังทำ</small>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-dot completed"></span>
-                            <small>เสร็จแล้ว</small>
-                        </div>
-                        <div class="legend-item">
-                            <span class="legend-dot overdue"></span>
-                            <small>เลยกำหนด</small>
-                        </div>
-                    </div>
-                </div>
-            </div> -->
-
-            
+        
         </div>
     </div>
 
