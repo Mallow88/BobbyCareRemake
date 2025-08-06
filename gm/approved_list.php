@@ -507,7 +507,7 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
             <!-- โลโก้ + ชื่อระบบ -->
             <a class="navbar-brand d-flex align-items-center custom-navbar-brand" href="gmindex.php">
                 <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
-                <span class="custom-navbar-title">ผู้จัดการแผนก, <?= htmlspecialchars($_SESSION['name']) ?>!</span>
+                <span class="custom-navbar-title">ผู้จัดการทั่วไป: <?= htmlspecialchars($_SESSION['name']) ?>!</span>
             </a>
 
             <!-- ปุ่ม toggle สำหรับ mobile -->
