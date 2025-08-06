@@ -318,7 +318,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
         $conn->commit();
-        $_SESSION['success'] = "สร้างคำขอบริการสำเร็จ! เลขที่เอกสาร: $document_number";
+        // $_SESSION['success'] = "สร้างคำขอบริการสำเร็จ! เลขที่เอกสาร: $document_number";
         header("Location: index.php");
         exit();
     } catch (Exception $e) {
@@ -337,7 +337,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>สร้างคำขอบริการ - BobbyCareDev</title>
+    <title>BobbyCareDev-สร้างคำขอบริการ</title>
+     <link rel="icon" type="image/png" href="/BobbyCareRemake/img/logo/bobby-icon.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
@@ -499,58 +500,58 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container mt-5">
         <!-- Header -->
         <div class="header-card p-5 mb-5">
-           
+
         </div>
-          <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+        <!-- Navigation -->
+        <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
 
-        <div class="container">
-            <!-- โลโก้ + ชื่อระบบ -->
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="../dashboard.php">
-                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
-                <span class="page-title"> สวัสดี, <?= htmlspecialchars($_SESSION['name']) ?>! </span>
-            </a>
+            <div class="container">
+                <!-- โลโก้ + ชื่อระบบ -->
+                <a class="navbar-brand fw-bold d-flex align-items-center" href="../dashboard.php">
+                    <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
+                    <span class="page-title"> สวัสดี, <?= htmlspecialchars($_SESSION['name']) ?>! </span>
+                </a>
 
-            <!-- ปุ่ม toggle สำหรับ mobile -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+                <!-- ปุ่ม toggle สำหรับ mobile -->
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-            <!-- เมนู -->
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <!-- ซ้าย: เมนูหลัก -->
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <!-- <li class="nav-item">
+                <!-- เมนู -->
+                <div class="collapse navbar-collapse" id="navbarContent">
+                    <!-- ซ้าย: เมนูหลัก -->
+                    <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                        <!-- <li class="nav-item">
                         <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> หน้าหลัก</a>
                     </li> -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="create.php"><i class="fas fa-tasks me-1"></i>สร้างคำขอบริการ</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php"><i class="fas fa-chart-bar me-1"></i> รายการคำขอ</a>
-                    </li>
-                     <li class="nav-item">
-                        <a class="nav-link" href="track_status.php"><i class="fas fa-chart-bar me-1"></i>ติดตามสถานะ</a>
-                    </li>
-                     <li class="nav-item">
-                        <a class="nav-link" href="../profile.php"><i class="fas fa-chart-bar me-1"></i>โปรไฟล์</a>
-                    </li>
-                </ul>
-                <!-- ขวา: ผู้ใช้งาน -->
-                <ul class="navbar-nav mb-2 mb-lg-0">
-                    <!-- <li class="nav-item d-flex align-items-center text-dark me-3">
+                        <li class="nav-item">
+                            <a class="nav-link" href="create.php"><i class="fas fa-tasks me-1"></i>สร้างคำขอบริการ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="index.php"><i class="fas fa-chart-bar me-1"></i> รายการคำขอ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="track_status.php"><i class="fas fa-chart-bar me-1"></i>ติดตามสถานะ</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="../profile.php"><i class="fas fa-chart-bar me-1"></i>โปรไฟล์</a>
+                        </li>
+                    </ul>
+                    <!-- ขวา: ผู้ใช้งาน -->
+                    <ul class="navbar-nav mb-2 mb-lg-0">
+                        <!-- <li class="nav-item d-flex align-items-center text-dark me-3">
                         <i class="fas fa-user-circle me-2"></i>
                       
                     </li> -->
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="../logout.php">
-                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
-                        </a>
-                    </li>
-                </ul>
+                        <li class="nav-item">
+                            <a class="nav-link text-danger" href="../logout.php">
+                                <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
 
 
         <!-- Form -->

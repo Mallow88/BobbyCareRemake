@@ -22,6 +22,8 @@ if (!$user) {
 <head>
     <meta charset="UTF-8">
     <title>แก้ไขโปรไฟล์</title>
+     <title>BobbyCareDev-แก้ไขโปรไฟล์</title>
+    <link rel="icon" type="image/png" href="img/logo/bobby-icon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Bootstrap + Font Awesome -->

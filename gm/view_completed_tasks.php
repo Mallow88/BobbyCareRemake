@@ -50,8 +50,13 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>งานที่เสร็จแล้ว - ผู้จัดการทั่วไป</title>
+    <title>BobbyCareDev-งานที่เสร็จแล้ว</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/approved-title.css">
+    <link rel="icon" type="image/png" href="/BobbyCareRemake/img/logo/bobby-icon.png">
+    <link rel="stylesheet" href="../css/nav.css">
     <style>
         * {
             margin: 0;
@@ -61,7 +66,7 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ffffffff 0%, #341355 100%);
             min-height: 100vh;
             color: #333;
         }
@@ -247,18 +252,63 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </style>
 </head>
 <body>
+
+ <nav class="custom-navbar navbar navbar-expand-lg shadow-sm">
+        <div class="container custom-navbar-container">
+            <!-- โลโก้ + ชื่อระบบ -->
+            <a class="navbar-brand d-flex align-items-center custom-navbar-brand" href="gmindex.php">
+                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
+                <span class="custom-navbar-title">ผู้จัดการแผนก, <?= htmlspecialchars($_SESSION['name']) ?>!</span>
+            </a>
+
+            <!-- ปุ่ม toggle สำหรับ mobile -->
+            <button class="navbar-toggler custom-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- เมนู -->
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <!-- ซ้าย: เมนูหลัก -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 custom-navbar-menu">
+                    <!-- <li class="nav-item">
+                        <a class="nav-link" href="view_requests.php"><i class="fas fa-tasks me-1"></i> ตรวจสอบคำขอ</a>
+                    </li> -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="approved_list.php"><i class="fas fa-check-circle me-1"></i> รายการที่อนุมัติ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="view_completed_tasks.php"><i class="fas fa-star me-1"></i> User Reviews</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="developer_dashboard.php"><i class="fas fa-chart-line me-1"></i> Dashboard_DEV</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="report.php"><i class="fas fa-chart-line me-1"></i> Report</a>
+                    </li>
+                </ul>
+                <!-- ขวา: ผู้ใช้งาน -->
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="../logout.php">
+                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
     <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-chart-line"></i> งานที่เสร็จแล้ว</h1>
-            <p>ติดตามผลงานที่อนุมัติและรีวิวจากผู้ใช้</p>
-            
-            <div class="nav-buttons">
-                <a href="gmindex.php" class="nav-btn">
-                    <i class="fas fa-arrow-left"></i> กลับหน้าหลัก
-                </a>
-                <a href="approved_list.php" class="nav-btn secondary">
-                    <i class="fas fa-list"></i> รายการที่อนุมัติ
-                </a>
+
+
+         <div class="approved-header-card p-4 mb-4">
+            <div class="d-flex align-items-center">
+                <div class="approved-icon bg-success me-3">
+                    <i class="fas fa-check-circle text-white"></i>
+                </div>
+                <div>
+                    <h2 class="approved-title mb-0">งานที่เสร็จแล้ว</h2>
+                </div>
             </div>
         </div>
 
@@ -364,4 +414,6 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 </body>
+ <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    
 </html>

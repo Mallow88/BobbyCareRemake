@@ -105,11 +105,11 @@ foreach ($approvals as $approval) {
     } elseif ($approval['status'] === 'rejected') {
         $rejected_count++;
     }
-    
+
     if ($approval['task_status'] === 'accepted') {
         $completed_count++;
     }
-    
+
     if ($approval['rating']) {
         $total_rating += $approval['rating'];
         $rating_count++;
@@ -123,15 +123,19 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
 
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>รายการที่อนุมัติแล้ว - ผู้จัดการทั่วไป</title>
+    <title>BobbyCareDev-รายการที่อนุมัติแล้ว</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/approved-title.css">
+    <link rel="icon" type="image/png" href="/BobbyCareRemake/img/logo/bobby-icon.png">
+    <link rel="stylesheet" href="../css/nav.css">
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-gradient: linear-gradient(135deg, #ffffffff 0%, #341355 100%);
             --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             --glass-bg: rgba(255, 255, 255, 0.95);
             --glass-border: rgba(255, 255, 255, 0.2);
@@ -221,10 +225,21 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
             letter-spacing: 0.5px;
         }
 
-        .stat-card.total .stat-number { color: #667eea; }
-        .stat-card.approval .stat-number { color: #10b981; }
-        .stat-card.completion .stat-number { color: #8b5cf6; }
-        .stat-card.rating .stat-number { color: #f59e0b; }
+        .stat-card.total .stat-number {
+            color: #667eea;
+        }
+
+        .stat-card.approval .stat-number {
+            color: #10b981;
+        }
+
+        .stat-card.completion .stat-number {
+            color: #8b5cf6;
+        }
+
+        .stat-card.rating .stat-number {
+            color: #f59e0b;
+        }
 
         .filter-section {
             background: white;
@@ -484,95 +499,140 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
         }
     </style>
 </head>
+
 <body>
+
+    <nav class="custom-navbar navbar navbar-expand-lg shadow-sm">
+        <div class="container custom-navbar-container">
+            <!-- โลโก้ + ชื่อระบบ -->
+            <a class="navbar-brand d-flex align-items-center custom-navbar-brand" href="gmindex.php">
+                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
+                <span class="custom-navbar-title">ผู้จัดการแผนก, <?= htmlspecialchars($_SESSION['name']) ?>!</span>
+            </a>
+
+            <!-- ปุ่ม toggle สำหรับ mobile -->
+            <button class="navbar-toggler custom-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <!-- เมนู -->
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <!-- ซ้าย: เมนูหลัก -->
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0 custom-navbar-menu">
+                    <!-- <li class="nav-item">
+                        <a class="nav-link" href="view_requests.php"><i class="fas fa-tasks me-1"></i> ตรวจสอบคำขอ</a>
+                    </li> -->
+                    <li class="nav-item">
+                        <a class="nav-link" href="approved_list.php"><i class="fas fa-check-circle me-1"></i> รายการที่อนุมัติ</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="view_completed_tasks.php"><i class="fas fa-star me-1"></i> User Reviews</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="developer_dashboard.php"><i class="fas fa-chart-line me-1"></i> Dashboard_DEV</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="report.php"><i class="fas fa-chart-line me-1"></i> Report</a>
+                    </li>
+                </ul>
+                <!-- ขวา: ผู้ใช้งาน -->
+                <ul class="navbar-nav mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="../logout.php">
+                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+
     <div class="container mt-5">
         <!-- Header -->
-        <div class="header-card p-5 mb-5">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bg-success rounded-circle d-flex align-items-center justify-content-center me-4" style="width: 60px; height: 60px;">
-                            <i class="fas fa-check-circle text-white fs-3"></i>
-                        </div>
-                        <div>
-                            <h1 class="page-title mb-2">รายการที่อนุมัติแล้ว</h1>
-                            <p class="text-muted mb-0 fs-5">ติดตามและดูผลงานที่อนุมัติ</p>
-                        </div>
-                    </div>
+        <div class="approved-header-card p-4 mb-4">
+            <div class="d-flex align-items-center">
+                <div class="approved-icon bg-success me-3">
+                    <i class="fas fa-check-circle text-white"></i>
                 </div>
-                <div class="col-lg-4 text-lg-end">
-                    <div class="d-flex gap-2 justify-content-lg-end justify-content-start flex-wrap">
-                        <a href="gmindex.php" class="btn btn-gradient">
-                            <i class="fas fa-arrow-left me-2"></i>กลับหน้าหลัก
-                        </a>
-                        <a href="developer_dashboard.php" class="btn btn-gradient">
-                            <i class="fas fa-chart-line me-2"></i>Developer Dashboard
-                        </a>
-                    </div>
+                <div>
+                    <h2 class="approved-title mb-0">รายการที่อนุมัติแล้ว</h2>
                 </div>
             </div>
         </div>
 
-        <!-- สถิติ -->
-        <div class="stats-grid">
-            <div class="stat-card total">
+        <!-- Stats -->
+         <div class="approved-header-card p-2 mb-3">
+        <div class="approved-stats-grid">
+            <div class="approved-stat-card bg-gradient-total">
                 <div class="stat-number"><?= $total_records ?></div>
                 <div class="stat-label">ทั้งหมด</div>
             </div>
-            <div class="stat-card approval">
+            <div class="approved-stat-card bg-gradient-approve">
                 <div class="stat-number"><?= $approval_rate ?>%</div>
                 <div class="stat-label">อัตราการอนุมัติ</div>
             </div>
-            <div class="stat-card completion">
+            <div class="approved-stat-card bg-gradient-complete">
                 <div class="stat-number"><?= $completion_rate ?>%</div>
                 <div class="stat-label">อัตราการเสร็จ</div>
             </div>
-            <div class="stat-card rating">
+            <div class="approved-stat-card bg-gradient-rating">
                 <div class="stat-number"><?= $average_rating ?></div>
                 <div class="stat-label">คะแนนเฉลี่ย</div>
             </div>
         </div>
-
-        <!-- ส่วนฟิลเตอร์ -->
-        <div class="filter-section">
-            <h5 class="fw-bold mb-3">
-                <i class="fas fa-filter me-2"></i>ฟิลเตอร์ข้อมูล
-            </h5>
-            
-            <div class="filter-buttons">
-                <button class="filter-btn <?= $filter_type === 'all' ? 'active' : '' ?>" onclick="setFilter('all')">
-                    <i class="fas fa-list me-1"></i>ทั้งหมด
-                </button>
-                <button class="filter-btn <?= $filter_type === 'day' ? 'active' : '' ?>" onclick="setFilter('day')">
-                    <i class="fas fa-calendar-day me-1"></i>รายวัน
-                </button>
-                <button class="filter-btn <?= $filter_type === 'month' ? 'active' : '' ?>" onclick="setFilter('month')">
-                    <i class="fas fa-calendar-alt me-1"></i>รายเดือน
-                </button>
-                <button class="filter-btn <?= $filter_type === 'year' ? 'active' : '' ?>" onclick="setFilter('year')">
-                    <i class="fas fa-calendar me-1"></i>รายปี
-                </button>
-            </div>
-
-            <div class="date-inputs">
-                <div id="dayFilter" style="display: <?= $filter_type === 'day' ? 'block' : 'none' ?>">
-                    <label class="form-label">เลือกวันที่:</label>
-                    <input type="date" class="form-control" id="filterDate" value="<?= $filter_date ?>" onchange="applyFilter()">
-                </div>
-                <div id="monthFilter" style="display: <?= $filter_type === 'month' ? 'block' : 'none' ?>">
-                    <label class="form-label">เลือกเดือน:</label>
-                    <input type="month" class="form-control" id="filterMonth" value="<?= $filter_month ?>" onchange="applyFilter()">
-                </div>
-                <div id="yearFilter" style="display: <?= $filter_type === 'year' ? 'block' : 'none' ?>">
-                    <label class="form-label">เลือกปี:</label>
-                    <select class="form-control" id="filterYear" onchange="applyFilter()">
-                        <?php for ($y = date('Y'); $y >= 2020; $y--): ?>
-                            <option value="<?= $y ?>" <?= $filter_year == $y ? 'selected' : '' ?>><?= $y + 543 ?></option>
-                        <?php endfor; ?>
-                    </select>
-                </div>
-            </div>
         </div>
+
+
+  <!-- ฟิลเตอร์ข้อมูล -->
+<section class="filter-section mb-4">
+    <div class="filter-section-header mb-3">
+        <h5><i class="fas fa-filter me-2"></i>ฟิลเตอร์ข้อมูล</h5>
+    </div>
+
+    <!-- ปุ่มฟิลเตอร์ -->
+    <div class="filter-section-buttons mb-3">
+        <button class="filter-section-btn <?= $filter_type === 'all' ? 'active' : '' ?>" onclick="setFilter('all')">
+            <i class="fas fa-list me-1"></i> ทั้งหมด
+        </button>
+        <button class="filter-section-btn <?= $filter_type === 'day' ? 'active' : '' ?>" onclick="setFilter('day')">
+            <i class="fas fa-calendar-day me-1"></i> รายวัน
+        </button>
+        <button class="filter-section-btn <?= $filter_type === 'month' ? 'active' : '' ?>" onclick="setFilter('month')">
+            <i class="fas fa-calendar-alt me-1"></i> รายเดือน
+        </button>
+        <button class="filter-section-btn <?= $filter_type === 'year' ? 'active' : '' ?>" onclick="setFilter('year')">
+            <i class="fas fa-calendar me-1"></i> รายปี
+        </button>
+    </div>
+
+    <!-- Input วันที่ -->
+    <div class="filter-section-inputs">
+        <!-- รายวัน -->
+        <div class="filter-section-input" id="dayFilter" style="display: <?= $filter_type === 'day' ? 'block' : 'none' ?>">
+            <label for="filterDate" class="form-label">เลือกวันที่:</label>
+            <input type="date" id="filterDate" class="form-control" value="<?= $filter_date ?>" onchange="applyFilter()">
+        </div>
+
+        <!-- รายเดือน -->
+        <div class="filter-section-input" id="monthFilter" style="display: <?= $filter_type === 'month' ? 'block' : 'none' ?>">
+            <label for="filterMonth" class="form-label">เลือกเดือน:</label>
+            <input type="month" id="filterMonth" class="form-control" value="<?= $filter_month ?>" onchange="applyFilter()">
+        </div>
+
+        <!-- รายปี -->
+        <div class="filter-section-input" id="yearFilter" style="display: <?= $filter_type === 'year' ? 'block' : 'none' ?>">
+            <label for="filterYear" class="form-label">เลือกปี:</label>
+            <select id="filterYear" class="form-control" onchange="applyFilter()">
+                <?php for ($y = date('Y'); $y >= 2020; $y--): ?>
+                    <option value="<?= $y ?>" <?= $filter_year == $y ? 'selected' : '' ?>><?= $y + 543 ?></option>
+                <?php endfor; ?>
+            </select>
+        </div>
+    </div>
+</section>
+
+
 
         <!-- รายการอนุมัติ -->
         <div class="glass-card p-4">
@@ -583,12 +643,18 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
                     <?php if ($filter_type !== 'all'): ?>
                         <small class="text-muted">
                             (<?php
-                            switch ($filter_type) {
-                                case 'day': echo 'วันที่ ' . date('d/m/Y', strtotime($filter_date)); break;
-                                case 'month': echo 'เดือน ' . date('m/Y', strtotime($filter_month . '-01')); break;
-                                case 'year': echo 'ปี ' . ($filter_year + 543); break;
-                            }
-                            ?>)
+                                switch ($filter_type) {
+                                    case 'day':
+                                        echo 'วันที่ ' . date('d/m/Y', strtotime($filter_date));
+                                        break;
+                                    case 'month':
+                                        echo 'เดือน ' . date('m/Y', strtotime($filter_month . '-01'));
+                                        break;
+                                    case 'year':
+                                        echo 'ปี ' . ($filter_year + 543);
+                                        break;
+                                }
+                                ?>)
                         </small>
                     <?php endif; ?>
                 </h2>
@@ -719,7 +785,7 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
                                         <?= $approval['progress_percentage'] ?? 0 ?>%
                                     </div>
                                 </div>
-                                
+
                                 <?php if ($approval['task_started_at']): ?>
                                     <small class="text-muted">
                                         <i class="fas fa-play me-1"></i>
@@ -773,7 +839,7 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
                         <?php
                         $start_page = max(1, $page - 2);
                         $end_page = min($total_pages, $page + 2);
-                        
+
                         if ($start_page > 1): ?>
                             <a href="?<?= http_build_query(array_merge($_GET, ['page' => 1])) ?>" class="pagination-btn">1</a>
                             <?php if ($start_page > 2): ?>
@@ -782,8 +848,8 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
                         <?php endif; ?>
 
                         <?php for ($i = $start_page; $i <= $end_page; $i++): ?>
-                            <a href="?<?= http_build_query(array_merge($_GET, ['page' => $i])) ?>" 
-                               class="pagination-btn <?= $i === $page ? 'active' : '' ?>">
+                            <a href="?<?= http_build_query(array_merge($_GET, ['page' => $i])) ?>"
+                                class="pagination-btn <?= $i === $page ? 'active' : '' ?>">
                                 <?= $i ?>
                             </a>
                         <?php endfor; ?>
@@ -817,18 +883,18 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
 
         function setFilter(type) {
             currentFilter = type;
-            
+
             // อัปเดต UI
             document.querySelectorAll('.filter-btn').forEach(btn => {
                 btn.classList.remove('active');
             });
             event.target.classList.add('active');
-            
+
             // แสดง/ซ่อน input ตามประเภท
             document.getElementById('dayFilter').style.display = type === 'day' ? 'block' : 'none';
             document.getElementById('monthFilter').style.display = type === 'month' ? 'block' : 'none';
             document.getElementById('yearFilter').style.display = type === 'year' ? 'block' : 'none';
-            
+
             // ถ้าเลือก "ทั้งหมด" ให้ไปทันที
             if (type === 'all') {
                 applyFilter();
@@ -839,7 +905,7 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
             let url = new URL(window.location);
             url.searchParams.set('filter', currentFilter);
             url.searchParams.delete('page'); // รีเซ็ตหน้า
-            
+
             switch (currentFilter) {
                 case 'day':
                     const date = document.getElementById('filterDate').value;
@@ -859,7 +925,7 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
                     url.searchParams.delete('year');
                     break;
             }
-            
+
             window.location.href = url.toString();
         }
 
@@ -871,4 +937,5 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
         }, 120000);
     </script>
 </body>
+
 </html>

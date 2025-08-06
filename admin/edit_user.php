@@ -159,6 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="mb-3">
                 <label>สิทธิ์ (role):</label>
                 <select name="role">
+                    <option value="userservice" <?= $user['role'] === 'userservice' ? 'selected' : '' ?>>userservice</option>
                     <option value="user" <?= $user['role'] === 'user' ? 'selected' : '' ?>>user</option>
                     <option value="assignor" <?= $user['role'] === 'assignor' ? 'selected' : '' ?>>assignor</option>
                     <option value="divmgr" <?= $user['role'] === 'divmgr' ? 'selected' : '' ?>>divmgr</option>

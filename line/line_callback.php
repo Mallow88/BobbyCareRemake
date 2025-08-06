@@ -101,6 +101,9 @@ switch ($role) {
     case 'developer': 
         header("Location: ../developer/dev_index.php");
         break;
+    case 'userservice': 
+        header("Location: ../userservice/index.php");
+        break;
     default:
         header("Location: ../dashboard.php");
         break;

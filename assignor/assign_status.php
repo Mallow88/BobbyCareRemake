@@ -19,6 +19,7 @@ $reason = $_POST['reason'] ?? '';
 $assigned_developer_id = $_POST['assigned_developer_id'] ?? null;
 $priority_level = $_POST['priority_level'] ?? 'medium';
 $estimated_days = $_POST['estimated_days'] ?? null;
+$deadline = $_POST['deadline'] ?? null;
 
 // ✅ ลบ: development_service_id
 // ✅ ลบการ validate development_service_id
@@ -68,10 +69,10 @@ try {
     
     $stmt = $conn->prepare("
         UPDATE service_requests 
-        SET status = ?, current_step = ?, priority = ?, estimated_days = ?
+        SET status = ?, current_step = ?, priority = ?, estimated_days = ?, deadline = ? 
         WHERE id = ?
     ");
-    $stmt->execute([$new_status, $current_step, $priority_level, $estimated_days, $request_id]);
+    $stmt->execute([$new_status, $current_step, $priority_level, $estimated_days, $deadline, $request_id]);
 
     // บันทึก log
     $stmt = $conn->prepare("

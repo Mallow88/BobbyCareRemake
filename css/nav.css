@@ -1,0 +1,70 @@
+/*--- Custom Navbar Styling ---*/
+.custom-navbar {
+    background: linear-gradient(to right, #ffffff, #f0f4ff);
+    border-bottom: 2px solid #dee2e6;
+    padding: 0.8rem 0;
+    z-index: 1000;
+}
+
+.custom-navbar-container {
+    max-width: 100%;
+    padding-left: 1rem;
+    padding-right: 1rem;
+}
+
+/* Brand + Title */
+.custom-navbar-brand img {
+    height: 36px;
+}
+
+.custom-navbar-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #0d6efd;
+    white-space: nowrap;
+}
+
+/* เมนูหลัก */
+.custom-navbar-menu .nav-link {
+    font-weight: 500;
+    color: #333;
+    transition: color 0.2s ease, background 0.2s ease;
+    border-radius: 6px;
+    padding: 0.5rem 0.75rem;
+}
+
+.custom-navbar-menu .nav-link:hover {
+    background-color: #e9f0ff;
+    color: #0d6efd;
+}
+
+/* Mobile toggle */
+.custom-navbar-toggler {
+    border: none;
+}
+
+/* Logout link */
+.nav-link.text-danger {
+    font-weight: 500;
+    transition: color 0.2s ease;
+}
+
+.nav-link.text-danger:hover {
+    color: #bb2d3b;
+}
+
+/* Responsive tweaks */
+@media (max-width: 768px) {
+    .custom-navbar-title {
+        font-size: 0.9rem;
+    }
+
+    .custom-navbar-menu .nav-link {
+        padding: 0.5rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    .navbar-nav {
+        margin-top: 1rem;
+    }
+}

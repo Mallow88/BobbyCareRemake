@@ -40,7 +40,8 @@ $role_text = match($user['role']) {
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <title>โปรไฟล์ผู้ใช้</title>
+    <title>BobbyCareDev-โปรไฟล์ผู้ใช้</title>
+    <link rel="icon" type="image/png" href="img/logo/bobby-icon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <!-- Bootstrap + Font Awesome -->
