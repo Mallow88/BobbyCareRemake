@@ -615,10 +615,3 @@ padding: 1rem;
     overflow-x: auto;
     width: 100%;
 }
-
-  .text-ellipsis {
-        display: -webkit-box;
-        -webkit-line-clamp: 2; /* จำนวนบรรทัด */
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-    }

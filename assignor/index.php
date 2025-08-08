@@ -63,12 +63,14 @@ $recent_approvals = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>BobbyCareDev-ผู้จัดการแผนก</title>
+    <link rel="stylesheet" href="../css/nav.css">
+    
     <link rel="icon" type="image/png" href="/BobbyCareRemake/img/logo/bobby-icon.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-gradient: linear-gradient(135deg, #ffffff 0%, #341355 100%);
             --card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
             --glass-bg: rgba(255, 255, 255, 0.95);
             --glass-border: rgba(255, 255, 255, 0.2);
@@ -297,31 +299,25 @@ $recent_approvals = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
     </style>
 </head>
 <body>
-    <div class="container mt-5">
 
-      <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+ <nav class="custom-navbar navbar navbar-expand-lg shadow-sm">
+    <div class="container custom-navbar-container">
+        <!-- โลโก้ + ชื่อระบบ (ฝั่งซ้าย) -->
+        <a class="navbar-brand d-flex align-items-center custom-navbar-brand" href="index.php">
+            <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
+            <!-- ชื่อระบบ หรือ โลโก้อย่างเดียว ฝั่งซ้าย -->
+        </a>
 
-        <div class="container">
-            <!-- โลโก้ + ชื่อระบบ -->
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="index.php">
-                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
-                <span class="page-title"> ผู้จัดการแผนก, <?= htmlspecialchars($_SESSION['name']) ?>! </span>
-            </a>
+        <!-- ปุ่ม toggle สำหรับ mobile -->
+        <button class="navbar-toggler custom-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-            <!-- ปุ่ม toggle สำหรับ mobile -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <!-- เมนู -->
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <!-- ซ้าย: เมนูหลัก -->
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <!-- <li class="nav-item">
-                        <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> หน้าหลัก</a>
-                    </li> -->
-                    <li class="nav-item">
+        <!-- เมนู -->
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <!-- ซ้าย: เมนูหลัก -->
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 custom-navbar-menu">
+                 <li class="nav-item">
                         <a class="nav-link" href="view_requests.php"><i class="fas fa-tasks me-1"></i>ตรวจสอบคำขอ
                     </a>
                     </li>
@@ -334,26 +330,24 @@ $recent_approvals = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
                      <li class="nav-item">
                         <a class="nav-link" href="assignor_dashboard.php"><i class="fas fa-chart-bar me-1"></i>Dashboard_DEV</a>
                     </li>
-                </ul>
-                <!-- ขวา: ผู้ใช้งาน -->
-                <ul class="navbar-nav mb-2 mb-lg-0">
-                    <!-- <li class="nav-item d-flex align-items-center text-dark me-3">
-                        <i class="fas fa-user-circle me-2"></i>
-                      
-                    </li> -->
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="../logout.php">
-                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
+            </ul>
 
-        <!-- Welcome Section -->
-        <div class="welcome-section">
+            <!-- ขวา: ชื่อผู้ใช้ + ออกจากระบบ -->
+            <ul class="navbar-nav mb-2 mb-lg-0 align-items-center">
+                <li class="nav-item d-flex align-items-center me-3">
+                    <i class="fas fa-user-circle me-1"></i>
+                    <span class="custom-navbar-title">ผู้จัดการเเผนกคุณ: <?= htmlspecialchars($_SESSION['name']) ?>!</span>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="../logout.php">
+                        <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                    </a>
+                </li>
+            </ul>
         </div>
+    </div>
+</nav>
+    <div class="container mt-5">
 
         <!-- Statistics -->
         <div class="stats-grid">

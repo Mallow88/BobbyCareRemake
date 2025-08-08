@@ -161,6 +161,7 @@ $thai_months = [
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <title>BobbyCareDev-Dashboard</title>
+       <link rel="stylesheet" href="../css/nav.css">
     <link rel="icon" type="image/png" href="/BobbyCareRemake/img/logo/bobby-icon.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
@@ -580,30 +581,25 @@ $thai_months = [
     </style>
 </head>
 <body>
-    <!-- Navigation -->
-     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
+    
+ <nav class="custom-navbar navbar navbar-expand-lg shadow-sm">
+    <div class="container custom-navbar-container">
+        <!-- โลโก้ + ชื่อระบบ (ฝั่งซ้าย) -->
+        <a class="navbar-brand d-flex align-items-center custom-navbar-brand" href="index.php">
+            <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
+            <!-- ชื่อระบบ หรือ โลโก้อย่างเดียว ฝั่งซ้าย -->
+        </a>
 
-        <div class="container">
-            <!-- โลโก้ + ชื่อระบบ -->
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="index.php">
-                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
-                <span class="page-title"> ผู้จัดการแผนก, <?= htmlspecialchars($_SESSION['name']) ?>! </span>
-            </a>
+        <!-- ปุ่ม toggle สำหรับ mobile -->
+        <button class="navbar-toggler custom-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-            <!-- ปุ่ม toggle สำหรับ mobile -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <!-- เมนู -->
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <!-- ซ้าย: เมนูหลัก -->
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <!-- <li class="nav-item">
-                        <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> หน้าหลัก</a>
-                    </li> -->
-                    <li class="nav-item">
+        <!-- เมนู -->
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <!-- ซ้าย: เมนูหลัก -->
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 custom-navbar-menu">
+                 <li class="nav-item">
                         <a class="nav-link" href="view_requests.php"><i class="fas fa-tasks me-1"></i>ตรวจสอบคำขอ
                     </a>
                     </li>
@@ -616,316 +612,131 @@ $thai_months = [
                      <li class="nav-item">
                         <a class="nav-link" href="assignor_dashboard.php"><i class="fas fa-chart-bar me-1"></i>Dashboard_DEV</a>
                     </li>
-                </ul>
-                <!-- ขวา: ผู้ใช้งาน -->
-                <ul class="navbar-nav mb-2 mb-lg-0">
-                    <!-- <li class="nav-item d-flex align-items-center text-dark me-3">
-                        <i class="fas fa-user-circle me-2"></i>
-                      
-                    </li> -->
                     <li class="nav-item">
-                        <a class="nav-link text-danger" href="../logout.php">
-                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
-                        </a>
+                        <a class="nav-link" href="report.php"><i class="fas fa-chart-bar me-1"></i>Report</a>
                     </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-<br><br><br>
-    <div class="container mt-5 pt-5">
-       
-        <!-- Filter -->
-       <div class="glass-card p-4 mb-3">
-    <div class="row g-4 align-items-center">
-        <!-- Developer Selector -->
-        <div class="col-lg-4 col-md-6">
-            <label for="devSelect" class="form-label fw-bold">
-                <i class="fas fa-user-cog me-2 text-primary"></i>เลือก Developer:
-            </label>
-            <select class="form-select" id="devSelect" onchange="filterDeveloper()">
-                <option value="all" <?= $selected_dev === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
-                <?php foreach ($developers as $dev): ?>
-                    <option value="<?= $dev['id'] ?>" <?= $selected_dev == $dev['id'] ? 'selected' : '' ?>>
-                        <?= htmlspecialchars($dev['name'] . ' ' . $dev['lastname']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+            </ul>
 
-        <!-- Stats Section -->
-        <div class="col-lg-8 col-md-6">
-            <label class="form-label fw-bold">
-                <i class="fas fa-chart-bar me-2 text-success"></i>สถิติรวม:
-            </label>
-            <div class="row row-cols-2 row-cols-md-3 g-2">
-                <div class="col">
-                    <div class="border rounded text-center p-2 bg-light">
-                        <div class="fw-bold text-primary fs-5"><?= count($tasks) ?></div>
-                        <div class="small">งานทั้งหมด</div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="border rounded text-center p-2 bg-light">
-                        <div class="fw-bold text-warning fs-5"><?= count(array_filter($tasks, fn($t) => in_array($t['task_status'], ['pending', 'received']))) ?></div>
-                        <div class="small">รอดำเนินการ</div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="border rounded text-center p-2 bg-light">
-                        <div class="fw-bold text-info fs-5"><?= count(array_filter($tasks, fn($t) => in_array($t['task_status'], ['in_progress', 'on_hold']))) ?></div>
-                        <div class="small">กำลังทำ</div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="border rounded text-center p-2 bg-light">
-                        <div class="fw-bold text-success fs-5"><?= count(array_filter($tasks, fn($t) => in_array($t['task_status'], ['completed', 'accepted']))) ?></div>
-                        <div class="small">เสร็จแล้ว</div>
-                    </div>
-                </div>
-                <div class="col">
-                    <div class="border rounded text-center p-2 bg-light">
-                        <div class="fw-bold text-danger fs-5"><?= count(array_filter($tasks, fn($t) => $t['deadline_status'] === 'overdue')) ?></div>
-                        <div class="small">เลยกำหนด</div>
-                    </div>
-                </div>
-            </div>
+            <!-- ขวา: ชื่อผู้ใช้ + ออกจากระบบ -->
+            <ul class="navbar-nav mb-2 mb-lg-0 align-items-center">
+                <li class="nav-item d-flex align-items-center me-3">
+                    <i class="fas fa-user-circle me-1"></i>
+                    <span class="custom-navbar-title">ผู้จัดการเเผนกคุณ: <?= htmlspecialchars($_SESSION['name']) ?>!</span>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="../logout.php">
+                        <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                    </a>
+                </li>
+            </ul>
         </div>
     </div>
-</div>
+</nav>
+   
+    <div class="container  pt-5">
 
+        <div class="row">
+            <!-- Developer Status -->
+            <div class="col-lg-3">
+                <div class="glass-card p-4 mb-4">
+                    <!-- ตำแหน่ง Filter ด้านซ้าย -->
 
-        <div class="row g-4">
-    <!-- Developer Status -->
-    <div class="col-12 col-lg-4 col-xl-3">
-        <div class="glass-card p-4 h-100">
-            <h3 class="fw-bold mb-4">
-                <i class="fas fa-users text-primary me-2"></i>สถานะ Developer
-            </h3>
+                    <!-- Filter & Stats Sidebar (Responsive Vertical Layout) -->
+                    <div class="glass-card p-3 mb-4" style="max-width: 100%;">
 
-
-                    <?php if ($selected_dev === 'all'): ?>
-                        <?php foreach ($developers as $dev): ?>
-                            <?php 
-                            $stats = $dev_stats[$dev['id']] ?? [
-                                'name' => $dev['name'] . ' ' . $dev['lastname'],
-                                'pending' => 0,
-                                'in_progress' => 0,
-                                'completed' => 0,
-                                'overdue' => 0,
-                                'total' => 0,
-                                'total_hours' => 0,
-                                'avg_rating' => 0,
-                                'status' => 'ว่าง'
-                            ];
-                            $status_class = $stats['overdue'] > 0 ? 'overdue' : 
-                                          ($stats['status'] === 'ว่าง' ? 'available' : 
-                                          ($stats['status'] === 'ติดงาน' ? 'busy' : 'pending'));
-                            ?>
-                            <div class="dev-status-card <?= $status_class ?>">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <h6 class="fw-bold mb-0"><?= htmlspecialchars($stats['name']) ?></h6>
-                                    <span class="status-badge status-<?= $status_class ?>">
-                                        <?= $stats['status'] ?>
-                                        <?php if ($stats['overdue'] > 0): ?>
-                                            <i class="fas fa-exclamation-triangle ms-1"></i>
-                                        <?php endif; ?>
-                                    </span>
-                                </div>
-                                <div class="stats-grid">
-                                    <div class="stat-item">
-                                        <div class="stat-number text-warning"><?= $stats['pending'] ?></div>
-                                        <div class="stat-label">รอรับ</div>
-                                    </div>
-                                    <div class="stat-item">
-                                        <div class="stat-number text-info"><?= $stats['in_progress'] ?></div>
-                                        <div class="stat-label">กำลังทำ</div>
-                                    </div>
-                                    <div class="stat-item">
-                                        <div class="stat-number text-success"><?= $stats['completed'] ?></div>
-                                        <div class="stat-label">เสร็จแล้ว</div>
-                                    </div>
-                                    <div class="stat-item">
-                                        <div class="stat-number text-danger"><?= $stats['overdue'] ?></div>
-                                        <div class="stat-label">เลยกำหนด</div>
-                                    </div>
-                                </div>
-                                <div class="mt-2">
-                                    <small class="text-muted">
-                                        <i class="fas fa-clock me-1"></i>รวม: <?= number_format($stats['total_hours'], 1) ?> ชม.
-                                        <?php if ($stats['avg_rating'] > 0): ?>
-                                            | <i class="fas fa-star text-warning me-1"></i><?= number_format($stats['avg_rating'], 1) ?>/5
-                                        <?php endif; ?>
-                                    </small>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    <?php else: ?>
-                        <?php 
-                        $selected_dev_data = array_filter($developers, function($dev) use ($selected_dev) {
-                            return $dev['id'] == $selected_dev;
-                        });
-                        $selected_dev_data = reset($selected_dev_data);
-                        $stats = $dev_stats[$selected_dev] ?? [
-                            'name' => $selected_dev_data['name'] . ' ' . $selected_dev_data['lastname'],
-                            'pending' => 0,
-                            'in_progress' => 0,
-                            'completed' => 0,
-                            'overdue' => 0,
-                            'total' => 0,
-                            'total_hours' => 0,
-                            'avg_rating' => 0,
-                            'status' => 'ว่าง'
-                        ];
-                        ?>
-                        <div class="dev-status-card <?= $stats['overdue'] > 0 ? 'overdue' : ($stats['status'] === 'ว่าง' ? 'available' : 'busy') ?>">
-                            <h5 class="fw-bold mb-3"><?= htmlspecialchars($stats['name']) ?></h5>
-                            <div class="stats-grid mb-3">
-                                <div class="stat-item">
-                                    <div class="stat-number text-warning"><?= $stats['pending'] ?></div>
-                                    <div class="stat-label">รอรับ</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number text-info"><?= $stats['in_progress'] ?></div>
-                                    <div class="stat-label">กำลังทำ</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number text-success"><?= $stats['completed'] ?></div>
-                                    <div class="stat-label">เสร็จแล้ว</div>
-                                </div>
-                                <div class="stat-item">
-                                    <div class="stat-number text-danger"><?= $stats['overdue'] ?></div>
-                                    <div class="stat-label">เลยกำหนด</div>
-                                </div>
-                            </div>
-                            
-                            <h6 class="fw-bold mb-2">รายการงาน:</h6>
-                            <div class="task-list">
-                                <?php if (isset($dev_tasks[$selected_dev])): ?>
-                                    <?php foreach ($dev_tasks[$selected_dev] as $task): ?>
-                                        <div class="task-card <?= $task['task_status'] ?> <?= $task['deadline_status'] === 'overdue' ? 'overdue' : '' ?>">
-                                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <div class="flex-grow-1">
-                                                    <div class="fw-bold"><?= htmlspecialchars($task['title']) ?></div>
-                                                    <div class="small text-muted">
-                                                        <?= htmlspecialchars($task['requester_name'] . ' ' . $task['requester_lastname']) ?>
-                                                        <?php if ($task['requester_department']): ?>
-                                                            | <?= htmlspecialchars($task['requester_department']) ?>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                    <?php if ($task['service_name']): ?>
-                                                        <span class="service-badge service-<?= $task['service_category'] ?>">
-                                                            <?= htmlspecialchars($task['service_name']) ?>
-                                                        </span>
-                                                    <?php endif; ?>
-                                                </div>
-                                                <div class="text-end">
-                                                    <span class="priority-badge priority-<?= $task['priority'] ?>">
-                                                        <?= strtoupper($task['priority']) ?>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            
-                                            <div class="task-meta">
-                                                <div>
-                                                    <i class="fas fa-calendar me-1"></i>
-                                                    <?= date('d/m/Y', strtotime($task['request_created_at'])) ?>
-                                                    <?php if ($task['started_at']): ?>
-                                                        | <i class="fas fa-play me-1"></i>
-                                                        <?= date('d/m H:i', strtotime($task['started_at'])) ?>
-                                                    <?php endif; ?>
-                                                </div>
-                                                <div>
-                                                    <?php if ($task['deadline']): ?>
-                                                        <i class="fas fa-flag me-1 <?= $task['deadline_status'] === 'overdue' ? 'deadline-warning' : ($task['deadline_status'] === 'due_soon' ? 'deadline-soon' : '') ?>"></i>
-                                                        <?= date('d/m/Y', strtotime($task['deadline'])) ?>
-                                                    <?php endif; ?>
-                                                    <?php if ($task['hours_spent'] > 0): ?>
-                                                        | <i class="fas fa-clock me-1"></i>
-                                                        <?= number_format($task['hours_spent'], 1) ?>ชม.
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-                                            
-                                            <?php if ($task['progress_percentage'] > 0): ?>
-                                                <div class="progress mt-2" style="height: 6px;">
-                                                    <div class="progress-bar bg-info" style="width: <?= $task['progress_percentage'] ?>%"></div>
-                                                </div>
-                                                <small class="text-muted"><?= $task['progress_percentage'] ?>% เสร็จสิ้น</small>
-                                            <?php endif; ?>
-                                            
-                                            <?php if ($task['rating']): ?>
-                                                <div class="mt-2">
-                                                    <span class="rating-stars">
-                                                        <?= str_repeat('★', $task['rating']) ?>
-                                                    </span>
-                                                    <small class="text-muted ms-1">(<?= $task['rating'] ?>/5)</small>
-                                                </div>
-                                            <?php endif; ?>
-                                            
-                                            <?php if ($task['developer_notes']): ?>
-                                                <div class="mt-2">
-                                                    <small class="text-muted">
-                                                        <i class="fas fa-sticky-note me-1"></i>
-                                                        <?= htmlspecialchars(substr($task['developer_notes'], 0, 100)) ?>
-                                                        <?= strlen($task['developer_notes']) > 100 ? '...' : '' ?>
-                                                    </small>
-                                                </div>
-                                            <?php endif; ?>
-                                            
-                                            <!-- Hidden data for JavaScript -->
-                                            <div style="display: none;" 
-                                                 data-task-id="<?= $task['id'] ?>"
-                                                 data-created-at="<?= $task['request_created_at'] ?>"
-                                                 data-status="<?= $task['task_status'] ?>"
-                                                 data-deadline-status="<?= $task['deadline_status'] ?>">
-                                            </div>
-                                        </div>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <div class="text-center text-muted py-3">
-                                        <i class="fas fa-inbox fa-2x mb-2"></i>
-                                        <p>ไม่มีงาน</p>
-                                    </div>
-                                <?php endif; ?>
-                            </div>
+                        <!-- Developer Selector -->
+                        <div class="mb-3">
+                            <label for="devSelect" class="form-label fw-bold small">
+                                <i class="fas fa-user-cog me-2 text-primary"></i>เลือก Developer:
+                            </label>
+                            <select class="form-select form-select-sm" id="devSelect" onchange="filterDeveloper()">
+                                <option value="all" <?= $selected_dev === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
+                                <?php foreach ($developers as $dev): ?>
+                                    <option value="<?= $dev['id'] ?>" <?= $selected_dev == $dev['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($dev['name'] . ' ' . $dev['lastname']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
-                    <?php endif; ?>
+
+                        <!-- Stats -->
+                        <div>
+                            <label class="form-label fw-bold small mb-2">
+                                <i class="fas fa-chart-bar me-2 text-success"></i>สถิติรวม:
+                            </label>
+
+                            <div class="d-grid gap-2">
+                                <!-- งานทั้งหมด -->
+                                <button class="stat-card text-center bg-light p-2 rounded shadow-sm border-0 w-100"
+                                    onclick="setStatusFilter('all')">
+                                    <div class="fw-bold text-primary fs-6"><?= count($tasks) ?></div>
+                                    <div class="small">งานทั้งหมด</div>
+                                </button>
+                                <button class="stat-card text-center bg-light p-2 rounded shadow-sm border-0 w-100"
+                                    onclick="setStatusFilter('pending')">
+                                    <div class="fw-bold text-warning fs-6"><?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'pending')) ?></div>
+                                    <div class="small">รอดำเนินการ</div>
+                                </button>
+                                <button class="stat-card text-center bg-light p-2 rounded shadow-sm border-0 w-100"
+                                    onclick="setStatusFilter('in_progress')">
+                                    <div class="fw-bold text-info fs-6"><?= count(array_filter($tasks, fn($t) => in_array($t['task_status'], ['in_progress', 'on_hold']))) ?></div>
+                                    <div class="small">กำลังทำ</div>
+                                </button>
+                                <button class="stat-card text-center bg-light p-2 rounded shadow-sm border-0 w-100"
+                                    onclick="setStatusFilter('completed')">
+                                    <div class="fw-bold text-success fs-6"><?= count(array_filter($tasks, fn($t) => in_array($t['task_status'], ['completed',]))) ?></div>
+                                    <div class="small">เสร็จแล้ว</div>
+                                </button>
+                                <button class="stat-card text-center bg-light p-2 rounded shadow-sm border-0 w-100"
+                                    onclick="setStatusFilter('accepted')">
+                                    <div class="fw-bold text-danger fs-6"><?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'accepted')) ?></div>
+                                    <div class="small">ปิดงาน</div>
+                                </button>
+                                <button class="stat-card text-center bg-light p-2 rounded shadow-sm border-0 w-100"
+                                    onclick="setStatusFilter('overdue')">
+                                    <div class="fw-bold text-danger fs-6"><?= count(array_filter($tasks, fn($t) => $t['deadline_status'] === 'overdue')) ?></div>
+                                    <div class="small">เลยกำหนด</div>
+                                </button>
+
+                            </div>
+
+                        </div>
+                    </div>
                 </div>
             </div>
 
-           
             <!-- Task Details -->
-    <div class="col-12 col-lg-8 col-xl-9">
-        <div class="glass-card p-4">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-                <h3 class="fw-bold mb-0">
-                    <i class="fas fa-tasks text-primary me-2"></i>รายละเอียดงาน
-                </h3>
-                <div class="d-flex flex-wrap gap-2">
-                    <!-- Filters -->
-                    <select class="form-select form-select-sm w-auto" id="dateFilter" onchange="filterTasks()">
-                        <option value="all">ทั้งหมด</option>
-                        <option value="today">วันนี้</option>
-                        <option value="week">สัปดาห์นี้</option>
-                        <option value="month">เดือนนี้</option>
-                        <option value="year">ปีนี้</option>
-                    </select>
+            <div class="col-lg-9">
+                <div class="glass-card p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h3 class="fw-bold mb-0">
+                            <i class="fas fa-tasks text-primary me-2"></i>
+                            รายละเอียดงาน
+                        </h3>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <!-- Filters -->
+                            <select class="form-select form-select-sm" id="dateFilter" onchange="filterTasks()" style="width: auto;">
+                                <option value="all">ทั้งหมด</option>
+                                <option value="today">วันนี้</option>
+                                <option value="week">สัปดาห์นี้</option>
+                                <option value="month">เดือนนี้</option>
+                                <option value="year">ปีนี้</option>
+                            </select>
+                            <select class="form-select form-select-sm" id="statusFilter" onchange="filterTasks()" style="width: auto;">
+                                <option value="all">ทุกสถานะ</option>
+                                <option value="pending">รอรับ</option>
+                                <option value="in_progress">กำลังทำ</option>
+                                <option value="completed">เสร็จแล้ว</option>
+                                <option value="accepted">ปิดงาน</option>
+                                <option value="overdue">เลยกำหนด</option>
+                            </select>
+                            <input type="text" class="form-control form-control-sm" id="searchInput" onkeyup="filterTasks()" placeholder="ค้นหางาน..." style="width: 200px;">
 
-                    <select class="form-select form-select-sm w-auto" id="statusFilter" onchange="filterTasks()">
-                        <option value="all">ทุกสถานะ</option>
-                        <option value="pending">รอรับ</option>
-                        <option value="in_progress">กำลังทำ</option>
-                        <option value="completed">เสร็จแล้ว</option>
-                        <option value="overdue">เลยกำหนด</option>
-                    </select>
-
-                    <button class="btn btn-outline-primary btn-sm" onclick="refreshData()">
-                        <i class="fas fa-sync-alt me-1"></i>รีเฟรช
-                    </button>
-                </div>
-            </div>
-
+                            <button class="btn btn-outline-primary btn-sm" onclick="refreshData()">
+                                <i class="fas fa-sync-alt me-1"></i>รีเฟรช
+                            </button>
+                        </div>
+                    </div>
                     <?php if (empty($tasks)): ?>
                         <div class="text-center py-5">
                             <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
@@ -936,11 +747,16 @@ $thai_months = [
                             <table class="table table-hover">
                                 <thead class="table-light">
                                     <tr>
+                                         <th>ลำดับ</th>
+                                        <th>เลขที่เอกสาร</th>
                                         <th>งาน</th>
+                                        <th>ประเภท</th>
                                         <th>Developer</th>
                                         <th>สถานะ</th>
                                         <th>ความสำคัญ</th>
-                                        <th>เวลา</th>
+                                        <th>รายละเอียด</th>
+                                        <th>วันที่ขอบริการ</th>
+                                        <th>ประมาณการเสร็จ</th>
                                         <th>กำหนดส่ง</th>
                                         <th>ความคืบหน้า</th>
                                         <th>คะแนน</th>
@@ -948,335 +764,343 @@ $thai_months = [
                                 </thead>
                                 <tbody>
                                     <?php foreach ($tasks as $task): ?>
-                                        <tr class="<?= $task['deadline_status'] === 'overdue' ? 'table-danger' : ($task['deadline_status'] === 'due_soon' ? 'table-warning' : '') ?>">
-                                            <td>
-                                                <div class="fw-bold"><?= htmlspecialchars($task['title']) ?></div>
-                                                <small class="text-muted">
-                                                    <?= htmlspecialchars($task['requester_name'] . ' ' . $task['requester_lastname']) ?>
-                                                    <?php if ($task['service_name']): ?>
-                                                        <br><span class="service-badge service-<?= $task['service_category'] ?>">
-                                                            <?= htmlspecialchars($task['service_name']) ?>
-                                                        </span>
-                                                    <?php endif; ?>
-                                                </small>
-                                            </td>
-                                            <td>
-                                                <div class="fw-bold"><?= htmlspecialchars($task['dev_name'] . ' ' . $task['dev_lastname']) ?></div>
-                                                <?php if ($task['assignor_name']): ?>
-                                                    <small class="text-muted">
-                                                        มอบหมายโดย: <?= htmlspecialchars($task['assignor_name']) ?>
-                                                    </small>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-<?php
-                                                    switch($task['task_status']) {
-                                                        case 'pending': echo 'warning'; break;
-                                                        case 'received': echo 'info'; break;
-                                                        case 'in_progress': echo 'primary'; break;
-                                                        case 'on_hold': echo 'secondary'; break;
-                                                        case 'completed': echo 'success'; break;
-                                                        case 'accepted': echo 'success'; break;
-                                                        default: echo 'secondary';
-                                                    }
-                                                ?>">
-                                                    <?php
-                                                    $status_labels = [
-                                                        'pending' => 'รอรับ',
-                                                        'received' => 'รับแล้ว',
-                                                        'in_progress' => 'กำลังทำ',
-                                                        'on_hold' => 'พักงาน',
-                                                        'completed' => 'เสร็จแล้ว',
-                                                        'accepted' => 'ยอมรับแล้ว'
-                                                    ];
-                                                    echo $status_labels[$task['task_status']] ?? $task['task_status'];
-                                                    ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <span class="priority-badge priority-<?= $task['priority'] ?>">
-                                                    <?= strtoupper($task['priority']) ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <?php if ($task['hours_spent'] > 0): ?>
-                                                    <div class="fw-bold"><?= number_format($task['hours_spent'], 1) ?> ชม.</div>
-                                                <?php endif; ?>
-                                                <?php if ($task['estimated_days']): ?>
-                                                    <small class="text-muted">ประมาณ: <?= $task['estimated_days'] ?> วัน</small>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <?php if ($task['deadline']): ?>
-                                                    <div class="<?= $task['deadline_status'] === 'overdue' ? 'deadline-warning' : ($task['deadline_status'] === 'due_soon' ? 'deadline-soon' : '') ?>">
-                                                        <?= date('d/m/Y', strtotime($task['deadline'])) ?>
-                                                        <?php if ($task['deadline_status'] === 'overdue'): ?>
-                                                            <i class="fas fa-exclamation-triangle ms-1"></i>
-                                                        <?php elseif ($task['deadline_status'] === 'due_soon'): ?>
-                                                            <i class="fas fa-clock ms-1"></i>
-                                                        <?php endif; ?>
-                                                    </div>
-                                                <?php else: ?>
-                                                    <span class="text-muted">ไม่กำหนด</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <?php if ($task['progress_percentage'] > 0): ?>
-                                                    <div class="progress" style="height: 8px;">
-                                                        <div class="progress-bar bg-info" style="width: <?= $task['progress_percentage'] ?>%"></div>
-                                                    </div>
-                                                    <small><?= $task['progress_percentage'] ?>%</small>
-                                                <?php else: ?>
-                                                    <span class="text-muted">-</span>
-                                                <?php endif; ?>
-                                            </td>
-                                            <td>
-                                                <?php if ($task['rating']): ?>
-                                                    <div class="rating-stars">
-                                                        <?= str_repeat('★', $task['rating']) ?>
-                                                    </div>
-                                                    <small class="text-muted"><?= $task['rating'] ?>/5</small>
-                                                <?php else: ?>
-                                                    <span class="text-muted">ยังไม่รีวิว</span>
-                                                <?php endif; ?>
-                                            </td>
-                                        </tr>
+
                                     <?php endforeach; ?>
                                 </tbody>
                             </table>
                         </div>
+
                     <?php endif; ?>
+
+                    <div class="d-flex justify-content-between align-items-center mt-3">
+                        <div id="pagination-info">Showing 1 to 5 of 10 items</div>
+                        <div>
+                            <button id="prev-btn" class="btn btn-sm btn-outline-primary" disabled>Previous</button>
+                            <button id="next-btn" class="btn btn-sm btn-outline-primary">Next</button>
+                        </div>
+                    </div>
+
                 </div>
             </div>
-        
         </div>
-    </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Calendar variables
-        let currentCalendarMonth = new Date().getMonth();
-        let currentCalendarYear = new Date().getFullYear();
-        const thaiMonths = [
-            'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-            'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-        ];
-        
-        // Task data for calendar (this would come from PHP in real implementation)
-        const taskData = <?= json_encode($tasks) ?>;
-        
-        function filterDeveloper() {
-            const devId = document.getElementById('devSelect').value;
-            window.location.href = `?dev_id=${devId}`;
-        }
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            // โหลดงานจาก PHP
+            const taskData = <?= json_encode($tasks) ?>;
 
-        function refreshData() {
-            location.reload();
-        }
-        
-        function filterTasks() {
-            const dateFilter = document.getElementById('dateFilter').value;
-            const statusFilter = document.getElementById('statusFilter').value;
-            
-            // Get all task cards
-            const taskCards = document.querySelectorAll('.task-card');
-            
-            taskCards.forEach(card => {
-                let showCard = true;
-                
-                // Date filter
-                if (dateFilter !== 'all') {
-                    const taskDate = new Date(card.dataset.createdAt);
-                    const now = new Date();
-                    
-                    switch(dateFilter) {
-                        case 'today':
-                            showCard = taskDate.toDateString() === now.toDateString();
-                            break;
-                        case 'week':
-                            const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-                            showCard = taskDate >= weekAgo;
-                            break;
-                        case 'month':
-                            showCard = taskDate.getMonth() === now.getMonth() && 
-                                      taskDate.getFullYear() === now.getFullYear();
-                            break;
-                        case 'year':
-                            showCard = taskDate.getFullYear() === now.getFullYear();
-                            break;
-                    }
-                }
-                
-                // Status filter
-                if (statusFilter !== 'all' && showCard) {
-                    const taskStatus = card.dataset.status;
-                    const deadlineStatus = card.dataset.deadlineStatus;
-                    
-                    switch(statusFilter) {
-                        case 'pending':
-                            showCard = ['pending', 'received'].includes(taskStatus);
-                            break;
-                        case 'in_progress':
-                            showCard = ['in_progress', 'on_hold'].includes(taskStatus);
-                            break;
-                        case 'completed':
-                            showCard = ['completed', 'accepted'].includes(taskStatus);
-                            break;
-                        case 'overdue':
-                            showCard = deadlineStatus === 'overdue';
-                            break;
-                    }
-                }
-                
-                card.style.display = showCard ? 'block' : 'none';
-            });
-        }
-        
-        function changeMonth(direction) {
-            currentCalendarMonth += direction;
-            
-            if (currentCalendarMonth > 11) {
-                currentCalendarMonth = 0;
-                currentCalendarYear++;
-            } else if (currentCalendarMonth < 0) {
-                currentCalendarMonth = 11;
-                currentCalendarYear--;
+            // กรอง developer
+            function filterDeveloper() {
+                const devId = document.getElementById('devSelect').value;
+                window.location.href = `?dev_id=${devId}`;
             }
-            
-            updateCalendar();
-        }
-        
-        function updateCalendar() {
-            // Update month display
-            document.getElementById('currentMonth').textContent = 
-                thaiMonths[currentCalendarMonth] + ' ' + (currentCalendarYear + 543);
-            
-            // Generate calendar
-            generateCalendar();
-        }
-        
-        function generateCalendar() {
-            const calendarBody = document.getElementById('calendarBody');
-            const firstDay = new Date(currentCalendarYear, currentCalendarMonth, 1);
-            const lastDay = new Date(currentCalendarYear, currentCalendarMonth + 1, 0);
-            const startDate = new Date(firstDay);
-            startDate.setDate(startDate.getDate() - firstDay.getDay());
-            
-            let html = '';
-            let currentDate = new Date(startDate);
-            
-            // Generate 6 weeks
-            for (let week = 0; week < 6; week++) {
-                for (let day = 0; day < 7; day++) {
-                    const isCurrentMonth = currentDate.getMonth() === currentCalendarMonth;
-                    const isToday = currentDate.toDateString() === new Date().toDateString();
-                    const dateStr = currentDate.toISOString().split('T')[0];
-                    
-                    // Check for tasks on this date
-                    const tasksOnDate = taskData.filter(task => {
-                        const taskDate = new Date(task.started_at || task.created_at);
-                        return taskDate.toDateString() === currentDate.toDateString();
-                    });
-                    
-                    let dayClass = 'calendar-day';
-                    if (isToday) dayClass += ' today';
-                    if (!isCurrentMonth) dayClass += ' other-month';
-                    if (tasksOnDate.length > 0) dayClass += ' has-task';
-                    
-                    // Check for overdue tasks
-                    const hasOverdue = tasksOnDate.some(task => task.deadline_status === 'overdue');
-                    if (hasOverdue) dayClass += ' has-overdue';
-                    
-                    let indicator = '';
-                    if (tasksOnDate.length > 0) {
-                        const primaryTask = tasksOnDate[0];
-                        let indicatorClass = 'task-indicator ';
-                        
-                        if (primaryTask.deadline_status === 'overdue') {
-                            indicatorClass += 'overdue';
-                        } else if (['completed', 'accepted'].includes(primaryTask.task_status)) {
-                            indicatorClass += 'completed';
-                        } else if (['in_progress', 'on_hold'].includes(primaryTask.task_status)) {
-                            indicatorClass += 'in-progress';
-                        } else {
-                            indicatorClass += 'pending';
-                        }
-                        
-                        indicator = `<span class="${indicatorClass}"></span>`;
-                    }
-                    
-                    html += `
-                        <div class="${dayClass}" onclick="showTasksForDate('${dateStr}')">
-                            ${currentDate.getDate()}
-                            ${indicator}
-                        </div>
-                    `;
-                    
-                    currentDate.setDate(currentDate.getDate() + 1);
-                }
-            }
-            
-            calendarBody.innerHTML = html;
-        }
-        
-        function showTasksForDate(dateStr) {
-            const tasksOnDate = taskData.filter(task => {
-                const taskDate = new Date(task.started_at || task.created_at);
-                return taskDate.toISOString().split('T')[0] === dateStr;
-            });
-            
-            if (tasksOnDate.length > 0) {
-                let message = `งานในวันที่ ${new Date(dateStr).toLocaleDateString('th-TH')}:\n\n`;
-                tasksOnDate.forEach((task, index) => {
-                    message += `${index + 1}. ${task.title}\n`;
-                    message += `   สถานะ: ${getStatusLabel(task.task_status)}\n`;
-                    message += `   Developer: ${task.dev_name} ${task.dev_lastname}\n\n`;
-                    message += `   Developer: ${task.dev_name} ${task.dev_lastname}\n\n`;
-                });
-                alert(message);
-            } else {
-                alert(`ไม่มีงานในวันที่ ${new Date(dateStr).toLocaleDateString('th-TH')}`);
-            }
-        }
-        
-        function getStatusLabel(status) {
-            const labels = {
-                'pending': 'รอรับ',
-                'received': 'รับแล้ว',
-                'in_progress': 'กำลังทำ',
-                'on_hold': 'พักงาน',
-                'completed': 'เสร็จแล้ว',
-                'accepted': 'ยอมรับแล้ว'
-            };
-            return labels[status] || status;
-        }
-        
-        // Initialize calendar on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            generateCalendar();
-            
-            // Add data attributes to task cards for filtering
-            const taskCards = document.querySelectorAll('.task-card');
-            taskCards.forEach(card => {
-                // This would be populated from PHP data
-                const taskId = card.querySelector('[data-task-id]')?.dataset.taskId;
-                if (taskId) {
-                    const task = taskData.find(t => t.id == taskId);
-                    if (task) {
-                        card.dataset.createdAt = task.request_created_at;
-                        card.dataset.status = task.task_status;
-                        card.dataset.deadlineStatus = task.deadline_status;
-                    }
-                }
-            });
-        });
 
-        // Auto-refresh every 30 seconds
-        setInterval(function() {
-            if (document.visibilityState === 'visible') {
+            // รีโหลดหน้า
+            function refreshData() {
                 location.reload();
             }
-        }, 30000);
-    </script>
+
+            // ฟังก์ชันกรองงานตามสถานะเท่านั้น 
+            function filterTasksByStatus() {
+                const statusFilter = document.getElementById('statusFilter').value;
+                const taskCards = document.querySelectorAll('.task-card');
+
+                taskCards.forEach(card => {
+                    let showCard = true;
+
+                    if (statusFilter !== 'all') {
+                        const taskStatus = card.dataset.status;
+                        const deadlineStatus = card.dataset.deadlineStatus;
+
+                        switch (statusFilter) {
+                            case 'pending':
+                                showCard = ['pending', 'received'].includes(taskStatus);
+                                break;
+                            case 'in_progress':
+                                showCard = ['in_progress', 'on_hold'].includes(taskStatus);
+                                break;
+                            case 'completed':
+                                showCard = ['completed', 'accepted'].includes(taskStatus);
+                                break;
+                            case 'overdue':
+                                showCard = deadlineStatus === 'overdue';
+                                break;
+                        }
+                    }
+
+                    card.style.display = showCard ? 'block' : 'none';
+                });
+            }
+
+            // เมื่อโหลดหน้าให้ใส่ข้อมูลลง dataset
+            document.addEventListener('DOMContentLoaded', function() {
+                const taskCards = document.querySelectorAll('.task-card');
+                taskCards.forEach(card => {
+                    const taskId = card.querySelector('[data-task-id]')?.dataset.taskId;
+                    if (taskId) {
+                        const task = taskData.find(t => t.id == taskId);
+                        if (task) {
+                            card.dataset.status = task.task_status;
+                            card.dataset.deadlineStatus = task.deadline_status;
+                        }
+                    }
+                });
+
+                // เริ่มด้วยการกรองทั้งหมด
+                filterDevTasks('all');
+            });
+
+            // แสดงรายการแบบตาราง (อีกรูปแบบ)
+            function renderTasks(tasks) {
+                const tbody = document.getElementById("taskBody");
+                tbody.innerHTML = "";
+
+                if (tasks.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="3" class="text-center text-muted">ไม่พบงาน</td></tr>`;
+                    return;
+                }
+
+                for (const task of tasks) {
+                    const row = `
+                <tr>
+                    <td>${task.title ?? '(ไม่มีชื่อ)'}</td>
+                    <td>${task.task_status}</td>
+                    <td>${task.due_date ?? '-'}</td>
+                </tr>
+            `;
+                    tbody.insertAdjacentHTML("beforeend", row);
+                }
+            }
+
+            // ฟิลเตอร์งาน (ใช้กับตาราง)
+            function filterDevTasks(filterType) {
+                let filtered = [];
+
+                if (filterType === 'all') {
+                    filtered = taskData;
+                } else if (filterType === 'pending') {
+                    // รวม 'pending' และ 'received'
+                    filtered = taskData.filter(t => ['pending', 'received'].includes(t.task_status));
+                } else if (filterType === 'overdue') {
+                    filtered = taskData.filter(t => t.deadline_status === 'overdue');
+                } else if (filterType === 'in_progress') {
+                    filtered = taskData.filter(t => t.task_status === 'in_progress');
+                } else if (filterType === 'completed') {
+                    filtered = taskData.filter(t => t.task_status === 'completed');
+                } else if (filterType === 'accepted') {
+                    filtered = taskData.filter(t => t.task_status === 'accepted');
+                } else {
+                    // กรณีสถานะอื่นๆที่ไม่รู้จัก ให้กรองออกหมด
+                    filtered = [];
+                }
+
+                renderTasks(filtered);
+            }
+
+
+            function setStatusFilter(value) {
+                const statusSelect = document.getElementById("statusFilter");
+                if (statusSelect) {
+                    statusSelect.value = value;
+                    filterTasks(); // เรียกของเดิม
+                }
+            }
+
+            //ช่องค้นหา
+            function filterTasks() {
+                const dateFilter = document.getElementById('dateFilter').value;
+                const statusFilter = document.getElementById('statusFilter').value.toLowerCase();
+                const searchInput = document.getElementById('searchInput').value.toLowerCase();
+
+                const rows = document.querySelectorAll("table tbody tr");
+                const today = new Date();
+
+                rows.forEach(row => {
+                    const statusCell = row.querySelector('.status-cell');
+                    const dateCell = row.querySelector('.date-cell');
+
+                    const rowStatus = statusCell ? statusCell.dataset.status.toLowerCase().trim() : "";
+                    const rowDateText = dateCell ? dateCell.innerText.trim() : "";
+                    const rowText = row.innerText.toLowerCase();
+
+                    // กรองสถานะ
+                    const matchStatus = (statusFilter === "all") || rowStatus === statusFilter;
+
+                    // กรองคำค้นหา
+                    const matchSearch = rowText.includes(searchInput);
+
+                    // กรองวันที่
+                    let matchDate = true;
+                    if (dateFilter !== "all" && rowDateText) {
+                        const rowDate = new Date(rowDateText);
+                        switch (dateFilter) {
+                            case "today":
+                                matchDate = rowDate.toDateString() === today.toDateString();
+                                break;
+                            case "week":
+                                const startOfWeek = new Date(today);
+                                startOfWeek.setDate(today.getDate() - today.getDay());
+                                const endOfWeek = new Date(startOfWeek);
+                                endOfWeek.setDate(startOfWeek.getDate() + 6);
+                                matchDate = rowDate >= startOfWeek && rowDate <= endOfWeek;
+                                break;
+                            case "month":
+                                matchDate = rowDate.getMonth() === today.getMonth() &&
+                                    rowDate.getFullYear() === today.getFullYear();
+                                break;
+                            case "year":
+                                matchDate = rowDate.getFullYear() === today.getFullYear();
+                                break;
+                        }
+                    }
+
+                    // เงื่อนไขรวม
+                    if (matchStatus && matchSearch && matchDate) {
+                        row.style.display = "";
+                    } else {
+                        row.style.display = "none";
+                    }
+                });
+            }
+        </script>
+
+
+        <script>
+            // สมมติ tasks มาจาก PHP
+            const tasks = <?= json_encode($tasks) ?>;
+            const itemsPerPage = 5;
+            let currentPage = 1;
+
+            function renderTablePage(page) {
+                const tbody = document.querySelector('table tbody');
+                tbody.innerHTML = '';
+
+                const startIndex = (page - 1) * itemsPerPage;
+                const endIndex = Math.min(startIndex + itemsPerPage, tasks.length);
+
+                for (let i = startIndex; i < endIndex; i++) {
+                    const task = tasks[i];
+                    // สร้าง <tr>... ตามโครงสร้างของ PHP (แปลงข้อมูล task เป็น html row)
+                    const tr = document.createElement('tr');
+                    // ตัวอย่างทำแค่บางช่องนะ ต้องแปลงเหมือน PHP ของคุณ
+                    tr.className = task.deadline_status === 'overdue' ? 'table-danger' : (task.deadline_status === 'due_soon' ? 'table-warning' : '');
+
+                    tr.innerHTML = `
+
+            <td><div class="fw-bold">${i + 1}</div></td>
+
+
+     <td><div class="fw-bold">${task.document_number}</div></td>
+
+
+
+        <td>
+          <div class="fw-bold">${task.title}</div>
+          <div> <span class="service-badge service-${task.service_category}">${task.service_name}</span></div>
+          <small class="text-muted">ผู้ขอ: ${task.requester_name} ${task.requester_lastname}</small>
+          
+        </td>
+
+       <td>
+  ${task.service_name
+    ? `
+       <div><span class="service-badge service-${task.service_category}">${task.service_category.toUpperCase()}</span></div>`
+    : ''}
+</td>
+
+
+        
+
+        <td>
+          <div class="fw-bold">${task.dev_name} ${task.dev_lastname}</div>
+          ${task.assignor_name ? `<small class="text-muted">มอบหมายโดย: ${task.assignor_name}</small>` : ''}
+        </td>
+
+        <td class="status-cell" data-status="${task.task_status}">
+  <span class="badge bg-${{
+    'pending':'warning',
+    'received':'info',
+    'in_progress':'primary',
+    'on_hold':'secondary',
+    'completed':'success',
+    'accepted':'success'
+  }[task.task_status] || 'secondary'}">
+    ${{
+      'pending':'รอรับ',
+      'received':'รับแล้ว',
+      'in_progress':'กำลังทำ',
+      'on_hold':'พักงาน',
+      'completed':'เสร็จแล้ว',
+      'accepted':'ปิดงานเเล้ว'
+    }[task.task_status] || task.task_status}
+  </span>
+</td>
+
+
+        <td><span class="priority-badge priority-${task.priority}">${task.priority.toUpperCase()}</span></td>
+
+        <td style="white-space: normal; word-break: break-word;">
+  <span class="priority-badge priority-${task.description}">
+    ${task.description.toUpperCase()}
+  </span>
+</td>
+
+        <td><span class="priority-badge priority-${task.created_at}">${task.created_at.toUpperCase()}</span></td>
+
+        <td>
+          ${task.hours_spent > 0 ? `<div class="fw-bold">${task.hours_spent.toFixed(1)} ชม.</div>` : ''}
+          ${task.estimated_days ? `<small class="text-muted">ประมาณ: ${task.estimated_days} วัน</small>` : ''}
+        </td>
+
+      <td class="date-cell" data-date="${task.deadline || ''}">
+  ${task.deadline ? `<div class="${task.deadline_status === 'overdue' ? 'deadline-warning' : (task.deadline_status === 'due_soon' ? 'deadline-soon' : '')}">
+    ${new Date(task.deadline).toLocaleDateString('th-TH')} 
+    ${task.deadline_status === 'overdue' ? '<i class="fas fa-exclamation-triangle ms-1"></i>' : task.deadline_status === 'due_soon' ? '<i class="fas fa-clock ms-1"></i>' : ''}
+  </div>` : '<span class="text-muted">ไม่กำหนด</span>'}
+</td>
+
+
+        <td>
+          ${task.progress_percentage > 0 ? `<div class="progress" style="height: 8px;">
+            <div class="progress-bar bg-info" style="width: ${task.progress_percentage}%;"></div>
+          </div><small>${task.progress_percentage}%</small>` : '<span class="text-muted">-</span>'}
+        </td>
+
+        <td>
+          ${task.rating ? `<div class="rating-stars">${'★'.repeat(task.rating)}</div><small class="text-muted">${task.rating}/5</small>` : '<span class="text-muted">ยังไม่รีวิว</span>'}
+        </td>
+
+      `;
+
+                    tbody.appendChild(tr);
+                }
+
+                document.getElementById('pagination-info').innerText = `Showing ${startIndex + 1} to ${endIndex} of ${tasks.length} items`;
+
+                // ปิดปุ่ม prev ถ้าอยู่หน้าแรก, ปิดปุ่ม next ถ้าอยู่หน้าสุดท้าย
+                document.getElementById('prev-btn').disabled = page === 1;
+                document.getElementById('next-btn').disabled = endIndex === tasks.length;
+            }
+
+            document.getElementById('prev-btn').addEventListener('click', () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTablePage(currentPage);
+                }
+            });
+
+            document.getElementById('next-btn').addEventListener('click', () => {
+                if (currentPage * itemsPerPage < tasks.length) {
+                    currentPage++;
+                    renderTablePage(currentPage);
+                }
+            });
+
+            // แสดงหน้าแรกตอนโหลด
+            renderTablePage(currentPage);
+        </script>
+
+
 </body>
+
 </html>

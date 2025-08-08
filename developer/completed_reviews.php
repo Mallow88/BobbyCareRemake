@@ -63,7 +63,7 @@ $acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews)
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-gradient: linear-gradient(135deg, #ffffff 0%, #341355 100%);
             --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             --glass-bg: rgba(255, 255, 255, 0.95);
             --glass-border: rgba(255, 255, 255, 0.2);

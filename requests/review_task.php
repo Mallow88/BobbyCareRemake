@@ -132,7 +132,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ffffffff 0%, #341355 100%);
             min-height: 100vh;
             color: #333;
         }
@@ -429,14 +429,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?= htmlspecialchars($task['dev_name'] . ' ' . $task['dev_lastname']) ?>
                     </div>
                 </div>
-
+<!-- 
                 <div class="info-row">
                     <div class="info-label">เริ่มงาน:</div>
                     <div class="info-value">
                         <i class="fas fa-play-circle"></i>
                         <?= $task['started_at'] ? date('d/m/Y H:i', strtotime($task['started_at'])) : 'ไม่ระบุ' ?>
                     </div>
-                </div>
+                </div> -->
 
                 <div class="info-row">
                     <div class="info-label">เสร็จงาน:</div>

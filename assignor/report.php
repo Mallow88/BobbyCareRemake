@@ -2,10 +2,12 @@
 session_start();
 require_once __DIR__ . '/../config/database.php';
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'gmapprover') {
+
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'assignor') {
     header("Location: ../index.php");
     exit();
 }
+
 
 // ดึงข้อมูลสำหรับรายงาน
 $date_from = $_GET['date_from'] ?? date('Y-m-01');
@@ -49,7 +51,6 @@ if ($department_filter !== 'all') {
     $where_conditions[] = "requester.department = ?";
     $params[] = $department_filter;
 }
-
 $document_number_filter = $_GET['document_number'] ?? null;
 if ($document_number_filter) {
     $where_conditions[] = "dn.document_number LIKE ?";
@@ -61,7 +62,6 @@ if ($year_filter) {
     $where_conditions[] = "dn.year = ?";
     $params[] = $year_filter;
 }
-
 
 
 if ($status_filter !== 'all') {
@@ -220,25 +220,25 @@ foreach ($requests as $req) {
                 'in_progress' => 0
             ];
         }
-
+        
         $dev_performance[$dev_key]['total_tasks']++;
         $dev_performance[$dev_key]['total_hours'] += $req['hours_spent'];
-
+        
         if (in_array($req['task_status'], ['completed', 'accepted'])) {
             $dev_performance[$dev_key]['completed_tasks']++;
         }
-
+        
         if (in_array($req['task_status'], ['received', 'in_progress', 'on_hold'])) {
             $dev_performance[$dev_key]['in_progress']++;
         }
-
+        
         if ($req['rating']) {
             $current_avg = $dev_performance[$dev_key]['avg_rating'];
             $current_count = $dev_performance[$dev_key]['total_ratings'];
             $dev_performance[$dev_key]['avg_rating'] = (($current_avg * $current_count) + $req['rating']) / ($current_count + 1);
             $dev_performance[$dev_key]['total_ratings']++;
         }
-
+        
         // ตรวจสอบการส่งงานตรงเวลา
         if ($req['delivery_status'] === 'on_time') {
             $dev_performance[$dev_key]['on_time']++;
@@ -293,13 +293,10 @@ $avg_dev_hours = count($completed_tasks) > 0 ? round($total_dev_hours / count($c
 $rated_tasks = array_filter($requests, fn($r) => $r['rating'] > 0);
 $total_rating = array_sum(array_column($rated_tasks, 'rating'));
 $avg_rating = count($rated_tasks) > 0 ? round($total_rating / count($rated_tasks), 1) : 0;
-
-
 ?>
 
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -312,57 +309,61 @@ $avg_rating = count($rated_tasks) > 0 ? round($total_rating / count($rated_tasks
     <link rel="icon" type="image/png" href="/BobbyCareRemake/img/logo/bobby-icon.png">
     <link rel="stylesheet" href="../css/nav.css">
     <style>
-
+       
     </style>
 </head>
-
 <body>
+ 
+ <nav class="custom-navbar navbar navbar-expand-lg shadow-sm">
+    <div class="container custom-navbar-container">
+        <!-- โลโก้ + ชื่อระบบ (ฝั่งซ้าย) -->
+        <a class="navbar-brand d-flex align-items-center custom-navbar-brand" href="index.php">
+            <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
+            <!-- ชื่อระบบ หรือ โลโก้อย่างเดียว ฝั่งซ้าย -->
+        </a>
 
+        <!-- ปุ่ม toggle สำหรับ mobile -->
+        <button class="navbar-toggler custom-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-    <nav class="custom-navbar navbar navbar-expand-lg shadow-sm">
-        <div class="container custom-navbar-container">
-            <!-- โลโก้ + ชื่อระบบ -->
-            <a class="navbar-brand d-flex align-items-center custom-navbar-brand" href="gmindex.php">
-                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
-                <span class="custom-navbar-title">ผู้จัดการทั่วไป: <?= htmlspecialchars($_SESSION['name']) ?>!</span>
-            </a>
+        <!-- เมนู -->
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <!-- ซ้าย: เมนูหลัก -->
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 custom-navbar-menu">
+                 <li class="nav-item">
+                        <a class="nav-link" href="view_requests.php"><i class="fas fa-tasks me-1"></i>ตรวจสอบคำขอ
+                    </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="approved_list.php"><i class="fas fa-chart-bar me-1"></i> รายการที่อนุมัติ</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" href="view_completed_tasks.php"><i class="fas fa-chart-bar me-1"></i>UserReviews</a>
+                    </li>
+                     <li class="nav-item">
+                        <a class="nav-link" href="assignor_dashboard.php"><i class="fas fa-chart-bar me-1"></i>Dashboard_DEV</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="report.php"><i class="fas fa-chart-bar me-1"></i>Report</a>
+                    </li>
+            </ul>
 
-            <!-- ปุ่ม toggle สำหรับ mobile -->
-            <button class="navbar-toggler custom-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <!-- เมนู -->
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <!-- ซ้าย: เมนูหลัก -->
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0 custom-navbar-menu">
-                    <!-- <li class="nav-item">
-                        <a class="nav-link" href="view_requests.php"><i class="fas fa-tasks me-1"></i> ตรวจสอบคำขอ</a>
-                    </li> -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="approved_list.php"><i class="fas fa-check-circle me-1"></i> รายการที่อนุมัติ</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="view_completed_tasks.php"><i class="fas fa-star me-1"></i> User Reviews</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="developer_dashboard.php"><i class="fas fa-chart-line me-1"></i> Dashboard_DEV</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="report.php"><i class="fas fa-chart-line me-1"></i> Report</a>
-                    </li>
-                </ul>
-                <!-- ขวา: ผู้ใช้งาน -->
-                <ul class="navbar-nav mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="../logout.php">
-                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
-                        </a>
-                    </li>
-                </ul>
-            </div>
+            <!-- ขวา: ชื่อผู้ใช้ + ออกจากระบบ -->
+            <ul class="navbar-nav mb-2 mb-lg-0 align-items-center">
+                <li class="nav-item d-flex align-items-center me-3">
+                    <i class="fas fa-user-circle me-1"></i>
+                    <span class="custom-navbar-title">ผู้จัดการเเผนกคุณ: <?= htmlspecialchars($_SESSION['name']) ?>!</span>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="../logout.php">
+                        <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                    </a>
+                </li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
 
 
     <!-- Header -->
@@ -382,7 +383,7 @@ $avg_rating = count($rated_tasks) > 0 ? round($total_rating / count($rated_tasks
                     </div>
                     <div class="col-md-4">
                         <i class="fas fa-user me-2"></i>
-                        <strong>ลงชื่อผู้จัดการทั่วไป:</strong> <?= htmlspecialchars($_SESSION['name']) ?>
+                        <strong>ลงชื่อผู้จัดการเเผนก:</strong> <?= htmlspecialchars($_SESSION['name']) ?>
                     </div>
                 </div>
             </div>
@@ -550,7 +551,6 @@ $avg_rating = count($rated_tasks) > 0 ? round($total_rating / count($rated_tasks
             </div>
 
         </div>
-       
 
         <!-- Detailed Table -->
         <div class="table-section page-break">
@@ -741,6 +741,9 @@ $avg_rating = count($rated_tasks) > 0 ? round($total_rating / count($rated_tasks
                 </div>
             <?php endif; ?>
         </div>
+
+
+        
 <br>
 
  <!-- Charts Section -->

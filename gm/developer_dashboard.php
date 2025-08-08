@@ -332,6 +332,7 @@ foreach ($tasks as $task) {
                             <table class="table table-hover">
                                 <thead class="table-light">
                                     <tr>
+                                         <th>ลำดับ</th>
                                         <th>เลขที่เอกสาร</th>
                                         <th>งาน</th>
                                         <th>ประเภท</th>
@@ -570,6 +571,9 @@ foreach ($tasks as $task) {
                     tr.className = task.deadline_status === 'overdue' ? 'table-danger' : (task.deadline_status === 'due_soon' ? 'table-warning' : '');
 
                     tr.innerHTML = `
+
+             <td><div class="fw-bold">${i + 1}</div></td>
+
 
      <td><div class="fw-bold">${task.document_number}</div></td>
 

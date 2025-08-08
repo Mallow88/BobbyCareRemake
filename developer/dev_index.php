@@ -75,12 +75,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accept_request_id']))
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-gradient: linear-gradient(135deg, #ffffff 0%, #341355 100%);
             --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             --glass-bg: rgba(255, 255, 255, 0.95);
             --glass-border: rgba(255, 255, 255, 0.2);
         }
-
         body {
             background: var(--primary-gradient);
             min-height: 100vh;

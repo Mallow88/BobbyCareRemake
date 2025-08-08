@@ -147,13 +147,14 @@ if ($hasSearch) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ระบบค้นหาเอกสาร - BobbyCareDev</title>
+    <title>BobbyCareDev-ระบบค้นหาเอกสาร</title>
+     <link rel="icon" type="image/png" href="/BobbyCareRemake/img/logo/bobby-icon.png">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --primary-gradient: linear-gradient(135deg, #ffffffff 0%, #341355 100%);
             --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
             --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
             --glass-bg: rgba(255, 255, 255, 0.95);
@@ -576,8 +577,8 @@ if ($hasSearch) {
                             <i class="fas fa-search text-white fs-3"></i>
                         </div>
                         <div>
-                            <h1 class="page-title mb-1">ระบบค้นหาเอกสาร</h1>
-                            <p class="text-muted mb-0 fs-6">ค้นหาและจัดการเอกสารของคุณได้อย่างรวดเร็วและง่ายดาย</p>
+                            <h1 class="page-title mb-1">คำขอบริการของคุณ</h1>
+                            <p class="text-muted mb-0 fs-6">ค้นหาและดูสถานะเอกสารของคุณได้อย่างรวดเร็ว</p>
                         </div>
                     </div>
                 </div>
@@ -592,44 +593,34 @@ if ($hasSearch) {
         </div>
 
         <!-- Search Form -->
-        <div class="glass-card p-4 mb-4 fade-in">
-            <form method="GET" id="searchForm">
-                <div class="row g-4 mb-4">
-                    <div class="col-md-6">
-                        <div class="search-container">
-                            <input type="text" 
-                                   name="search" 
-                                   class="form-control search-input" 
-                                   placeholder="ค้นหาชื่อเอกสาร, เลขที่เอกสาร หรือคำสำคัญ..." 
-                                   value="<?= htmlspecialchars($_GET['search'] ?? '') ?>"
-                                   id="searchInput">
-                            <i class="fas fa-search search-icon"></i>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <input type="text" 
-                               name="document_number" 
-                               class="form-control search-input" 
-                               placeholder="ค้นหาเลขที่เอกสาร..." 
-                               value="<?= htmlspecialchars($_GET['document_number'] ?? '') ?>">
-                    </div>
+     
+<div class="glass-card p-4 mb-4 fade-in">
+    <form method="GET" id="searchForm">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-6">
+                <div class="search-container position-relative">
+                    <input type="text" 
+                           name="search" 
+                           class="form-control search-input" 
+                           placeholder="ค้นหาชื่อเอกสาร, เลขที่เอกสาร หรือคำสำคัญ..." 
+                           value="<?= htmlspecialchars($_GET['search'] ?? '') ?>"
+                           id="searchInput">
+                    <i class="fas fa-search search-icon position-absolute" style="top: 50%; right: 15px; transform: translateY(-50%); pointer-events:none;"></i>
                 </div>
-                
-                <div class="row g-3 mb-4">
-                
-                    <div class="col-md-3 d-flex align-items-end">
-                        <button type="submit" class="btn btn-gradient w-100">
-                            <i class="fas fa-search me-2"></i>ค้นหา
-                        </button>
-                    </div>
-                    <div class="col-md-3 d-flex align-items-end">
-                        <a href="track_documents.php" class="btn btn-outline-secondary w-100">
-                            <i class="fas fa-refresh me-2"></i>ล้างการค้นหา
-                        </a>
-                    </div>
-                </div>
-            </form>
+            </div>
+
+            <div class="col-md-6 d-flex">
+                <button type="submit" class="btn btn-gradient w-100 me-2">
+                    <i class="fas fa-search me-2"></i>ค้นหา
+                </button>
+                <a href="track_documents.php" class="btn btn-outline-secondary w-100">
+                    <i class="fas fa-refresh me-2"></i>ล้างการค้นหา
+                </a>
+            </div>
         </div>
+    </form>
+</div>
+
 
         <!-- Results Section -->
         <?php if (!$hasSearch): ?>
@@ -855,14 +846,7 @@ if ($hasSearch) {
             const searchInput = document.getElementById('searchInput');
             let searchTimeout;
             
-            searchInput.addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                searchTimeout = setTimeout(() => {
-                    if (this.value.length >= 2 || this.value.length === 0) {
-                        form.submit();
-                    }
-                }, 800);
-            });
+          
 
             // Smooth scroll for collapsed sections
             const collapseElements = document.querySelectorAll('.collapse');

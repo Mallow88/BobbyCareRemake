@@ -140,7 +140,7 @@ function getApprovalStatus($status) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-   
+    <link rel="stylesheet" href="../css/nav.css">
     <link rel="stylesheet" href="css/index.css">
     <style>
         * {
@@ -633,67 +633,58 @@ function getApprovalStatus($status) {
     </style>
 </head>
 <body>
+
+  <nav class="custom-navbar navbar navbar-expand-lg shadow-sm">
+    <div class="container custom-navbar-container">
+        <!-- โลโก้ + ชื่อระบบ (ฝั่งซ้าย) -->
+        <a class="navbar-brand d-flex align-items-center custom-navbar-brand" href="../dashboard.php">
+            <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
+            <!-- ชื่อระบบ หรือ โลโก้อย่างเดียว ฝั่งซ้าย -->
+        </a>
+
+        <!-- ปุ่ม toggle สำหรับ mobile -->
+        <button class="navbar-toggler custom-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <!-- เมนู -->
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <!-- ซ้าย: เมนูหลัก -->
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 custom-navbar-menu">
+                <li class="nav-item">
+                    <a class="nav-link" href="create.php"><i class="fas fa-tasks me-1"></i> สร้างคำขอบริการ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="index.php"><i class="fas fa-chart-bar me-1"></i> รายการคำขอ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="track_status.php"><i class="fas fa-chart-bar me-1"></i> ติดตามสถานะ</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="../profile.php"><i class="fas fa-user me-1"></i> โปรไฟล์</a>
+                </li>
+            </ul>
+
+            <!-- ขวา: ชื่อผู้ใช้ + ออกจากระบบ -->
+            <ul class="navbar-nav mb-2 mb-lg-0 align-items-center">
+                <li class="nav-item d-flex align-items-center me-3">
+                    <i class="fas fa-user-circle me-1"></i>
+                    <span class="custom-navbar-title">คุณ: <?= htmlspecialchars($_SESSION['name']) ?>!</span>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="../logout.php">
+                        <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
     
     
     <div class="container">
 
-           <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
 
-        <div class="container">
-            <!-- โลโก้ + ชื่อระบบ -->
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="../dashboard.php">
-                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
-                <span class="page-title"> สวัสดี, <?= htmlspecialchars($_SESSION['name']) ?>! </span>
-            </a>
-
-            <!-- ปุ่ม toggle สำหรับ mobile -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-
-            <!-- เมนู -->
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <!-- ซ้าย: เมนูหลัก -->
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <!-- <li class="nav-item">
-                        <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> หน้าหลัก</a>
-                    </li> -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="create.php"><i class="fas fa-tasks me-1"></i>สร้างคำขอบริการ</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php"><i class="fas fa-chart-bar me-1"></i> รายการคำขอ</a>
-                    </li>
-                     <li class="nav-item">
-                        <a class="nav-link" href="track_status.php"><i class="fas fa-chart-bar me-1"></i>ติดตามสถานะ</a>
-                    </li>
-                     <li class="nav-item">
-                        <a class="nav-link" href="../profile.php"><i class="fas fa-chart-bar me-1"></i>โปรไฟล์</a>
-                    </li>
-                </ul>
-                <!-- ขวา: ผู้ใช้งาน -->
-                <ul class="navbar-nav mb-2 mb-lg-0">
-                    <!-- <li class="nav-item d-flex align-items-center text-dark me-3">
-                        <i class="fas fa-user-circle me-2"></i>
-                      
-                    </li> -->
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="../logout.php">
-                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
-                        </a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-    </nav>
-
-
-        <div class="header">
-        </div>
-
-
-        
           <!-- ส่วนกรองข้อมูล -->
         <div class="filter-section">
             <form method="GET" class="filter-form">

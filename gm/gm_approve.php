@@ -1,4 +1,4 @@
-<?php 
+<?php
 session_start();
 require_once __DIR__ . '/../config/database.php';
 
@@ -9,14 +9,16 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'gmapprover') {
 
 $request_id = $_GET['id'] ?? null;
 if (!$request_id) {
-    echo "ไม่พบคำขอที่ระบุ"; exit();
+    echo "ไม่พบคำขอที่ระบุ";
+    exit();
 }
 
 // ตรวจสอบว่ามีการอนุมัติจาก GM ไปแล้วหรือยัง
 $check = $conn->prepare("SELECT * FROM gm_approvals WHERE service_request_id = ?");
 $check->execute([$request_id]);
 if ($check->rowCount() > 0) {
-    echo "คำขอนี้ได้รับการพิจารณาโดย GM แล้ว"; exit();
+    echo "คำขอนี้ได้รับการพิจารณาโดย GM แล้ว";
+    exit();
 }
 
 // ดึงข้อมูลคำขอ
@@ -61,7 +63,8 @@ $stmt->execute([$request_id]);
 $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$data) {
-    echo "ไม่พบคำขอ"; exit();
+    echo "ไม่พบคำขอ";
+    exit();
 }
 
 // หากส่งฟอร์ม
@@ -88,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // อัปเดตสถานะใน service_requests
             $new_status = $status === 'approved' ? 'senior_gm_review' : 'rejected';
             $current_step = $status === 'approved' ? 'gm_approved' : 'gm_rejected';
-            
+
             $stmt = $conn->prepare("UPDATE service_requests SET status = ?, current_step = ? WHERE id = ?");
             $stmt->execute([$new_status, $current_step, $request_id]);
 
@@ -103,7 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $conn->commit();
             header("Location: gmindex.php");
             exit();
-
         } catch (Exception $e) {
             $conn->rollBack();
             $error = "เกิดข้อผิดพลาด: " . $e->getMessage();
@@ -114,11 +116,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>อนุมัติคำขอ (GM) - BobbyCareDev</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <title>BobbyCareDev-อนุมัติคำขอ</title>
+    <link rel="stylesheet" href="../css/nav.css">
+    <link rel="icon" type="image/png" href="/BobbyCareRemake/img/logo/bobby-icon.png">
+    <!-- Bootstrap CSS -->
+         <link rel="stylesheet" href="css/approved-title.css">
+    <link rel="stylesheet" href="css/developer_dashboard.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -126,9 +136,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-sizing: border-box;
         }
 
+        .navbar-custom {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #ffffffff 0%, #341355 100%);
             min-height: 100vh;
             color: #333;
         }
@@ -235,7 +252,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border-color: #f56565;
         }
 
-        input, textarea, select {
+        input,
+        textarea,
+        select {
             width: 100%;
             padding: 12px;
             border: 2px solid #e2e8f0;
@@ -244,7 +263,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.9rem;
         }
 
-        input:focus, textarea:focus, select:focus {
+        input:focus,
+        textarea:focus,
+        select:focus {
             outline: none;
             border-color: #4299e1;
             box-shadow: 0 0 0 3px rgba(66, 153, 225, 0.1);
@@ -309,13 +330,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-transform: uppercase;
         }
 
-        .priority-low { background: #c6f6d5; color: #2f855a; }
-        .priority-medium { background: #fef5e7; color: #d69e2e; }
-        .priority-high { background: #fed7d7; color: #c53030; }
-        .priority-urgent { background: #e53e3e; color: white; }
+        .priority-low {
+            background: #c6f6d5;
+            color: #2f855a;
+        }
+
+        .priority-medium {
+            background: #fef5e7;
+            color: #d69e2e;
+        }
+
+        .priority-high {
+            background: #fed7d7;
+            color: #c53030;
+        }
+
+        .priority-urgent {
+            background: #e53e3e;
+            color: white;
+        }
     </style>
 </head>
+
 <body>
+
     <div class="container">
         <div class="header">
             <h1><i class="fas fa-clipboard-check"></i> อนุมัติคำขอ (GM)</h1>
@@ -370,31 +408,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <?php if ($data['service_name']): ?>
-                <div class="info-row">
-                    <div class="info-label">ประเภทบริการ:</div>
-                    <div class="info-value">
-                        <span class="priority-badge priority-<?= $data['service_category'] === 'development' ? 'high' : 'medium' ?>">
-                            <?php if ($data['service_category'] === 'development'): ?>
-                                <i class="fas fa-code me-1"></i>
-                            <?php else: ?>
-                                <i class="fas fa-tools me-1"></i>
-                            <?php endif; ?>
-                            <?= htmlspecialchars($data['service_name']) ?>
-                        </span>
+                    <div class="info-row">
+                        <div class="info-label">ประเภทบริการ:</div>
+                        <div class="info-value">
+                            <span class="priority-badge priority-<?= $data['service_category'] === 'development' ? 'high' : 'medium' ?>">
+                                <?php if ($data['service_category'] === 'development'): ?>
+                                    <i class="fas fa-code me-1"></i>
+                                <?php else: ?>
+                                    <i class="fas fa-tools me-1"></i>
+                                <?php endif; ?>
+                                <?= htmlspecialchars($data['service_name']) ?>
+                            </span>
+                        </div>
                     </div>
-                </div>
                 <?php endif; ?>
 
                 <?php if ($data['work_category']): ?>
-                <div class="info-row">
-                    <div class="info-label">หัวข้องานคลัง:</div>
-                    <div class="info-value">
-                        <span class="priority-badge priority-medium">
-                            <i class="fas fa-building me-1"></i>
-                            <?= htmlspecialchars($data['work_category']) ?>
-                        </span>
+                    <div class="info-row">
+                        <div class="info-label">หัวข้องานคลัง:</div>
+                        <div class="info-value">
+                            <span class="priority-badge priority-medium">
+                                <i class="fas fa-building me-1"></i>
+                                <?= htmlspecialchars($data['work_category']) ?>
+                            </span>
+                        </div>
                     </div>
-                </div>
                 <?php endif; ?>
 
                 <div class="info-row">
@@ -403,10 +441,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <?php if ($data['expected_benefits']): ?>
-                <div class="info-row">
-                    <div class="info-label">ประโยชน์ที่คาดหวัง:</div>
-                    <div class="info-value"><?= nl2br(htmlspecialchars($data['expected_benefits'])) ?></div>
-                </div>
+                    <div class="info-row">
+                        <div class="info-label">ประโยชน์ที่คาดหวัง:</div>
+                        <div class="info-value"><?= nl2br(htmlspecialchars($data['expected_benefits'])) ?></div>
+                    </div>
                 <?php endif; ?>
 
                 <div class="info-row">
@@ -421,7 +459,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <?php
                             $priorities = [
                                 'low' => 'ต่ำ',
-                                'medium' => 'ปานกลาง', 
+                                'medium' => 'ปานกลาง',
                                 'high' => 'สูง',
                                 'urgent' => 'เร่งด่วน'
                             ];
@@ -430,12 +468,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         </span>
                     </div>
                 </div>
-                 <?php if ($data['estimated_days']): ?>
-                                    <div class="estimate-info mt-2">
-                                        <i class="fas fa-clock me-1"></i>
-                                        ประมาณ <?= $data['estimated_days'] ?> วัน
-                                    </div>
-                                <?php endif; ?>
+                <?php if ($data['estimated_days']): ?>
+                    <div class="estimate-info mt-2">
+                        <i class="fas fa-clock me-1"></i>
+                        ประมาณ <?= $data['estimated_days'] ?> วัน
+                    </div>
+                <?php endif; ?>
 
                 <div class="info-row">
                     <div class="info-label">วันที่ส่ง:</div>
@@ -494,7 +532,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             radio.addEventListener('change', function() {
                 const reasonTextarea = document.getElementById('reason');
                 const budgetInput = document.getElementById('budget_approved');
-                
+
                 if (this.value === 'rejected') {
                     reasonTextarea.required = true;
                     reasonTextarea.placeholder = 'กรุณาระบุเหตุผลการไม่อนุมัติ';
@@ -509,4 +547,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
     </script>
 </body>
+
 </html>

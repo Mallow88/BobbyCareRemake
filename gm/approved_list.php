@@ -502,24 +502,26 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
 
 <body>
 
-    <nav class="custom-navbar navbar navbar-expand-lg shadow-sm">
-        <div class="container custom-navbar-container">
-            <!-- โลโก้ + ชื่อระบบ -->
-            <a class="navbar-brand d-flex align-items-center custom-navbar-brand" href="gmindex.php">
-                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
-                <span class="custom-navbar-title">ผู้จัดการทั่วไป: <?= htmlspecialchars($_SESSION['name']) ?>!</span>
-            </a>
+   
+<nav class="custom-navbar navbar navbar-expand-lg shadow-sm">
+    <div class="container custom-navbar-container">
+        <!-- โลโก้ + ชื่อระบบ (ฝั่งซ้าย) -->
+        <a class="navbar-brand d-flex align-items-center custom-navbar-brand" href="gmindex.php">
+            <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
+            <!-- ชื่อระบบ หรือ โลโก้อย่างเดียว ฝั่งซ้าย -->
+        </a>
 
-            <!-- ปุ่ม toggle สำหรับ mobile -->
-            <button class="navbar-toggler custom-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+        <!-- ปุ่ม toggle สำหรับ mobile -->
+        <button class="navbar-toggler custom-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
-            <!-- เมนู -->
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <!-- ซ้าย: เมนูหลัก -->
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0 custom-navbar-menu">
-                    <!-- <li class="nav-item">
+        <!-- เมนู -->
+        <div class="collapse navbar-collapse" id="navbarContent">
+            <!-- ซ้าย: เมนูหลัก -->
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0 custom-navbar-menu">
+                 <li class="nav-item">
+                       <!-- <li class="nav-item">
                         <a class="nav-link" href="view_requests.php"><i class="fas fa-tasks me-1"></i> ตรวจสอบคำขอ</a>
                     </li> -->
                     <li class="nav-item">
@@ -531,21 +533,26 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
                     <li class="nav-item">
                         <a class="nav-link" href="developer_dashboard.php"><i class="fas fa-chart-line me-1"></i> Dashboard_DEV</a>
                     </li>
-                    <li class="nav-item">
+                     <li class="nav-item">
                         <a class="nav-link" href="report.php"><i class="fas fa-chart-line me-1"></i> Report</a>
                     </li>
-                </ul>
-                <!-- ขวา: ผู้ใช้งาน -->
-                <ul class="navbar-nav mb-2 mb-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="../logout.php">
-                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
-                        </a>
-                    </li>
-                </ul>
-            </div>
+            </ul>
+
+            <!-- ขวา: ชื่อผู้ใช้ + ออกจากระบบ -->
+            <ul class="navbar-nav mb-2 mb-lg-0 align-items-center">
+                <li class="nav-item d-flex align-items-center me-3">
+                    <i class="fas fa-user-circle me-1"></i>
+                    <span class="custom-navbar-title">ผู้จัดการทั่วไปคุณ: <?= htmlspecialchars($_SESSION['name']) ?>!</span>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link text-danger" href="../logout.php">
+                        <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
+                    </a>
+                </li>
+            </ul>
         </div>
-    </nav>
+    </div>
+</nav>
 
 
     <div class="container mt-5">

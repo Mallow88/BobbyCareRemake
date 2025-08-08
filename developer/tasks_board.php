@@ -9,6 +9,117 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'developer') {
 
 $developer_id = $_SESSION['user_id'];
 
+
+
+// ฟังก์ชันสร้างเลขที่เอกสาร
+function generateDocumentNumber($conn, $warehouse_number, $code_name)
+{
+    try {
+        $current_year = date('y');
+        $current_month = date('n');
+
+        $stmt = $conn->prepare("
+            SELECT COALESCE(MAX(running_number), 0) as max_running 
+            FROM document_numbers
+            WHERE warehouse_number = ? AND code_name = ? AND year = ? AND month = ?
+        ");
+        $stmt->execute([$warehouse_number, $code_name, $current_year, $current_month]);
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $next_running = ($result['max_running'] ?? 0) + 1;
+        $running_str = str_pad($next_running, 3, '0', STR_PAD_LEFT);
+
+        $document_number = $warehouse_number . '-' . $code_name . '-' . $current_year . '-' . $current_month . '-' . $running_str;
+
+        $insert_stmt = $conn->prepare("
+            INSERT INTO document_numbers 
+            (warehouse_number, code_name, year, month, running_number, document_number) 
+            VALUES (?, ?, ?, ?, ?, ?)
+        ");
+        $insert_stmt->execute([$warehouse_number, $code_name, $current_year, $current_month, $next_running, $document_number]);
+
+        $document_id = $conn->lastInsertId();
+
+        return ['document_number' => $document_number, 'document_id' => $document_id];
+    } catch (Exception $e) {
+        error_log("Error generating document number: " . $e->getMessage());
+        throw $e;
+    }
+}
+
+// การประมวลผล POST
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    $work_category = $_POST['work_category'] ?? null;
+    $service_id = $_POST['service_id'] ?? null;
+    
+    try {
+        $conn->beginTransaction();
+
+        // ตรวจสอบ category
+        if (empty($work_category)) {
+            throw new Exception("กรุณาเลือกหัวข้องานคลัง");
+        }
+
+        // ดึงข้อมูล service
+        $service_stmt = $conn->prepare("SELECT * FROM services WHERE id = ?");
+        $service_stmt->execute([$service_id]);
+        $service = $service_stmt->fetch(PDO::FETCH_ASSOC);
+        if (!$service) {
+            throw new Exception("ไม่พบประเภทบริการที่เลือก");
+        }
+
+        // แยก warehouse_number และ code_name
+        $work_parts = explode('-', $work_category);
+        if (count($work_parts) !== 2) {
+            throw new Exception("รูปแบบหัวข้องานคลังไม่ถูกต้อง");
+        }
+        $warehouse_number = $work_parts[0];
+        $code_name = $work_parts[1];
+
+        // ✅ สร้างเลขที่เอกสาร
+        $doc_result = generateDocumentNumber($conn, $warehouse_number, $code_name);
+        $document_number = $doc_result['document_number'];
+        $document_id = $doc_result['document_id'];
+
+        // ✅ สร้าง service request (สมมุติสร้างแล้วได้ $request_id)
+        // $request_id = ... (สร้างงานใหม่และได้ ID กลับมา)
+
+        
+        // ✅ อัปเดตให้ผูกเลขเอกสารกับ service request
+        $update_doc = $conn->prepare("UPDATE document_numbers SET service_request_id = ? WHERE id = ?");
+        $update_doc->execute([$request_id, $document_id]);
+
+        $conn->commit();
+    } catch (Exception $e) {
+        $conn->rollBack();
+        error_log("เกิดข้อผิดพลาด: " . $e->getMessage());
+        // redirect หรือแสดง error message ตามต้องการ
+    }
+}
+
+// ดึงข้อมูล departments
+$dept_stmt = $conn->prepare("SELECT * FROM departments WHERE is_active = 1 ORDER BY warehouse_number, code_name");
+$dept_stmt->execute();
+$departments = $dept_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// จัดกลุ่ม departments ตาม warehouse
+$dept_by_warehouse = [];
+foreach ($departments as $dept) {
+    $warehouse_names = [
+        '01' => 'RDC',
+        '02' => 'CDC',
+        '03' => 'BDC'
+    ];
+    $warehouse_name = $warehouse_names[$dept['warehouse_number']] ?? $dept['warehouse_number'];
+    $dept_by_warehouse[$warehouse_name][] = $dept;
+}
+
+
+
+
+
+
 // จัดการ subtask actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['update_subtask'])) {
@@ -103,6 +214,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_task'])) {
             ");
             $stmt->execute([$user_id, $title, $description, $service_id, $priority, $estimated_days, $deadline]);
             $request_id = $conn->lastInsertId();
+
+
+
+
+
+// ✅ แยก work_category เพื่อสร้างเลขเอกสาร
+$work_category = $_POST['work_category'] ?? null;
+if (!$work_category) {
+    throw new Exception("กรุณาเลือกหัวข้องานคลัง");
+}
+
+$work_parts = explode('-', $work_category);
+if (count($work_parts) !== 2) {
+    throw new Exception("รูปแบบหัวข้องานคลังไม่ถูกต้อง");
+}
+
+$warehouse_number = $work_parts[0];
+$code_name = $work_parts[1];
+
+// ✅ สร้างเลขที่เอกสาร
+$doc_result = generateDocumentNumber($conn, $warehouse_number, $code_name);
+$document_id = $doc_result['document_id'];
+
+// ✅ ผูก service_request_id กับเลขเอกสาร
+$update_doc = $conn->prepare("UPDATE document_numbers SET service_request_id = ? WHERE id = ?");
+$update_doc->execute([$request_id, $document_id]);
+
+
+
+
+
+
+
+
+
+
 
             // สร้าง task task_status = 'received' — dev รับงานแล้ว สามารถเเก้เป็น completed ได้
             $stmt = $conn->prepare("
@@ -236,7 +383,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_task'])) {
             $stmt = $conn->prepare("DELETE FROM service_requests WHERE id = (SELECT service_request_id FROM tasks WHERE id = ?)");
             $stmt->execute([$task_id]);
 
-            $success = "ลบงานเรียบร้อยแล้ว";
+            // $success = "ลบงานเรียบร้อยแล้ว";
         } else {
             $error = "ไม่สามารถลบงานที่ได้รับมอบหมายได้";
         }
@@ -329,6 +476,14 @@ foreach ($tasks as $task) {
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <link rel="stylesheet" href="css/tasks_board.css">
     <style>
+
+        :root {
+            --primary-gradient: linear-gradient(135deg, #ffffff 0%, #341355 100%);
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            --glass-bg: rgba(255, 255, 255, 0.95);
+            --glass-border: rgba(255, 255, 255, 0.2);
+        }
+        
         .task-card.priority-urgent {
             border-left: 4px solid #dc2626 !important;
             box-shadow: 0 0 15px rgba(220, 38, 38, 0.3);
@@ -1293,6 +1448,19 @@ foreach ($tasks as $task) {
                                     </select>
                                 </div>
 
+                                  <select class="form-select" id="work_category" name="work_category" required>
+                                <option value="">-- เลือกหัวข้องานคลัง --</option>
+                                <?php foreach ($dept_by_warehouse as $warehouse => $depts): ?>
+                                    <optgroup label="<?= $warehouse ?>">
+                                        <?php foreach ($depts as $dept): ?>
+                                            <option value="<?= $dept['warehouse_number'] ?>-<?= $dept['code_name'] ?>">
+                                                <?= $dept['code_name'] ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </optgroup>
+                                <?php endforeach; ?>
+                            </select>
+
                                 <div class="mb-3">
                                     <label for="estimated_days" class="form-label fw-bold">วัน:</label>
                                     <input type="number" class="form-control" id="estimated_days" name="estimated_days"
@@ -1397,9 +1565,9 @@ foreach ($tasks as $task) {
 
             // ข้อมูลงาน
             document.getElementById('detailService').textContent = task.service_name || 'ไม่ระบุ';
-            document.getElementById('detailWorkCategory').textContent = task.work_category || 'ไม่ระบุ';
+            document.getElementById('detailWorkCategory').textContent = task.document_number;
 
-            document.getElementById('detailWorkCategory').textContent = task.document_number || 'ไม่ระบุ';
+            // document.getElementById('document_number').textContent = task.document_number || 'ไม่ระบุ';
 
 
             const priorityLabels = {
@@ -1665,6 +1833,15 @@ foreach ($tasks as $task) {
             deadlineInput.value = defaultVal;
         });
     </script>
+    
+<script>
+    $(document).ready(function() {
+        $('#user_id').select2({
+            placeholder: "เลือกผู้ใช้บริการ",
+            allowClear: true
+        });
+    });
+</script>
 
 
     <style>
