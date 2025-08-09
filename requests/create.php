@@ -528,6 +528,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <li class="nav-item">
                         <a class="nav-link" href="../profile.php"><i class="fas fa-user me-1"></i> โปรไฟล์</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="create3.php"><i class="fas fa-user me-1"></i> ทดสอบ</a>
+                    </li>
                 </ul>
 
                 <!-- ขวา: ชื่อผู้ใช้ + ออกจากระบบ -->
@@ -599,16 +602,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                         <div class="col-md-6 mb-3">
 
-<label for="work_category" class="form-label">
-    <i class="fas fa-warehouse me-1"></i>หัวข้องานคลัง
-    <button type="button"
-        class="btn btn-sm btn-outline-secondary ms-2"
-        data-bs-toggle="modal"
-        data-bs-target="#warehouseTopicModal"
-        style="padding: 2px 8px;">
-        <i class="fas fa-question-circle text-secondary"></i>
-    </button>
-</label>
+                            <label for="work_category" class="form-label">
+                                <i class="fas fa-warehouse me-1"></i>หัวข้องานคลัง
+                                <button type="button"
+                                    class="btn btn-sm btn-outline-secondary ms-2"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#warehouseTopicModal"
+                                    style="padding: 2px 8px;">
+                                    <i class="fas fa-question-circle text-secondary"></i>
+                                </button>
+                            </label>
 
 
                             <select class="form-select" id="work_category" name="work_category" required>
@@ -1139,60 +1142,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
         });
     </script>
-<div class="modal fade" id="warehouseTopicModal" tabindex="-1" aria-labelledby="warehouseTopicModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-scrollable">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="warehouseTopicModalLabel">รายการหัวข้องานคลัง</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <ul class="list-group list-group-flush small">
-          <li class="list-group-item">RDC Assignment Desk ASS</li>
-          <li class="list-group-item">RDC Break case BC</li>
-          <li class="list-group-item">RDC Full case FC</li>
-          <li class="list-group-item">RDC MIS MIS</li>
-          <li class="list-group-item">RDC O2O O2O</li>
-          <li class="list-group-item">RDC ข้อมูลจ่าย DOU</li>
-          <li class="list-group-item">RDC ข้อมูลรับ DIN</li>
-          <li class="list-group-item">RDC ความถูกต้องสินค้า INV</li>
-          <li class="list-group-item">RDC ความปลอดภัยสินค้า SHE</li>
-          <li class="list-group-item">RDC รับและจัดเก็บสินค้า FL</li>
-          <li class="list-group-item">RDC จัดส่งเข้า TIN</li>
-          <li class="list-group-item">RDC จัดส่งออก TOU</li>
-          <li class="list-group-item">RDC ธุรการ ADM</li>
-          <li class="list-group-item">RDC Rider RD</li>
-          <li class="list-group-item">RDC บริหารสินค้าใกล้หมดและพัลต SPD</li>
-          <li class="list-group-item">RDC บริหารวิศวกรรม ENG</li>
-          <li class="list-group-item">RDC พัฒนาระบบ DEV</li>
-          <li class="list-group-item">RDC พัฒนางานองค์กร OD</li>
-          <li class="list-group-item">RDC รับสินค้า RTV</li>
-          <li class="list-group-item">RDC รับสินค้า (อีกช่อง) REC</li>
-          <li class="list-group-item">RDC วางแผนจัดส่ง PLA</li>
-          <li class="list-group-item">RDC วิเคราะห์สินค้า LD</li>
-          <li class="list-group-item">RDC สินค้าความลับ SEC</li>
-          <li class="list-group-item">RDC สินค้าพิเศษ POP</li>
-          <li class="list-group-item">CDC MIS MIS</li>
-          <li class="list-group-item">CDC ข้อมูลจ่าย DOU</li>
-          <li class="list-group-item">CDC ข้อมูลรับ DIN</li>
-          <li class="list-group-item">CDC QC QC</li>
-          <li class="list-group-item">CDC SHE SHE</li>
-          <li class="list-group-item">CDC จัดส่งเข้า IN</li>
-          <li class="list-group-item">CDC จัดส่งออก OUT</li>
-          <li class="list-group-item">CDC จัดสินค้า PIC</li>
-          <li class="list-group-item">CDC วิศวกรรม ENG</li>
-          <li class="list-group-item">CDC รับสินค้า REC</li>
-          <li class="list-group-item">CDC ส่งมอบ LDA</li>
-          <li class="list-group-item">BDC ข้อมูล DAT</li>
-          <li class="list-group-item">BDC ตรวจสอบคุณภาพ QC</li>
-          <li class="list-group-item">BDC จัดส่ง TR</li>
-          <li class="list-group-item">BDC จัดสินค้า PIC</li>
-          <li class="list-group-item">BDC รับและส่งมอบ RL</li>
-        </ul>
-      </div>
+    <div class="modal fade" id="warehouseTopicModal" tabindex="-1" aria-labelledby="warehouseTopicModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="warehouseTopicModalLabel">รายการหัวข้องานคลัง</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="list-group list-group-flush small">
+                        <li class="list-group-item">RDC Assignment Desk ASS</li>
+                        <li class="list-group-item">RDC Break case BC</li>
+                        <li class="list-group-item">RDC Full case FC</li>
+                        <li class="list-group-item">RDC MIS MIS</li>
+                        <li class="list-group-item">RDC O2O O2O</li>
+                        <li class="list-group-item">RDC ข้อมูลจ่าย DOU</li>
+                        <li class="list-group-item">RDC ข้อมูลรับ DIN</li>
+                        <li class="list-group-item">RDC ความถูกต้องสินค้า INV</li>
+                        <li class="list-group-item">RDC ความปลอดภัยสินค้า SHE</li>
+                        <li class="list-group-item">RDC รับและจัดเก็บสินค้า FL</li>
+                        <li class="list-group-item">RDC จัดส่งเข้า TIN</li>
+                        <li class="list-group-item">RDC จัดส่งออก TOU</li>
+                        <li class="list-group-item">RDC ธุรการ ADM</li>
+                        <li class="list-group-item">RDC Rider RD</li>
+                        <li class="list-group-item">RDC บริหารสินค้าใกล้หมดและพัลต SPD</li>
+                        <li class="list-group-item">RDC บริหารวิศวกรรม ENG</li>
+                        <li class="list-group-item">RDC พัฒนาระบบ DEV</li>
+                        <li class="list-group-item">RDC พัฒนางานองค์กร OD</li>
+                        <li class="list-group-item">RDC รับสินค้า RTV</li>
+                        <li class="list-group-item">RDC รับสินค้า (อีกช่อง) REC</li>
+                        <li class="list-group-item">RDC วางแผนจัดส่ง PLA</li>
+                        <li class="list-group-item">RDC วิเคราะห์สินค้า LD</li>
+                        <li class="list-group-item">RDC สินค้าความลับ SEC</li>
+                        <li class="list-group-item">RDC สินค้าพิเศษ POP</li>
+                        <li class="list-group-item">CDC MIS MIS</li>
+                        <li class="list-group-item">CDC ข้อมูลจ่าย DOU</li>
+                        <li class="list-group-item">CDC ข้อมูลรับ DIN</li>
+                        <li class="list-group-item">CDC QC QC</li>
+                        <li class="list-group-item">CDC SHE SHE</li>
+                        <li class="list-group-item">CDC จัดส่งเข้า IN</li>
+                        <li class="list-group-item">CDC จัดส่งออก OUT</li>
+                        <li class="list-group-item">CDC จัดสินค้า PIC</li>
+                        <li class="list-group-item">CDC วิศวกรรม ENG</li>
+                        <li class="list-group-item">CDC รับสินค้า REC</li>
+                        <li class="list-group-item">CDC ส่งมอบ LDA</li>
+                        <li class="list-group-item">BDC ข้อมูล DAT</li>
+                        <li class="list-group-item">BDC ตรวจสอบคุณภาพ QC</li>
+                        <li class="list-group-item">BDC จัดส่ง TR</li>
+                        <li class="list-group-item">BDC จัดสินค้า PIC</li>
+                        <li class="list-group-item">BDC รับและส่งมอบ RL</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
 </body>
 

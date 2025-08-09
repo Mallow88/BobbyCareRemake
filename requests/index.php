@@ -217,6 +217,9 @@ foreach ($requests as &$request) {
                 <li class="nav-item">
                     <a class="nav-link" href="../profile.php"><i class="fas fa-user me-1"></i> โปรไฟล์</a>
                 </li>
+                 <li class="nav-item">
+                    <a class="nav-link" href="index2.php"><i class="fas fa-user me-1"></i> ทดสอบ</a>
+                </li>
             </ul>
 
             <!-- ขวา: ชื่อผู้ใช้ + ออกจากระบบ -->

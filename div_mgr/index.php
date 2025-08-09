@@ -385,6 +385,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <li class="nav-item">
                             <a class="nav-link" href="view_logs.php"><i class="fas fa-history me-1"></i> ประวัติการอนุมัติ</a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="index2.php"><i class="fas fa-history me-1"></i> ทดสอบ</a>
+                        </li>
             </ul>
 
             <!-- ขวา: ชื่อผู้ใช้ + ออกจากระบบ -->

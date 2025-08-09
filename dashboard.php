@@ -358,6 +358,9 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
                 <li class="nav-item">
                     <a class="nav-link" href="profile.php"><i class="fas fa-user me-1"></i> โปรไฟล์</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="dashboard2.php"><i class="fas fa-user me-1"></i>ทดสอบ</a>
+                </li>
             </ul>
 
             <!-- ขวา: ชื่อผู้ใช้ + ออกจากระบบ -->

@@ -330,6 +330,9 @@ $recent_approvals = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
                      <li class="nav-item">
                         <a class="nav-link" href="assignor_dashboard.php"><i class="fas fa-chart-bar me-1"></i>Dashboard_DEV</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="index2.php"><i class="fas fa-chart-bar me-1"></i>ทดสอบ</a>
+                    </li>
             </ul>
 
             <!-- ขวา: ชื่อผู้ใช้ + ออกจากระบบ -->
