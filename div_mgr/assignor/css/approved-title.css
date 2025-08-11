@@ -1,0 +1,197 @@
+/* Header Card */
+.approved-header-card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(8px);
+    border-radius: 1rem;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+    padding: 1.5rem;
+}
+
+.approved-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5rem;
+}
+
+.approved-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #333;
+}
+
+/* Stats Grid */
+.approved-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.approved-stat-card {
+    padding: 1rem;
+    border-radius: 1rem;
+    color: #303030;
+    text-align: center;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+    transition: transform 0.2s ease;
+}
+
+.approved-stat-card:hover {
+    transform: translateY(-2px);
+}
+
+.stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    opacity: 0.85;
+}
+
+/* Gradient Backgrounds */
+.bg-gradient-total {
+    background: linear-gradient(to right, #ffffff);
+}
+
+.bg-gradient-approve {
+    background: linear-gradient(to right, #58fd9d);
+}
+
+.bg-gradient-complete {
+    background: linear-gradient(to right, #c6daff);
+}
+
+.bg-gradient-rating {
+    background: linear-gradient(to right, #fffd9a);
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .approved-title {
+        font-size: 1.2rem;
+    }
+
+    .stat-number {
+        font-size: 1.4rem;
+    }
+
+    .approved-stats-grid {
+        gap: 0.75rem;
+    }
+
+    .approved-stat-card {
+        padding: 0.75rem;
+    }
+}
+
+
+/* กล่องหลัก */
+.filter-section {
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #e2e8f0;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.04);
+    backdrop-filter: blur(4px);
+}
+
+/* หัวเรื่อง */
+.filter-section-header h5 {
+    font-weight: bold;
+    font-size: 1.1rem;
+    color: #0d6efd;
+    margin: 0;
+}
+
+/* ปุ่มตัวเลือก filter */
+.filter-section-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.filter-section-btn {
+    border: 1px solid #cfd8e3;
+    background-color: #f5f7fa;
+    color: #333;
+    padding: 0.45rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.filter-section-btn:hover {
+    background-color: #e3f0ff;
+    border-color: #9ecbff;
+    color: #0d6efd;
+}
+
+.filter-section-btn.active {
+    background-color: #0d6efd;
+    color: #fff;
+    border-color: #0d6efd;
+}
+
+/* input ฟิลด์ */
+.filter-section-inputs {
+    display: grid;
+    gap: 1rem;
+    margin-top: 0.5rem;
+}
+
+.filter-section-input label {
+    font-weight: 500;
+    margin-bottom: 0.3rem;
+    color: #555;
+}
+
+.filter-section-input .form-control {
+    border-radius: 0.6rem;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .filter-section {
+        padding: 1rem;
+    }
+
+    .filter-section-buttons {
+        flex-direction: column;
+    }
+
+    .filter-section-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+
+/* มือถือ */
+   @media (max-width: 576px) {
+        .glass-card {
+            padding: 1rem !important;
+        }
+        .stat-card {
+            padding: 0.5rem !important;
+        }
+        .stat-card .fs-6 {
+            font-size: 1rem !important;
+        }
+        .stat-card .small {
+            font-size: 0.75rem !important;
+        }
+        select.form-select-sm {
+            font-size: 0.85rem;
+        }
+    }

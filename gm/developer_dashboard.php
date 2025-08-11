@@ -204,6 +204,9 @@ foreach ($tasks as $task) {
                     <li class="nav-item">
                         <a class="nav-link" href="report.php"><i class="fas fa-chart-line me-1"></i> Report</a>
                     </li>
+                     <li class="nav-item">
+                        <a class="nav-link" href="developer_dashboard2.php"><i class="fas fa-chart-line me-1"></i> ทดสอบ</a>
+                    </li>
                 </ul>
                 <!-- ขวา: ผู้ใช้งาน -->
                 <ul class="navbar-nav mb-2 mb-lg-0">
