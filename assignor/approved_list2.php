@@ -531,7 +531,7 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
             </li>
 
             <li class="nav-item">
-              <a href="assignor_dashboard.php2">
+              <a href="assignor_dashboard2.php">
                 <i class="fas fa-tachometer-alt"></i> <!-- Dashboard_DEV -->
                 <p>Dashboard_DEV</p>
                 <span class="badge badge-success"></span>
