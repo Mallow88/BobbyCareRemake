@@ -69,7 +69,7 @@ $subtasks = $sub_stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 </style>
 
-<h5>ไทม์ไลน์ของงาน #<?= htmlspecialchars($task['id']) ?></h5>
+<h5>ไทม์ไลน์ของงานของคุณ #<?= htmlspecialchars($task['id']) ?></h5>
 <p><strong>สถานะงาน:</strong> <?= htmlspecialchars($task['task_status']) ?></p>
 <p><strong>เปอร์เซ็นต์ความคืบหน้า:</strong> <?= $task['progress_percentage'] ?>%</p>
 <p><strong>เริ่มงาน:</strong> <?= $task['started_at'] ?? '-' ?></p>

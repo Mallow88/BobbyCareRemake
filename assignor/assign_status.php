@@ -90,6 +90,6 @@ try {
     $_SESSION['error'] = "เกิดข้อผิดพลาด: " . $e->getMessage();
 }
 
-header("Location: view_requests.php");
+header("Location: view_requests2.php");
 exit();
 ?>

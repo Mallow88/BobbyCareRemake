@@ -9,6 +9,9 @@ require_once __DIR__ . '/config/database.php';
 
 $user_id = $_SESSION['user_id'];
 
+$picture_url = $_SESSION['picture_url'] ?? null;
+
+
 // ดึงสถิติคำขอของผู้ใช้
 $stats_stmt = $conn->prepare("
     SELECT 
@@ -32,663 +35,451 @@ $recent_stmt = $conn->prepare("
 $recent_stmt->execute([$user_id]);
 $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>BobbyCareRemake</title>
+  <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
+  <link rel="icon" href="img/logo/bobby-icon.png" type="image/x-icon" />
 
-  <title>BobbyCareDev-Dashboard</title>
-  <link rel="icon" type="image/png" href="img/logo/bobby-icon.png">
-  <!--     Fonts and icons     -->
-  <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700,900|Roboto+Slab:400,700" />
-  <!-- Nucleo Icons -->
-  <link href="assets/css/nucleo-icons.css" rel="stylesheet" />
-  <link href="assets/css/nucleo-svg.css" rel="stylesheet" />
-  <!-- Font Awesome Icons -->
-  <script src="https://kit.fontawesome.com/42d5adcbca.js" crossorigin="anonymous"></script>
-  <!-- Material Icons -->
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <!-- Fonts and icons -->
+  <script src="assets/js/plugin/webfont/webfont.min.js"></script>
+  <script>
+    WebFont.load({
+      google: {
+        families: ["Public Sans:300,400,500,600,700"]
+      },
+      custom: {
+        families: [
+          "Font Awesome 5 Solid",
+          "Font Awesome 5 Regular",
+          "Font Awesome 5 Brands",
+          "simple-line-icons",
+        ],
+        urls: ["assets/css/fonts.min.css"],
+      },
+      active: function() {
+        sessionStorage.fonts = true;
+      },
+    });
+  </script>
+
   <!-- CSS Files -->
-  <link id="pagestyle" href="assets/css/material-dashboard.css?v=3.0.0" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="assets/css/plugins.min.css" />
+  <link rel="stylesheet" href="assets/css/kaiadmin.min.css" />
+
+  <!-- CSS Just for demo purpose, don't include it in your project -->
+  <link rel="stylesheet" href="assets/css/demo.css" />
 </head>
 
-<body class="g-sidenav-show  bg-gray-200">
-  <aside class="sidenav navbar navbar-vertical navbar-expand-xs border-0 border-radius-xl my-3 fixed-start ms-3   bg-gradient-dark" id="sidenav-main">
-    <div class="sidenav-header">
-      <i class="fas fa-times p-3 cursor-pointer text-white opacity-5 position-absolute end-0 top-0 d-none d-xl-none" aria-hidden="true" id="iconSidenav"></i>
-      <a class="navbar-brand m-0" target="_blank">
-        <img src="img/logo/bobby-full.png" class="navbar-brand-img h-100" alt="main_logo">
-      </a>
-    </div>
-    <hr class="horizontal light mt-0 mb-2">
-    <div class="collapse navbar-collapse  w-auto  max-height-vh-100" id="sidenav-collapse-main">
-      <ul class="navbar-nav">
-        <li class="nav-item">
-          <a class="nav-link text-white active bg-gradient-primary" href="dashboard2.php">
-            <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="material-icons opacity-10">dashboard</i>
-            </div>
-            <span class="nav-link-text ms-1">Dashboard</span>
+<body>
+  <div class="wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar" data-background-color="dark">
+      <div class="sidebar-logo">
+        <!-- Logo Header -->
+        <div class="logo-header" data-background-color="dark">
+          <a href="dashboard2.php" class="logo">
+            <img src="img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="30" />
           </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-white " href="requests/create3.php">
-            <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="material-icons opacity-10">add_task</i>
-            </div>
-            <span class="nav-link-text ms-1">สร้างคำขอบริการ</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-white " href="requests/index2.php">
-            <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="material-icons opacity-10">assignment</i>
-            </div>
-            <span class="nav-link-text ms-1">รายการคำขอ</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-white " href="requests/track_status.php">
-            <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="material-icons opacity-10">track_changes</i>
-            </div>
-            <span class="nav-link-text ms-1">ติดตามสถานะ</span>
-          </a>
-        </li>
-
-        <li class="nav-item mt-3">
-          <h6 class="ps-4 ms-2 text-uppercase text-xs text-white font-weight-bolder opacity-8">Account pages</h6>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-white " href="profile.php">
-            <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="material-icons opacity-10">person</i>
-            </div>
-            <span class="nav-link-text ms-1">Profile</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link text-white " href="logout.php">
-            <div class="text-white text-center me-2 d-flex align-items-center justify-content-center">
-              <i class="material-icons opacity-10">login</i>
-            </div>
-            <span class="nav-link-text ms-1">Logout</span>
-          </a>
-        </li>
-
-      </ul>
-    </div>
-
-    <div class="sidenav-footer position-absolute w-100 bottom-0 ">
-
-    </div>
-  </aside>
-  <main class="main-content position-relative max-height-vh-100 h-100 border-radius-lg ">
-    <!-- Navbar -->
-    <nav class="navbar navbar-main navbar-expand-lg px-0 mx-4 shadow-none border-radius-xl" id="navbarBlur" navbar-scroll="true">
-      <div class="container-fluid py-1 px-3">
-        <nav aria-label="breadcrumb">
-          <ol class="breadcrumb bg-transparent mb-0 pb-0 pt-1 px-0 me-sm-6 me-5">
-            <li class="breadcrumb-item text-sm"><a class="opacity-5 text-dark" href="javascript:;">Pages</a></li>
-            <li class="breadcrumb-item text-sm text-dark active" aria-current="page">Dashboard</li>
-          </ol>
-           <h6 class="font-weight-bolder mb-0">หน้าหลัก</h6>
-        </nav>
-        <div class="collapse navbar-collapse mt-sm-0 mt-2 me-md-0 me-sm-4" id="navbar">
-          <div class="ms-md-auto pe-md-3 d-flex align-items-center">
-           
+          <div class="nav-toggle">
+            <button class="btn btn-toggle toggle-sidebar">
+              <i class="gg-menu-right"></i>
+            </button>
+            <button class="btn btn-toggle sidenav-toggler">
+              <i class="gg-menu-left"></i>
+            </button>
           </div>
-          <ul class="navbar-nav  justify-content-end">
-            
-            <li class="nav-item d-xl-none ps-3 d-flex align-items-center">
-              <a href="javascript:;" class="nav-link text-body p-0" id="iconNavbarSidenav">
-                <div class="sidenav-toggler-inner">
-                  <i class="sidenav-toggler-line"></i>
-                  <i class="sidenav-toggler-line"></i>
-                  <i class="sidenav-toggler-line"></i>
-                </div>
-              </a>
-            </li>
-            <li class="nav-item px-3 d-flex align-items-center">
-             
-            </li>
-            <li class="nav-item dropdown pe-2 d-flex align-items-center">
-             
-              <ul class="dropdown-menu  dropdown-menu-end  px-2 py-3 me-sm-n4" aria-labelledby="dropdownMenuButton">
-               
-                <li>
-                  <a class="dropdown-item border-radius-md" href="javascript:;">
-                   
-                      <div class="d-flex flex-column justify-content-center">
-                        
-                      </div>
-                    </div>
-                  </a>
-                </li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-
-    
-    <!-- End Navbar -->
-    <div class="container-fluid py-4">
-      <div class="row">
-
-        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-          <div class="card">
-            <div class="card-header p-3 pt-2">
-              <div class="icon icon-lg icon-shape bg-gradient-dark shadow-dark text-center border-radius-xl mt-n4 position-absolute">
-                <i class="material-icons opacity-10">assignment</i>
-              </div>
-              <div class="text-end pt-1">
-                <p class="text-sm mb-0 text-capitalize">รายการทั้งหมด</p>
-                <h4 class="mb-0"><?= $stats['total_requests'] ?></h4>
-              </div>
-            </div>
-            <hr class="dark horizontal my-0">
-            <div class="card-footer p-3">
-              <p class="mb-0"><span class="text-success text-sm font-weight-bolder">+55% </span>than lask week</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-          <div class="card">
-            <div class="card-header p-3 pt-2">
-              <div class="icon icon-lg icon-shape bg-gradient-primary shadow-primary text-center border-radius-xl mt-n4 position-absolute">
-                <i class="material-icons opacity-10">hourglass_empty</i>
-              </div>
-              <div class="text-end pt-1">
-                <p class="text-sm mb-0 text-capitalize">รอดำเนินการ</p>
-                <h4 class="mb-0"><?= $stats['pending_requests'] ?></h4>
-              </div>
-            </div>
-            <hr class="dark horizontal my-0">
-            <div class="card-footer p-3">
-              <p class="mb-0"><span class="text-success text-sm font-weight-bolder">+3% </span>than lask month</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-xl-3 col-sm-6 mb-xl-0 mb-4">
-          <div class="card">
-            <div class="card-header p-3 pt-2">
-              <div class="icon icon-lg icon-shape bg-gradient-success shadow-success text-center border-radius-xl mt-n4 position-absolute">
-                <i class="material-icons opacity-10">check_circle</i>
-              </div>
-              <div class="text-end pt-1">
-                <p class="text-sm mb-0 text-capitalize">อนุมัติแล้ว</p>
-                <h4 class="mb-0"><?= $stats['approved_requests'] ?></h4>
-              </div>
-            </div>
-            <hr class="dark horizontal my-0">
-            <div class="card-footer p-3">
-              <p class="mb-0"><span class="text-danger text-sm font-weight-bolder">-2%</span> than yesterday</p>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-xl-3 col-sm-6">
-          <div class="card">
-            <div class="card-header p-3 pt-2">
-              <div class="icon icon-lg icon-shape bg-gradient-info shadow-info text-center border-radius-xl mt-n4 position-absolute">
-                <i class="material-icons opacity-10">cancel</i>
-              </div>
-              <div class="text-end pt-1">
-                <p class="text-sm mb-0 text-capitalize">ไม่อนุมัติ</p>
-                <h4 class="mb-0"><?= $stats['rejected_requests'] ?></h4>
-              </div>
-            </div>
-            <hr class="dark horizontal my-0">
-            <div class="card-footer p-3">
-              <p class="mb-0"><span class="text-success text-sm font-weight-bolder">+5% </span>than yesterday</p>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-
-
-
-
-
-
-
-      <!-- End Navbar -->
-      <div class="container-fluid py-4">
-        <div class="row">
-          <div class="col-12">
-            <div class="card my-4">
-              <div class="card-header p-0 position-relative mt-n4 mx-3 z-index-2">
-                <div class="bg-gradient-primary shadow-primary border-radius-lg pt-4 pb-3 d-flex justify-content-between align-items-center">
-                  <h6 class="text-white text-capitalize ps-3 mb-0">คำขอล่าสุด</h6>
-                  <a href="requests/index2.php" class="btn btn-outline-light btn-sm">
-                    ดูทั้งหมด
-                  </a>
-                </div>
-
-              </div>
-              <div class="card-body px-0 pb-2">
-                <div class="table-responsive p-0">
-                  <?php if (empty($recent_requests)): ?>
-                    <div class="text-center py-4">
-                      <i class="fas fa-inbox text-muted fs-1 mb-3"></i>
-                      <p class="text-muted">ยังไม่มีคำขอ</p>
-                      <a href="requests/create.php" class="btn btn-gradient btn-sm">
-                        สร้างคำขอแรก
-                      </a>
-                    </div>
-                  <?php else: ?>
-                    <table class="table align-items-center mb-0">
-                      <thead>
-                        <tr>
-                          <th class="text-dark fw-bold fs-5">รายการ</th>
-                          <th class="text-dark fw-bold fs-5 ps-2">วันที่สร้างเอกสาร</th>
-                          <th class="text-dark fw-bold fs-5 text-center">สถานะ</th>
-
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <?php foreach ($recent_requests as $request): ?>
-                          <tr>
-                            <td>
-                              <div class="d-flex px-2 py-1">
-                                <div class="d-flex flex-column justify-content-center">
-                                  <h6 class="mb-0 text-sm">
-                                    <?= htmlspecialchars(substr($request['title'], 0, 200)) ?>
-                                    <?= strlen($request['title']) > 200 ? '...' : '' ?>
-                                  </h6>
-                                </div>
-                              </div>
-                            </td>
-                            <td>
-                              <p class="text-xs font-weight-bold mb-0">
-                                <?= date('d/m/Y H:i', strtotime($request['created_at'])) ?>
-                              </p>
-                            </td>
-                            <td class="align-middle text-center text-sm">
-                              <?php
-                              $status_class = in_array($request['status'], ['approved', 'completed'])
-                                ? 'status-approved'
-                                : ($request['status'] === 'rejected'
-                                  ? 'status-rejected'
-                                  : 'status-pending');
-                              ?>
-                              <span class="badge badge-sm bg-gradient-success status-badge <?= $status_class ?>">
-                                <?= htmlspecialchars($request['status']) ?>
-                              </span>
-                            </td>
-                          </tr>
-                        <?php endforeach; ?>
-                      </tbody>
-                    </table>
-                  <?php endif; ?>
-                </div>
-              </div>
-
-
-
-
-
-
-              <footer class="footer py-4  ">
-                <div class="container-fluid">
-                  <div class="row align-items-center justify-content-lg-between">
-                    <div class="col-lg-6 mb-lg-0 mb-4">
-                      <div class="copyright text-center text-sm text-muted text-lg-start">
-                        © <script>
-                          document.write(new Date().getFullYear())
-                        </script>,
-                        made with <i class="fa fa-heart"></i> by
-                        <a class="font-weight-bold" target="_blank">เเผนกพัฒนาระบบงาน</a>
-                        for BobbyCareRemake.
-                      </div>
-                    </div>
-
-                  </div>
-                </div>
-              </footer>
-            </div>
-
-
-  </main>
-  <div class="fixed-plugin">
-    <a class="fixed-plugin-button text-dark position-fixed px-3 py-2">
-      <i class="material-icons py-2">settings</i>
-    </a>
-    <div class="card shadow-lg">
-      <div class="card-header pb-0 pt-3">
-        <div class="float-start">
-          <h5 class="mt-3 mb-0">Material UI Configurator</h5>
-          <p>See our dashboard options.</p>
-        </div>
-        <div class="float-end mt-4">
-          <button class="btn btn-link text-dark p-0 fixed-plugin-close-button">
-            <i class="material-icons">clear</i>
+          <button class="topbar-toggler more">
+            <i class="gg-more-vertical-alt"></i>
           </button>
         </div>
-        <!-- End Toggle Button -->
+        <!-- End Logo Header -->
       </div>
-      <hr class="horizontal dark my-1">
-      <div class="card-body pt-sm-3 pt-0">
-        <!-- Sidebar Backgrounds -->
-        <div>
-          <h6 class="mb-0">Sidebar Colors</h6>
+      <div class="sidebar-wrapper scrollbar scrollbar-inner">
+        <div class="sidebar-content">
+          <ul class="nav nav-secondary">
+            <li class="nav-item active">
+              <a data-bs-toggle="collapse" href="dashboard2.php" class="collapsed" aria-expanded="false">
+                <i class="fas fa-home"></i>
+                <p>หน้าหลัก</p>
+                <span class="caret"></span>
+              </a>
+              <div class="collapse" id="dashboard">
+                <ul class="nav nav-collapse">
+                  <li>
+                    <a href="dashboard2.php">
+                      <span class="sub-item">หน้าหลัก</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </li>
+            <li class="nav-section">
+              <span class="sidebar-mini-icon">
+                <i class="fa fa-ellipsis-h"></i>
+              </span>
+              <h4 class="text-section">Components</h4>
+            </li>
+
+            <li class="nav-item">
+              <a href="requests/create2.php">
+                <i class="fas fa-plus-circle"></i>
+                <p>สร้างคำขอใหม่</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="requests/index2.php">
+                <i class="fas fa-list"></i>
+                <p>รายการคำขอ</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="requests/track_status.php">
+                <i class="fas fa-spinner"></i>
+                <p>ติดตามสถานะ</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="profile.php">
+                <i class="fas fa-user"></i>
+                <p>โปรไฟล์</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="logout.php">
+                <i class="fas fa-sign-out-alt"></i>
+                <p>Logout</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+
+          </ul>
         </div>
-        <a href="javascript:void(0)" class="switch-trigger background-color">
-          <div class="badge-colors my-2 text-start">
-            <span class="badge filter bg-gradient-primary active" data-color="primary" onclick="sidebarColor(this)"></span>
-            <span class="badge filter bg-gradient-dark" data-color="dark" onclick="sidebarColor(this)"></span>
-            <span class="badge filter bg-gradient-info" data-color="info" onclick="sidebarColor(this)"></span>
-            <span class="badge filter bg-gradient-success" data-color="success" onclick="sidebarColor(this)"></span>
-            <span class="badge filter bg-gradient-warning" data-color="warning" onclick="sidebarColor(this)"></span>
-            <span class="badge filter bg-gradient-danger" data-color="danger" onclick="sidebarColor(this)"></span>
-          </div>
-        </a>
-        <!-- Sidenav Type -->
-        <div class="mt-3">
-          <h6 class="mb-0">Sidenav Type</h6>
-          <p class="text-sm">Choose between 2 different sidenav types.</p>
-        </div>
-        <div class="d-flex">
-          <button class="btn bg-gradient-dark px-3 mb-2 active" data-class="bg-gradient-dark" onclick="sidebarType(this)">Dark</button>
-          <button class="btn bg-gradient-dark px-3 mb-2 ms-2" data-class="bg-transparent" onclick="sidebarType(this)">Transparent</button>
-          <button class="btn bg-gradient-dark px-3 mb-2 ms-2" data-class="bg-white" onclick="sidebarType(this)">White</button>
-        </div>
-        <p class="text-sm d-xl-none d-block mt-2">You can change the sidenav type just on desktop view.</p>
-        <!-- Navbar Fixed -->
-        <div class="mt-3 d-flex">
-          <h6 class="mb-0">Navbar Fixed</h6>
-          <div class="form-check form-switch ps-0 ms-auto my-auto">
-            <input class="form-check-input mt-1 ms-auto" type="checkbox" id="navbarFixed" onclick="navbarFixed(this)">
-          </div>
-        </div>
-        <hr class="horizontal dark my-3">
-        <div class="mt-2 d-flex">
-          <h6 class="mb-0">Light / Dark</h6>
-          <div class="form-check form-switch ps-0 ms-auto my-auto">
-            <input class="form-check-input mt-1 ms-auto" type="checkbox" id="dark-version" onclick="darkMode(this)">
-          </div>
-        </div>
-        <hr class="horizontal dark my-sm-4">
-        <a class="btn btn-outline-dark w-100" href="">View documentation</a>
+
 
       </div>
     </div>
+    <!-- End Sidebar -->
+
+    <div class="main-panel">
+      <div class="main-header">
+        <div class="main-header-logo">
+          <!-- Logo Header -->
+          <div class="logo-header" data-background-color="dark">
+            <a href="dashboard2.php" class="logo">
+              <img src="img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="20" />
+            </a>
+            <div class="nav-toggle">
+              <button class="btn btn-toggle toggle-sidebar">
+                <i class="gg-menu-right"></i>
+              </button>
+              <button class="btn btn-toggle sidenav-toggler">
+                <i class="gg-menu-left"></i>
+              </button>
+            </div>
+            <button class="topbar-toggler more">
+              <i class="gg-more-vertical-alt"></i>
+            </button>
+          </div>
+          <!-- End Logo Header -->
+        </div>
+        <!-- Navbar Header -->
+        <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+          <div class="container-fluid">
+
+            <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+
+
+
+              <li class="nav-item topbar-user dropdown hidden-caret">
+                <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+                  <div class="avatar-sm">
+                    <img src="<?= htmlspecialchars($picture_url) ?>" alt="..." class="avatar-img rounded-circle" />
+                  </div>
+
+                  <span class="profile-username">
+                    <span class="op-7">คุณ:</span>
+                    <span class="fw-bold"><?= htmlspecialchars($_SESSION['name']) ?></span>
+                  </span>
+
+                </a>
+                <!-- <ul class="dropdown-menu dropdown-user animated fadeIn">
+                  <div class="dropdown-user-scroll scrollbar-outer">
+                    <li>
+                      <div class="user-box">
+                        <div class="avatar-lg">
+                          <img src="assets/img/profile.jpg" alt="image profile" class="avatar-img rounded" />
+                        </div>
+                        <div class="u-text">
+                          <h4>Hizrian</h4>
+                          <p class="text-muted">hello@example.com</p>
+                          <a href="profile.html" class="btn btn-xs btn-secondary btn-sm">View Profile</a>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider"></div>
+                      <a class="dropdown-item" href="#">My Profile</a>
+                     
+                      <a class="dropdown-item" href="#">Inbox</a>
+                      <div class="dropdown-divider"></div>
+                      <a class="dropdown-item" href="#">Account Setting</a>
+                      <div class="dropdown-divider"></div>
+                      <a class="dropdown-item" href="#">Logout</a>
+                    </li>
+                  </div>
+                </ul> -->
+              </li>
+            </ul>
+          </div>
+        </nav>
+        <!-- End Navbar -->
+      </div>
+
+      <div class="container">
+        <div class="page-inner">
+          <div class="d-flex align-items-left align-items-md-center flex-column flex-md-row pt-2 pb-4">
+            <div>
+              <h3 class="fw-bold mb-3">สถิติคำขอของคุณ</h3>
+
+            </div>
+
+          </div>
+          <div class="row">
+            <div class="col-sm-6 col-md-3">
+              <div class="card card-stats card-round">
+                <div class="card-body">
+                  <div class="row align-items-center">
+                    <div class="col-icon">
+                      <div class="icon-big text-center icon-primary bubble-shadow-small">
+                        <i class="fas fa-file-alt"></i>
+                      </div>
+                    </div>
+                    <div class="col col-stats ms-3 ms-sm-0">
+                      <div class="numbers">
+                        <p class="card-category">ทั้งหมด</p>
+                        <h4 class="card-title"><?= $stats['total_requests'] ?></h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <div class="card card-stats card-round">
+                <div class="card-body">
+                  <div class="row align-items-center">
+                    <div class="col-icon">
+                      <div class="icon-big text-center icon-info bubble-shadow-small">
+                        <i class="fas fa-hourglass-half"></i>
+                      </div>
+                    </div>
+                    <div class="col col-stats ms-3 ms-sm-0">
+                      <div class="numbers">
+                        <p class="card-category">รอดำเนินการ</p>
+                        <h4 class="card-title"><?= $stats['pending_requests'] ?></h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <div class="card card-stats card-round">
+                <div class="card-body">
+                  <div class="row align-items-center">
+                    <div class="col-icon">
+                      <div class="icon-big text-center icon-success bubble-shadow-small">
+                        <i class="fas fa-check-circle"></i>
+                      </div>
+                    </div>
+                    <div class="col col-stats ms-3 ms-sm-0">
+                      <div class="numbers">
+                        <p class="card-category">อนุมัติแล้ว</p>
+                        <h4 class="card-title"><?= $stats['approved_requests'] ?></h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+              <div class="card card-stats card-round">
+                <div class="card-body">
+                  <div class="row align-items-center">
+                    <div class="col-icon">
+                      <div class="icon-big text-center icon-secondary bubble-shadow-small">
+                        <i class="fas fa-times-circle"></i>
+                      </div>
+                    </div>
+                    <div class="col col-stats ms-3 ms-sm-0">
+                      <div class="numbers">
+                        <p class="card-category">ไม่อนุมัติ</p>
+                        <h4 class="card-title"><?= $stats['rejected_requests'] ?></h4>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <div class="row">
+            <div class="col-md-4">
+              <div class="card card-round">
+                <!-- เนื้อหาฝั่งซ้าย -->
+              </div>
+            </div>
+
+            <div class="col- 8 md-5">
+              <div class="card card-round">
+                <div class="card-header">
+                  <div class="card-header d-flex justify-content-between align-items-center">
+                    <div class="card-title mb-0">คำขอล่าสุด</div>
+                    <a href="requests/index.php" class="btn btn-outline-primary btn-sm">
+                      ดูทั้งหมด
+                    </a>
+                  </div>
+
+
+                </div>
+                <div class="card-body p-0">
+                  <div class="table-responsive">
+                    <?php if (empty($recent_requests)): ?>
+                      <p class="text-muted m-3">ยังไม่มีคำขอ</p>
+                    <?php else: ?>
+                      <table class="table align-items-center mb-0">
+                        <thead class="thead-light">
+                          <tr>
+                            <th scope="col">หัวข้อ</th>
+                            <th scope="col" class="text-end">วันและเวลา</th>
+                            <th scope="col" class="text-end">สถานะ</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <?php foreach ($recent_requests as $request): ?>
+                            <?php
+                            $status_class = in_array($request['status'], ['approved', 'completed'])
+                              ? 'badge-success'
+                              : ($request['status'] === 'rejected' ? 'badge-danger' : 'badge-warning');
+                            ?>
+                            <tr>
+                              <td>
+                                <h6 class="fw-bold mb-0">
+                                  <?= htmlspecialchars(substr($request['title'], 0, 530)) ?>
+                                  <?= strlen($request['title']) > 530 ? '...' : '' ?>
+                                </h6>
+                              </td>
+                              <td class="text-end">
+                                <?= date('d/m/Y H:i', strtotime($request['created_at'])) ?>
+                              </td>
+                              <td class="text-end">
+                                <span class="badge <?= $status_class ?>">
+                                  <?= htmlspecialchars($request['status']) ?>
+                                </span>
+                              </td>
+                            </tr>
+                          <?php endforeach; ?>
+                        </tbody>
+                      </table>
+                    <?php endif; ?>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <footer class="footer">
+        <div class="container-fluid d-flex justify-content-between">
+          <nav class="pull-left">
+
+          </nav>
+          <div class="copyright">
+            © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
+            <i class="fa fa-heart heart text-danger"></i>
+
+          </div>
+          <div>
+
+          </div>
+        </div>
+      </footer>
+    </div>
+
+
+    <!-- End Custom template -->
   </div>
   <!--   Core JS Files   -->
+  <script src="assets/js/core/jquery-3.7.1.min.js"></script>
   <script src="assets/js/core/popper.min.js"></script>
   <script src="assets/js/core/bootstrap.min.js"></script>
-  <script src="assets/js/plugins/perfect-scrollbar.min.js"></script>
-  <script src="assets/js/plugins/smooth-scrollbar.min.js"></script>
-  <script src="assets/js/plugins/chartjs.min.js"></script>
+  <!-- jQuery Scrollbar -->
+  <script src="assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+  <!-- Chart JS -->
+  <script src="assets/js/plugin/chart.js/chart.min.js"></script>
+  <!-- jQuery Sparkline -->
+  <script src="assets/js/plugin/jquery.sparkline/jquery.sparkline.min.js"></script>
+  <!-- Chart Circle -->
+  <script src="assets/js/plugin/chart-circle/circles.min.js"></script>
+  <!--Datatables -->
+  <script src="assets/js/plugin/datatables/datatables.min.js"></script>
+  <!-- Bootstrap Notify -->
+  <script src="assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js"></script>
+  <!-- jQuery Vector Maps -->
+  <script src="assets/js/plugin/jsvectormap/jsvectormap.min.js"></script>
+  <script src="assets/js/plugin/jsvectormap/world.js"></script>
+  <!-- Sweet Alert -->
+  <script src="assets/js/plugin/sweetalert/sweetalert.min.js"></script>
+  <!-- Kaiadmin JS -->
+  <script src="assets/js/kaiadmin.min.js"></script>
+  <!-- Kaiadmin DEMO methods, don't include it in your project! -->
+  <script src="assets/js/setting-demo.js"></script>
+  <script src="assets/js/demo.js"></script>
   <script>
-    var ctx = document.getElementById("chart-bars").getContext("2d");
-
-    new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels: ["M", "T", "W", "T", "F", "S", "S"],
-        datasets: [{
-          label: "Sales",
-          tension: 0.4,
-          borderWidth: 0,
-          borderRadius: 4,
-          borderSkipped: false,
-          backgroundColor: "rgba(255, 255, 255, .8)",
-          data: [50, 20, 10, 22, 50, 10, 40],
-          maxBarThickness: 6
-        }, ],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false,
-          }
-        },
-        interaction: {
-          intersect: false,
-          mode: 'index',
-        },
-        scales: {
-          y: {
-            grid: {
-              drawBorder: false,
-              display: true,
-              drawOnChartArea: true,
-              drawTicks: false,
-              borderDash: [5, 5],
-              color: 'rgba(255, 255, 255, .2)'
-            },
-            ticks: {
-              suggestedMin: 0,
-              suggestedMax: 500,
-              beginAtZero: true,
-              padding: 10,
-              font: {
-                size: 14,
-                weight: 300,
-                family: "Roboto",
-                style: 'normal',
-                lineHeight: 2
-              },
-              color: "#fff"
-            },
-          },
-          x: {
-            grid: {
-              drawBorder: false,
-              display: true,
-              drawOnChartArea: true,
-              drawTicks: false,
-              borderDash: [5, 5],
-              color: 'rgba(255, 255, 255, .2)'
-            },
-            ticks: {
-              display: true,
-              color: '#f8f9fa',
-              padding: 10,
-              font: {
-                size: 14,
-                weight: 300,
-                family: "Roboto",
-                style: 'normal',
-                lineHeight: 2
-              },
-            }
-          },
-        },
-      },
+    $("#lineChart").sparkline([102, 109, 120, 99, 110, 105, 115], {
+      type: "line",
+      height: "70",
+      width: "100%",
+      lineWidth: "2",
+      lineColor: "#177dff",
+      fillColor: "rgba(23, 125, 255, 0.14)",
     });
 
-
-    var ctx2 = document.getElementById("chart-line").getContext("2d");
-
-    new Chart(ctx2, {
+    $("#lineChart2").sparkline([99, 125, 122, 105, 110, 124, 115], {
       type: "line",
-      data: {
-        labels: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-        datasets: [{
-          label: "Mobile apps",
-          tension: 0,
-          borderWidth: 0,
-          pointRadius: 5,
-          pointBackgroundColor: "rgba(255, 255, 255, .8)",
-          pointBorderColor: "transparent",
-          borderColor: "rgba(255, 255, 255, .8)",
-          borderColor: "rgba(255, 255, 255, .8)",
-          borderWidth: 4,
-          backgroundColor: "transparent",
-          fill: true,
-          data: [50, 40, 300, 320, 500, 350, 200, 230, 500],
-          maxBarThickness: 6
-
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false,
-          }
-        },
-        interaction: {
-          intersect: false,
-          mode: 'index',
-        },
-        scales: {
-          y: {
-            grid: {
-              drawBorder: false,
-              display: true,
-              drawOnChartArea: true,
-              drawTicks: false,
-              borderDash: [5, 5],
-              color: 'rgba(255, 255, 255, .2)'
-            },
-            ticks: {
-              display: true,
-              color: '#f8f9fa',
-              padding: 10,
-              font: {
-                size: 14,
-                weight: 300,
-                family: "Roboto",
-                style: 'normal',
-                lineHeight: 2
-              },
-            }
-          },
-          x: {
-            grid: {
-              drawBorder: false,
-              display: false,
-              drawOnChartArea: false,
-              drawTicks: false,
-              borderDash: [5, 5]
-            },
-            ticks: {
-              display: true,
-              color: '#f8f9fa',
-              padding: 10,
-              font: {
-                size: 14,
-                weight: 300,
-                family: "Roboto",
-                style: 'normal',
-                lineHeight: 2
-              },
-            }
-          },
-        },
-      },
+      height: "70",
+      width: "100%",
+      lineWidth: "2",
+      lineColor: "#f3545d",
+      fillColor: "rgba(243, 84, 93, .14)",
     });
 
-    var ctx3 = document.getElementById("chart-line-tasks").getContext("2d");
-
-    new Chart(ctx3, {
+    $("#lineChart3").sparkline([105, 103, 123, 100, 95, 105, 115], {
       type: "line",
-      data: {
-        labels: ["Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-        datasets: [{
-          label: "Mobile apps",
-          tension: 0,
-          borderWidth: 0,
-          pointRadius: 5,
-          pointBackgroundColor: "rgba(255, 255, 255, .8)",
-          pointBorderColor: "transparent",
-          borderColor: "rgba(255, 255, 255, .8)",
-          borderWidth: 4,
-          backgroundColor: "transparent",
-          fill: true,
-          data: [50, 40, 300, 220, 500, 250, 400, 230, 500],
-          maxBarThickness: 6
-
-        }],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            display: false,
-          }
-        },
-        interaction: {
-          intersect: false,
-          mode: 'index',
-        },
-        scales: {
-          y: {
-            grid: {
-              drawBorder: false,
-              display: true,
-              drawOnChartArea: true,
-              drawTicks: false,
-              borderDash: [5, 5],
-              color: 'rgba(255, 255, 255, .2)'
-            },
-            ticks: {
-              display: true,
-              padding: 10,
-              color: '#f8f9fa',
-              font: {
-                size: 14,
-                weight: 300,
-                family: "Roboto",
-                style: 'normal',
-                lineHeight: 2
-              },
-            }
-          },
-          x: {
-            grid: {
-              drawBorder: false,
-              display: false,
-              drawOnChartArea: false,
-              drawTicks: false,
-              borderDash: [5, 5]
-            },
-            ticks: {
-              display: true,
-              color: '#f8f9fa',
-              padding: 10,
-              font: {
-                size: 14,
-                weight: 300,
-                family: "Roboto",
-                style: 'normal',
-                lineHeight: 2
-              },
-            }
-          },
-        },
-      },
+      height: "70",
+      width: "100%",
+      lineWidth: "2",
+      lineColor: "#ffa534",
+      fillColor: "rgba(255, 165, 52, .14)",
     });
   </script>
-  <script>
-    var win = navigator.platform.indexOf('Win') > -1;
-    if (win && document.querySelector('#sidenav-scrollbar')) {
-      var options = {
-        damping: '0.5'
-      }
-      Scrollbar.init(document.querySelector('#sidenav-scrollbar'), options);
-    }
-  </script>
-  <!-- Github buttons -->
-  <script async defer src="https://buttons.github.io/buttons.js"></script>
-  <!-- Control Center for Material Dashboard: parallax effects, scripts for the example pages etc -->
-  <script src="assets/js/material-dashboard.min.js?v=3.0.0"></script>
 </body>
 
 </html>

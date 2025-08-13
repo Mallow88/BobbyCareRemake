@@ -28,59 +28,60 @@ $current_day = $_GET['day'] ?? 'all'; // ค่าเริ่มต้น all =
 $type         = $_GET['type'] ?? 'all';
 
 
+
 $devData = [];
 
 foreach ($developers as $dev) {
-    // เงื่อนไข SQL เริ่มต้น
-    $where = ["t.developer_user_id = ?"];
-    $params = [$dev['id']];
+  // เงื่อนไข SQL เริ่มต้น
+  $where = ["t.developer_user_id = ?"];
+  $params = [$dev['id']];
 
-    // ฟิลเตอร์ Developer
-    if ($selected_dev !== 'all') {
-        $where[] = "t.developer_user_id = ?";
-        $params[] = $selected_dev;
-    }
+  // ฟิลเตอร์ Developer
+  if ($selected_dev !== 'all') {
+    $where[] = "t.developer_user_id = ?";
+    $params[] = $selected_dev;
+  }
 
-    // ประเภทงาน
-    if ($type !== 'all') {
-        $where[] = "s.category = ?";
-        $params[] = $type;
-    }
+  // ประเภทงาน
+  if ($type !== 'all') {
+    $where[] = "s.category = ?";
+    $params[] = $type;
+  }
 
-    // สถานะงาน
-    if ($status !== 'all') {
-        $where[] = "t.task_status = ?";
-        $params[] = $status;
-    }
+  // สถานะงาน
+  if ($status !== 'all') {
+    $where[] = "t.task_status = ?";
+    $params[] = $status;
+  }
 
-    // สถานะกำหนดส่ง
-    if ($deadlineFlag === 'overdue') {
-        $where[] = "sr.deadline < CURDATE()";
-    } elseif ($deadlineFlag === 'due_soon') {
-        $where[] = "DATEDIFF(sr.deadline, CURDATE()) <= 2 AND sr.deadline >= CURDATE()";
-    } elseif ($deadlineFlag === 'on_time') {
-        $where[] = "sr.deadline >= CURDATE()";
-    }
+  // สถานะกำหนดส่ง
+  if ($deadlineFlag === 'overdue') {
+    $where[] = "sr.deadline < CURDATE()";
+  } elseif ($deadlineFlag === 'due_soon') {
+    $where[] = "DATEDIFF(sr.deadline, CURDATE()) <= 2 AND sr.deadline >= CURDATE()";
+  } elseif ($deadlineFlag === 'on_time') {
+    $where[] = "sr.deadline >= CURDATE()";
+  }
 
-    // วัน / เดือน / ปี
-    if ($current_day !== 'all') {
-        $where[] = "DAY(t.created_at) = ?";
-        $params[] = $current_day;
-    }
-    if ($current_month !== 'all') {
-        $where[] = "MONTH(t.created_at) = ?";
-        $params[] = $current_month;
-    }
-    if ($current_year !== 'all') {
-        $where[] = "YEAR(t.created_at) = ?";
-        $params[] = $current_year;
-    }
+  // วัน / เดือน / ปี
+  if ($current_day !== 'all') {
+    $where[] = "DAY(t.created_at) = ?";
+    $params[] = $current_day;
+  }
+  if ($current_month !== 'all') {
+    $where[] = "MONTH(t.created_at) = ?";
+    $params[] = $current_month;
+  }
+  if ($current_year !== 'all') {
+    $where[] = "YEAR(t.created_at) = ?";
+    $params[] = $current_year;
+  }
 
-    // ประกอบ WHERE
-    $whereSQL = implode(' AND ', $where);
+  // ประกอบ WHERE
+  $whereSQL = implode(' AND ', $where);
 
-    // Query
-    $stmt = $conn->prepare("
+  // Query
+  $stmt = $conn->prepare("
         SELECT 
             t.task_status,
             s.category
@@ -89,41 +90,41 @@ foreach ($developers as $dev) {
         LEFT JOIN services s ON sr.service_id = s.id
         WHERE {$whereSQL}
     ");
-    $stmt->execute($params);
-    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  $stmt->execute($params);
+  $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // นับสถานะ
-    $pending = $inProgress = $completed = 0;
-    $serviceCount = $devCount = 0;
+  // นับสถานะ
+  $pending = $inProgress = $completed = 0;
+  $serviceCount = $devCount = 0;
 
-    foreach ($rows as $r) {
-        if (in_array($r['task_status'], ['pending', 'received'])) $pending++;
-        elseif (in_array($r['task_status'], ['in_progress', 'on_hold'])) $inProgress++;
-        elseif (in_array($r['task_status'], ['completed', 'accepted'])) $completed++;
+  foreach ($rows as $r) {
+    if (in_array($r['task_status'], ['pending', 'received'])) $pending++;
+    elseif (in_array($r['task_status'], ['in_progress', 'on_hold'])) $inProgress++;
+    elseif (in_array($r['task_status'], ['completed', 'accepted'])) $completed++;
 
-        // นับประเภท
-        if (!empty($r['category'])) {
-            if (mb_strtolower($r['category']) === 'service' || $r['category'] === 'งานบริการ') {
-                $serviceCount++;
-            } elseif (mb_strtolower($r['category']) === 'development' || $r['category'] === 'งานพัฒนา') {
-                $devCount++;
-            }
-        }
+    // นับประเภท
+    if (!empty($r['category'])) {
+      if (mb_strtolower($r['category']) === 'service' || $r['category'] === 'งานบริการ') {
+        $serviceCount++;
+      } elseif (mb_strtolower($r['category']) === 'development' || $r['category'] === 'งานพัฒนา') {
+        $devCount++;
+      }
     }
+  }
 
-    // push devData (ถ้าไม่มีงานค่าก็เป็นศูนย์)
-    $devData[] = [
-        'id'   => $dev['id'],
-        'name' => $dev['name'] . ' ' . $dev['lastname'],
-        'data' => [$pending, $inProgress, $completed, $serviceCount, $devCount]
-    ];
+  // push devData (ถ้าไม่มีงานค่าก็เป็นศูนย์)
+  $devData[] = [
+    'id'   => $dev['id'],
+    'name' => $dev['name'] . ' ' . $dev['lastname'],
+    'data' => [$pending, $inProgress, $completed, $serviceCount, $devCount]
+  ];
 }
 
 
 $monthlyData = [
-    'total' => array_fill(1, 12, 0),
-    'dev'   => array_fill(1, 12, 0),
-    'service' => array_fill(1, 12, 0)
+  'total' => array_fill(1, 12, 0),
+  'dev'   => array_fill(1, 12, 0),
+  'service' => array_fill(1, 12, 0)
 ];
 
 $stmt = $conn->prepare("
@@ -137,17 +138,62 @@ $stmt->execute();
 $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 foreach ($rows as $r) {
-    $m = (int)$r['month'];
-    $monthlyData['total'][$m]++;
+  $m = (int)$r['month'];
+  $monthlyData['total'][$m]++;
 
-    if (mb_strtolower($r['category']) === 'development' || $r['category'] === 'งานพัฒนา') {
-        $monthlyData['dev'][$m]++;
-    } elseif (mb_strtolower($r['category']) === 'service' || $r['category'] === 'งานบริการ') {
-        $monthlyData['service'][$m]++;
-    }
+  if (mb_strtolower($r['category']) === 'development' || $r['category'] === 'งานพัฒนา') {
+    $monthlyData['dev'][$m]++;
+  } elseif (mb_strtolower($r['category']) === 'service' || $r['category'] === 'งานบริการ') {
+    $monthlyData['service'][$m]++;
+  }
 }
 
 
+
+
+// เตรียม array เก็บข้อมูล 12 เดือน
+$allCounts = array_fill(1, 12, 0);
+$devCounts = array_fill(1, 12, 0);
+$serviceCounts = array_fill(1, 12, 0);
+
+$sql = "
+    SELECT 
+        MONTH(t.created_at) AS month,
+        s.category,
+        COUNT(*) AS total
+    FROM tasks t
+    JOIN service_requests sr ON t.service_request_id = sr.id
+    LEFT JOIN services s ON sr.service_id = s.id
+    WHERE 1
+";
+
+$params = [];
+
+if ($current_year !== 'all') {
+  $sql .= " AND YEAR(t.created_at) = ?";
+  $params[] = $current_year;
+}
+
+$sql .= " GROUP BY MONTH(t.created_at), s.category";
+$stmt = $conn->prepare($sql);
+$stmt->execute($params);
+
+while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+  $month = (int)$row['month'];
+  $allCounts[$month] += $row['total'];
+
+  if (mb_strtolower($row['category']) === 'development' || $row['category'] === 'งานพัฒนา') {
+    $devCounts[$month] += $row['total'];
+  } elseif (mb_strtolower($row['category']) === 'service' || $row['category'] === 'งานบริการ') {
+    $serviceCounts[$month] += $row['total'];
+  }
+}
+
+$barData = [
+  'all' => array_values($allCounts),
+  'development' => array_values($devCounts),
+  'service' => array_values($serviceCounts),
+];
 
 
 
@@ -233,6 +279,11 @@ $type_opts = [
 $where  = ["1=1"];
 $params = [];
 
+
+if (!empty($_GET['code_name'])) {
+  $where[]  = 'dn.code_name = ?';
+  $params[] = $_GET['code_name'];
+}
 
 // กรองตาม วัน
 if ($current_day !== 'all') {
@@ -333,6 +384,8 @@ $sql = "
     ur.status AS review_status,
     ur.reviewed_at AS user_reviewed_at,
     dn.document_number,
+    dn.code_name AS document_code_name,
+
     aa.assignor_user_id,
     assignor.name AS assignor_name,
     assignor.lastname AS assignor_lastname,
@@ -388,10 +441,30 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 $countSrStmt = $conn->query("SELECT COUNT(*) AS total_sr FROM service_requests");
 $totalServiceRequests = $countSrStmt->fetchColumn();
 // รายการเอกสารทั้งหมด
+
+
 // ดึงจำนวนเอกสารทั้งหมด
 $countStmt = $conn->query("SELECT COUNT(*) AS total_documents FROM document_numbers");
 $countResult = $countStmt->fetch(PDO::FETCH_ASSOC);
 $totalDocuments = $countResult['total_documents'] ?? 0;
+
+// แจกแจงตาม code_name
+$codeNameStmt = $conn->query("
+    SELECT code_name, COUNT(*) AS total
+    FROM document_numbers
+    GROUP BY code_name
+    ORDER BY total DESC
+");
+$codeNameCounts = $codeNameStmt->fetchAll(PDO::FETCH_ASSOC);
+
+$codeNames = $conn->query("
+    SELECT DISTINCT code_name
+    FROM document_numbers
+    ORDER BY code_name
+")->fetchAll(PDO::FETCH_COLUMN);
+
+
+
 
 
 
@@ -519,7 +592,7 @@ $year_now = (int)date('Y');
       <div class="sidebar-logo">
         <!-- Logo Header -->
         <div class="logo-header" data-background-color="dark">
-          <a href="gmindex.php" class="logo">
+          <a href="developer_dashboard2.php" class="logo">
             <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="30" />
           </a>
           <div class="nav-toggle">
@@ -585,7 +658,7 @@ $year_now = (int)date('Y');
             </li>
 
             <li class="nav-item active">
-              <a href="widgets.html">
+              <a href="developer_dashboard2.php">
                 <i class="far fa-chart-bar"></i>
                 <p>Dashboard_DEV</p>
                 <span class="badge badge-success"></span>
@@ -593,9 +666,17 @@ $year_now = (int)date('Y');
             </li>
 
             <li class="nav-item">
-              <a href="report2.php">
+              <a href="report.php">
                 <i class="fas fa-desktop"></i>
                 <p>Report</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="../logout.php">
+                <i class="fas fa-desktop"></i>
+                <p>Logout</p>
                 <span class="badge badge-success"></span>
               </a>
             </li>
@@ -692,17 +773,16 @@ $year_now = (int)date('Y');
         <div class="page-inner">
           <h3 class="fw-bold mb-3">Dashboard</h3>
 
-          <!-- ฟอร์มค้นหา/กรอง -->
           <form method="GET" id="searchForm" class="card mb-3">
             <div class="card-body py-3">
-              <div class="row g-2 align-items-end">
 
-                <!-- Developer -->
-                <div class="col-6 col-md-3 col-lg-2">
+              <!-- แถวบน -->
+              <div class="row g-2 align-items-end">
+                <div class="col-6 col-md-3">
                   <label for="devSelect" class="form-label fw-bold small">
                     <i class="fas fa-user-cog me-1 text-primary"></i>Developer
                   </label>
-                  <select class="form-select form-select-sm" id="devSelect" name="dev_id" onchange="document.getElementById('searchForm').submit()">
+                  <select class="form-select form-select-sm" id="devSelect" name="dev_id" onchange="this.form.submit()">
                     <option value="all" <?= $selected_dev === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
                     <?php foreach ($developers as $dev): ?>
                       <option value="<?= $dev['id'] ?>" <?= $selected_dev == $dev['id'] ? 'selected' : '' ?>>
@@ -712,8 +792,7 @@ $year_now = (int)date('Y');
                   </select>
                 </div>
 
-                <!-- ประเภทงาน -->
-                <div class="col-6 col-md-3 col-lg-2">
+                <div class="col-6 col-md-3">
                   <label class="form-label fw-bold small">ประเภทงาน</label>
                   <select name="type" class="form-select form-select-sm" onchange="this.form.submit()">
                     <?php foreach ($type_opts as $k => $v): ?>
@@ -722,9 +801,7 @@ $year_now = (int)date('Y');
                   </select>
                 </div>
 
-
-                <!-- สถานะงาน -->
-                <div class="col-6 col-md-3 col-lg-2">
+                <div class="col-6 col-md-3">
                   <label class="form-label fw-bold small">สถานะงาน</label>
                   <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
                     <?php foreach ($status_opts as $k => $v): ?>
@@ -733,10 +810,22 @@ $year_now = (int)date('Y');
                   </select>
                 </div>
 
+                <div class="col-6 col-md-3">
+                  <label class="form-label fw-bold small">แผนกคลังสินค้า</label>
+                  <select name="code_name" id="code_name" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">-- แสดงทั้งหมด --</option>
+                    <?php foreach ($codeNames as $name): ?>
+                      <option value="<?= htmlspecialchars($name) ?>" <?= ($_GET['code_name'] ?? '') === $name ? 'selected' : '' ?>>
+                        <?= htmlspecialchars($name) ?>
+                      </option>
+                    <?php endforeach; ?>
+                  </select>
+                </div>
+              </div>
 
-
-                <!-- สถานะกำหนดส่ง -->
-                <div class="col-6 col-md-3 col-lg-2">
+              <!-- แถวล่าง -->
+              <div class="row g-2 align-items-end mt-1">
+                <div class="col-6 col-md-2">
                   <label class="form-label fw-bold small">กำหนดส่ง</label>
                   <select name="due" class="form-select form-select-sm" onchange="this.form.submit()">
                     <?php foreach ($due_opts as $k => $v): ?>
@@ -745,8 +834,7 @@ $year_now = (int)date('Y');
                   </select>
                 </div>
 
-                <!-- วัน -->
-                <div class="col-6 col-md-2 col-lg-1">
+                <div class="col-6 col-md-2">
                   <label class="form-label fw-bold small">วัน</label>
                   <select name="day" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="all" <?= $current_day === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
@@ -756,11 +844,9 @@ $year_now = (int)date('Y');
                   </select>
                 </div>
 
-
-                <!-- เดือน -->
-                <div class="col-6 col-md-3 col-lg-1">
+                <div class="col-6 col-md-2">
                   <label class="form-label fw-bold small">เดือน</label>
-                  <select name="month" class="form-select form-select-sm">
+                  <select name="month" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="all" <?= $current_month === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
                     <?php for ($m = 1; $m <= 12; $m++): ?>
                       <option value="<?= $m ?>" <?= (string)$current_month === (string)$m ? 'selected' : '' ?>><?= $m ?></option>
@@ -768,10 +854,9 @@ $year_now = (int)date('Y');
                   </select>
                 </div>
 
-                <!-- ปี -->
-                <div class="col-6 col-md-3 col-lg-1">
+                <div class="col-6 col-md-2">
                   <label class="form-label fw-bold small">ปี</label>
-                  <select name="year" class="form-select form-select-sm">
+                  <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="all" <?= $current_year === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
                     <?php for ($y = $year_now - 2; $y <= $year_now + 1; $y++): ?>
                       <option value="<?= $y ?>" <?= (string)$current_year === (string)$y ? 'selected' : '' ?>><?= $y ?></option>
@@ -779,20 +864,20 @@ $year_now = (int)date('Y');
                   </select>
                 </div>
 
-                <!-- ปุ่ม -->
-                <div class="col-12 col-md-2 d-grid">
+                <div class="col-6 col-md-2 d-grid">
                   <button type="submit" class="btn btn-primary btn-sm">
                     <i class="fas fa-search me-1"></i> ค้นหา
                   </button>
                 </div>
-                <div class="col-12 col-md-2 d-grid">
-                  <a href="?dev_id=all" class="btn btn-outline-secondary btn-sm">
-                    ล้างตัวกรอง
-                  </a>
+
+                <div class="col-6 col-md-2 d-grid">
+                  <a href="?dev_id=all" class="btn btn-outline-secondary btn-sm">ล้างตัวกรอง</a>
                 </div>
               </div>
+
             </div>
           </form>
+
 
 
 
@@ -915,6 +1000,9 @@ $year_now = (int)date('Y');
             </div>
 
 
+
+
+
             <div class="col-sm-6 col-lg-3">
               <div class="card p-3">
                 <div class="d-flex align-items-center">
@@ -954,69 +1042,34 @@ $year_now = (int)date('Y');
           <div class="row">
 
 
-           <?php foreach ($devData as $i => $dev): ?>
-  <div class="col-sm-6 col-md-4 col-lg-4 mb-3">
-    <div class="card h-100">
-      <div class="card-header">
-        <div class="card-title mb-0"><?= htmlspecialchars($dev['name']) ?></div>
-      </div>
-      <div class="card-body">
-        <div class="chart-container" style="height:250px; position:relative; overflow:visible;">
-          <canvas id="devChart<?= $i ?>"></canvas>
-        </div>
-        <div class="small text-muted mt-2" id="devEmpty<?= $i ?>" style="display:none">ไม่มีงาน</div>
-      </div>
-    </div>
-  </div>
-<?php endforeach; ?>
-
-
-
-            <!-- <div class="col-md-4">
-              <div class="card">
-                <div class="card-header">
-                  <div class="card-title">DevChart1</div>
-                </div>
-                <div class="card-body">
-                  <div class="chart-container">
-                    <canvas id="DevChart1" style="width: 50%; height: 50%"></canvas>
+            <?php foreach ($devData as $i => $dev): ?>
+              <div class="col-sm-6 col-md-4 col-lg-4 mb-3">
+                <div class="card h-100">
+                  <div class="card-header">
+                    <div class="card-title mb-0"><?= htmlspecialchars($dev['name']) ?></div>
+                  </div>
+                  <div class="card-body">
+                    <div class="chart-container" style="height:250px; position:relative; overflow:visible;">
+                      <canvas id="devChart<?= $i ?>"></canvas>
+                    </div>
+                    <div class="small text-muted mt-2" id="devEmpty<?= $i ?>" style="display:none">ไม่มีงาน</div>
                   </div>
                 </div>
               </div>
-            </div>
-
-            <div class="col-md-4">
-              <div class="card">
-                <div class="card-header">
-                  <div class="card-title">DevChart2</div>
-                </div>
-                <div class="card-body">
-                  <div class="chart-container">
-                    <canvas id="DevChart2" style="width: 50%; height: 50%"></canvas>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-
-            <div class="col-md-4">
-              <div class="card">
-                <div class="card-header">
-                  <div class="card-title">DevChart3</div>
-                </div>
-                <div class="card-body">
-                  <div class="chart-container">
-                    <canvas id="DevChart3" style="width: 50%; height: 50%"></canvas>
-                  </div>
-                </div>
-              </div>
-            </div> -->
+            <?php endforeach; ?>
 
 
             <div class="col-md-12">
               <div class="card">
                 <div class="card-header">
-                  <div class="card-title">รายงานประจำเดือน</div>
+                  <div class="card-title">
+                    รายงานประจำเดือน
+                    <?php if ($current_year !== 'all'): ?>
+                      (ปี <?= htmlspecialchars($current_year) ?>)
+                    <?php else: ?>
+                      (ทุกปี)
+                    <?php endif; ?>
+                  </div>
                 </div>
                 <div class="card-body">
                   <div class="chart-container">
@@ -1025,6 +1078,7 @@ $year_now = (int)date('Y');
                 </div>
               </div>
             </div>
+
 
 
           </div>
@@ -1069,246 +1123,137 @@ $year_now = (int)date('Y');
   <script src="../assets/js/setting-demo2.js"></script>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
-
-
-<script>
-const labels = ['รอรับงาน', 'กำลังทำ', 'เสร็จสิ้น', 'งานบริการ', 'งานพัฒนา'];
-const backgroundColors = ['#f3545d', '#fbfd8e', '#02ff63', '#177dff', '#77d4ffff'];
-const devData = <?= json_encode($devData, JSON_UNESCAPED_UNICODE) ?>;
-
-devData.forEach((dev, i) => {
-  const total = dev.data.reduce((a, b) => a + b, 0);
-  if (total === 0) {
-    document.getElementById('devEmpty' + i).style.display = 'block';
-    return;
-  }
-
-  const ctx = document.getElementById('devChart' + i).getContext('2d');
-  new Chart(ctx, {
-    type: 'doughnut',
-    data: {
-      labels,
-      datasets: [{
-        data: dev.data,
-        backgroundColor: backgroundColors,
-        borderColor: '#fff',
-        borderWidth: 2
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'bottom',
-          labels: {
-            boxWidth: 12,
-            padding: 10,
-            generateLabels: function(chart) {
-              const data = chart.data;
-              return data.labels.map((label, index) => {
-                const value = data.datasets[0].data[index];
-                return {
-                  text: `${label} (${value})`,
-                  fillStyle: data.datasets[0].backgroundColor[index],
-                  strokeStyle: '#fff',
-                  lineWidth: 2,
-                  hidden: chart.getDataVisibility(index) === false
-                };
-              });
-            }
-          },
-          // ✅ เปิดให้คลิก toggle ได้
-          onClick: (e, legendItem, legend) => {
-            const index = legendItem.index;
-            const ci = legend.chart;
-            ci.toggleDataVisibility(index);
-            ci.update();
-          }
-        },
-        datalabels: {
-          color: '#000',
-          font: { weight: 'bold', size: 12 },
-          formatter: (value, context) => {
-            const ci = context.chart;
-            const index = context.dataIndex;
-            return ci.getDataVisibility(index) && value > 0 ? value : '';
-          }
-        }
-      },
-      animation: { duration: 300 }
-    },
-    plugins: [ChartDataLabels]
-  });
-});
-</script>
-<script>
-var ctx = document.getElementById("multipleBarChart").getContext("2d");
-
-var myMultipleBarChart = new Chart(ctx, {
-    type: "bar",
-    data: {
-        labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
-        datasets: [
-            {
-                label: "งานทั้งหมด",
-                backgroundColor: "#59d05d",
-                borderColor: "#59d05d",
-                data: <?= json_encode(array_values($monthlyData['total'])) ?>,
-            },
-            {
-                label: "งานพัฒนา",
-                backgroundColor: "#77d4ffff",
-                borderColor: "#77d4ffff",
-                data: <?= json_encode(array_values($monthlyData['dev'])) ?>,
-            },
-            {
-                label: "งานบริการ",
-                backgroundColor: "#177dff",
-                borderColor: "#177dff",
-                data: <?= json_encode(array_values($monthlyData['service'])) ?>,
-            },
-        ],
-    },
-  
-    options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-            legend: {
-                position: "bottom",
-                labels: {
-                    font: { size: 14 }
-                }
-            },
-            title: {
-                display: true,
-                text: "รายการงานต่อเดือน"
-            }
-        },
-        scales: {
-            x: { stacked: true },
-            y: { stacked: true, beginAtZero: true }
-        }
-    }
-});
-</script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
 
   <script>
-    var
+    const labels = ['รอรับงาน', 'กำลังทำ', 'เสร็จสิ้น', 'งานบริการ', 'งานพัฒนา'];
+    const backgroundColors = ['#f3545d', '#fbfd8e', '#02ff63', '#177dff', '#77d4ffff'];
+    const devData = <?= json_encode($devData, JSON_UNESCAPED_UNICODE) ?>;
 
+    devData.forEach((dev, i) => {
+      const total = dev.data.reduce((a, b) => a + b, 0);
+      if (total === 0) {
+        document.getElementById('devEmpty' + i).style.display = 'block';
+        return;
+      }
 
-      DevChart1 = document
-      .getElementById("DevChart1")
-      .getContext("2d"),
-
-      DevChart2 = document
-      .getElementById("DevChart2")
-      .getContext("2d"),
-
-      DevChart2 = document
-      .getElementById("DevChart2")
-      .getContext("2d"),
-
-
-
-      multipleBarChart = document
-      .getElementById("multipleBarChart")
-      .getContext("2d");
-
-
-
-
-    var myDoughnutChart = new Chart(DevChart1, {
-      type: "doughnut",
-      data: {
-        datasets: [{
-          data: [10, 20, 30],
-          backgroundColor: ["#f3545d", "#fcff5dff", "#02ff63ff"],
-        }, ],
-
-        labels: ["รอรับงาน", "กำลังทำ", "เสร็จสิ้น"],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        legend: {
-          position: "bottom",
+      const ctx = document.getElementById('devChart' + i).getContext('2d');
+      new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels,
+          datasets: [{
+            data: dev.data,
+            backgroundColor: backgroundColors,
+            borderColor: '#fff',
+            borderWidth: 2
+          }]
         },
-        layout: {
-          padding: {
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: 20,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'bottom',
+              labels: {
+                boxWidth: 12,
+                padding: 10,
+                generateLabels: function(chart) {
+                  const data = chart.data;
+                  return data.labels.map((label, index) => {
+                    const value = data.datasets[0].data[index];
+                    return {
+                      text: `${label} (${value})`,
+                      fillStyle: data.datasets[0].backgroundColor[index],
+                      strokeStyle: '#fff',
+                      lineWidth: 2,
+                      hidden: chart.getDataVisibility(index) === false
+                    };
+                  });
+                }
+              },
+              // ✅ เปิดให้คลิก toggle ได้
+              onClick: (e, legendItem, legend) => {
+                const index = legendItem.index;
+                const ci = legend.chart;
+                ci.toggleDataVisibility(index);
+                ci.update();
+              }
+            },
+            datalabels: {
+              color: '#000',
+              font: {
+                weight: 'bold',
+                size: 12
+              },
+              formatter: (value, context) => {
+                const ci = context.chart;
+                const index = context.dataIndex;
+                return ci.getDataVisibility(index) && value > 0 ? value : '';
+              }
+            }
           },
+          animation: {
+            duration: 300
+          }
         },
-      },
+        plugins: [ChartDataLabels]
+      });
     });
-
-
-    var myDoughnutChart = new Chart(DevChart2, {
-      type: "doughnut",
-      data: {
-        datasets: [{
-          data: [10, 20, 30],
-          backgroundColor: ["#f3545d", "#fdaf4b", "#1d7af3"],
-        }, ],
-
-        labels: ["รอรับงาน", "กำลังทำ", "เสร็จสิ้น"],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        legend: {
-          position: "bottom",
-        },
-        layout: {
-          padding: {
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: 20,
-          },
-        },
-      },
-    });
-
-    var myDoughnutChart = new Chart(DevChart3, {
-      type: "doughnut",
-      data: {
-        datasets: [{
-          data: [10, 20, 30],
-          backgroundColor: ["#f3545d", "#fdaf4b", "#1d7af3"],
-        }, ],
-
-        labels: ["รอรับงาน", "กำลังทำ", "เสร็จสิ้น"],
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        legend: {
-          position: "bottom",
-        },
-        layout: {
-          padding: {
-            left: 20,
-            right: 20,
-            top: 20,
-            bottom: 20,
-          },
-        },
-      },
-    });
-
-
-
-
-
   </script>
+  <script>
+    var barData = <?= json_encode($barData) ?>;
 
+    var myMultipleBarChart = new Chart(document.getElementById('multipleBarChart'), {
+      type: "bar",
+      data: {
+        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+        datasets: [{
+            label: "งานทั้งหมด",
+            backgroundColor: "#59d05d",
+            borderColor: "#59d05d",
+            data: barData.all
+          },
+          {
+            label: "งานพัฒนา Development",
+            backgroundColor: "#77d4ffff",
+            borderColor: "#77d4ffff",
+            data: barData.development
+          },
+          {
+            label: "งานบริการ Service",
+            backgroundColor: "#177dff",
+            borderColor: "#177dff",
+            data: barData.service
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        legend: {
+          position: "bottom"
+        },
+        title: {
+          display: true,
+          text: "รายการงานต่อเดือน"
+        },
+        tooltips: {
+          mode: "index",
+          intersect: false
+        },
+        scales: {
+          xAxes: [{
+            stacked: true
+          }],
+          yAxes: [{
+            stacked: true
+          }]
+        }
+      }
+    });
+  </script>
 
 </body>
 

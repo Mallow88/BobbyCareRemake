@@ -9,6 +9,10 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'assignor') {
 
 $assignor_id = $_SESSION['user_id'];
 
+
+$picture_url = $_SESSION['picture_url'] ?? null;
+
+
 // รับพารามิเตอร์การฟิลเตอร์
 $filter_type = $_GET['filter'] ?? 'all';
 $filter_date = $_GET['date'] ?? date('Y-m-d');
@@ -104,23 +108,49 @@ $completion_rate = $approved_count > 0 ? round(($completed_count / $approved_cou
 $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 0;
 ?>
 
+
+
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BobbyCareDev-รายการที่อนุมัติแล้ว</title>
-    <link rel="icon" type="image/png" href="/BobbyCareRemake/img/logo/bobby-icon.png">
-     <link rel="stylesheet" href="../css/nav.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>BobbyCareDev</title>
+  <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
+  <link rel="icon" href="/BobbyCareRemake/img/logo/bobby-icon.png" type="image/x-icon" />
+
+  <!-- Fonts and icons -->
+  <script src="../assets/js/plugin/webfont/webfont.min.js"></script>
+  <script>
+    WebFont.load({
+      google: {
+        families: ["Public Sans:300,400,500,600,700"]
+      },
+      custom: {
+        families: [
+          "Font Awesome 5 Solid",
+          "Font Awesome 5 Regular",
+          "Font Awesome 5 Brands",
+          "simple-line-icons",
+        ],
+        urls: ["../assets/css/fonts.min.css"],
+      },
+      active: function() {
+        sessionStorage.fonts = true;
+      },
+    });
+  </script>
+
+  <!-- CSS Files -->
+  <link rel="stylesheet" href="../assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="../assets/css/plugins.min.css" />
+  <link rel="stylesheet" href="../assets/css/kaiadmin.min.css" />
+
+  <!-- CSS Just for demo purpose, don't include it in your project -->
+  <link rel="stylesheet" href="../assets/css/demo.css" />
+
     <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #ffffff 0%, #341355 100%);
-            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            --glass-bg: rgba(255, 255, 255, 0.95);
-            --glass-border: rgba(255, 255, 255, 0.2);
-        }
+    
 
         body {
             background: var(--primary-gradient);
@@ -423,56 +453,186 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
         }
     </style>
 </head>
+
 <body>
-    
- <nav class="custom-navbar navbar navbar-expand-lg shadow-sm">
-    <div class="container custom-navbar-container">
-        <!-- โลโก้ + ชื่อระบบ (ฝั่งซ้าย) -->
-        <a class="navbar-brand d-flex align-items-center custom-navbar-brand" href="index.php">
-            <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
-            <!-- ชื่อระบบ หรือ โลโก้อย่างเดียว ฝั่งซ้าย -->
-        </a>
 
-        <!-- ปุ่ม toggle สำหรับ mobile -->
-        <button class="navbar-toggler custom-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <!-- เมนู -->
-        <div class="collapse navbar-collapse" id="navbarContent">
-            <!-- ซ้าย: เมนูหลัก -->
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0 custom-navbar-menu">
-                 <li class="nav-item">
-                        <a class="nav-link" href="view_requests.php"><i class="fas fa-tasks me-1"></i>ตรวจสอบคำขอ
-                    </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="approved_list.php"><i class="fas fa-chart-bar me-1"></i> รายการที่อนุมัติ</a>
-                    </li>
-                     <li class="nav-item">
-                        <a class="nav-link" href="view_completed_tasks.php"><i class="fas fa-chart-bar me-1"></i>UserReviews</a>
-                    </li>
-                     <li class="nav-item">
-                        <a class="nav-link" href="assignor_dashboard.php"><i class="fas fa-chart-bar me-1"></i>Dashboard_DEV</a>
-                    </li>
-            </ul>
-
-            <!-- ขวา: ชื่อผู้ใช้ + ออกจากระบบ -->
-            <ul class="navbar-nav mb-2 mb-lg-0 align-items-center">
-                <li class="nav-item d-flex align-items-center me-3">
-                    <i class="fas fa-user-circle me-1"></i>
-                    <span class="custom-navbar-title">ผู้จัดการเเผนกคุณ: <?= htmlspecialchars($_SESSION['name']) ?>!</span>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-danger" href="../logout.php">
-                        <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
-                    </a>
-                </li>
-            </ul>
+  <div class="wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar" data-background-color="dark">
+      <div class="sidebar-logo">
+        <!-- Logo Header -->
+        <div class="logo-header" data-background-color="dark">
+          <a href="index2.php" class="logo">
+            <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="30" />
+          </a>
+          <div class="nav-toggle">
+            <button class="btn btn-toggle toggle-sidebar">
+              <i class="gg-menu-right"></i>
+            </button>
+            <button class="btn btn-toggle sidenav-toggler">
+              <i class="gg-menu-left"></i>
+            </button>
+          </div>
+          <button class="topbar-toggler more">
+            <i class="gg-more-vertical-alt"></i>
+          </button>
         </div>
+        <!-- End Logo Header -->
+      </div>
+      <div class="sidebar-wrapper scrollbar scrollbar-inner">
+        <div class="sidebar-content">
+          <ul class="nav nav-secondary">
+            <li class="nav-item active ">
+              <a data-bs-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
+                <i class="fas fa-home"></i>
+                <p>Dashboard</p>
+                <span class="caret"></span>
+              </a>
+              <div class="collapse" id="dashboard">
+                <ul class="nav nav-collapse">
+                  <li>
+                    <a href="index2.php">
+                      <span class="sub-item">หน้าหลัก</span>
+                    </a>
+                  </li>
+
+                </ul>
+              </div>
+
+            </li>
+            <li class="nav-section">
+              <span class="sidebar-mini-icon">
+                <i class="fa fa-ellipsis-h"></i>
+              </span>
+              <h4 class="text-section">Components</h4>
+            </li>
+            <li class="nav-item">
+              <a href="view_requests2.php">
+                <i class="fas fa-search"></i> <!-- ตรวจสอบคำขอ -->
+                <p>ตรวจสอบคำขอ</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="approved_list2.php">
+                <i class="fas fa-check-circle"></i> <!-- รายการที่อนุมัติ -->
+                <p>รายการที่อนุมัติ</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+            <li class="nav-item ">
+              <a href="view_completed_tasks2.php">
+                <i class="fas fa-comments"></i> <!-- UserReviews -->
+                <p>UserReviews</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="assignor_dashboard.php2">
+                <i class="fas fa-tachometer-alt"></i> <!-- Dashboard_DEV -->
+                <p>Dashboard_DEV</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="../logout.php">
+                <i class="fas fa-sign-out-alt"></i> <!-- Logout -->
+                <p>Logout</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+
+          </ul>
+        </div>
+      </div>
     </div>
-</nav>
-    <div class="container mt-5">
+    <!-- End Sidebar -->
+
+    <div class="main-panel">
+      <div class="main-header">
+        <div class="main-header-logo">
+          <!-- Logo Header -->
+          <div class="logo-header" data-background-color="dark">
+            <a href="../index.html" class="logo">
+              <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="20" />
+            </a>
+            <div class="nav-toggle">
+              <button class="btn btn-toggle toggle-sidebar">
+                <i class="gg-menu-right"></i>
+              </button>
+              <button class="btn btn-toggle sidenav-toggler">
+                <i class="gg-menu-left"></i>
+              </button>
+            </div>
+            <button class="topbar-toggler more">
+              <i class="gg-more-vertical-alt"></i>
+            </button>
+          </div>
+          <!-- End Logo Header -->
+        </div>
+
+        <!-- Navbar Header -->
+        <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+          <div class="container-fluid">
+            <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+
+              <!-- โปรไฟล์ -->
+              <li class="nav-item topbar-user dropdown hidden-caret">
+                <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+
+                  <div class="avatar-sm">
+                    <img src="<?= htmlspecialchars($picture_url) ?>" alt="..." class="avatar-img rounded-circle" />
+                  </div>
+
+                  <span class="profile-username">
+                    <span class="op-7">ผู้จัดการเเผนก:</span>
+                    <span class="fw-bold"><?= htmlspecialchars($_SESSION['name']) ?></span>
+                  </span>
+                </a>
+                <ul class="dropdown-menu dropdown-user animated fadeIn">
+                  <div class="dropdown-user-scroll scrollbar-outer">
+                    <li>
+                      <div class="user-box">
+                        <div class="avatar-lg">
+                          <img src="<?= htmlspecialchars($picture_url) ?>" alt="image profile" class="avatar-img rounded" />
+                        </div>
+                        <div class="u-text">
+                          <h4><?= htmlspecialchars($_SESSION['name']) ?> </h4>
+
+                          <!-- <p class="text-muted"><?= htmlspecialchars($email) ?></p> -->
+                          <a href="" class="btn btn-xs btn-secondary btn-sm">View Profile</a>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider"></div>
+                      <a class="dropdown-item" href="#">My Profile</a>
+
+                      <div class="dropdown-divider"></div>
+                      <a class="dropdown-item" href="../logout.php">Logout</a>
+                    </li>
+                  </div>
+                </ul>
+              </li>
+
+
+            </ul>
+          </div>
+        </nav>
+        <!-- End Navbar -->
+      </div>
+
+
+
+
+      <div class="container">
+<br>
+ <div class="container mt-5">
 
       
 
@@ -496,13 +656,12 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
             </div>
         </div>
 
-        <!-- ส่วนฟิลเตอร์ -->
-        <div class="filter-section">
-            <h5 class="fw-bold mb-3">
-                <i class="fas fa-filter me-2"></i>ฟิลเตอร์ข้อมูล
-            </h5>
-            
-            <div class="filter-buttons">
+              <!-- ส่วนฟิลเตอร์ -->
+      <div class="filter-section text-center p-4 bg-white shadow-sm rounded-3 mx-auto" style="max-width: 800px;">
+    <h5 class="fw-bold mb-4">
+        <i class="fas fa-filter me-2 text-primary"></i>ฟิลเตอร์ข้อมูล
+    </h5>
+             <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
                 <button class="filter-btn <?= $filter_type === 'all' ? 'active' : '' ?>" onclick="setFilter('all')">
                     <i class="fas fa-list me-1"></i>ทั้งหมด
                 </button>
@@ -632,7 +791,9 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
 
                         <!-- เหตุผลการพิจารณา -->
                         <?php if ($approval['reason']): ?>
-                            <div class="bg-<?= $approval['status'] === 'approved' ? 'success' : 'danger' ?> bg-opacity-10 p-3 rounded border-start border-<?= $approval['status'] === 'approved' ? 'success' : 'danger' ?> border-4 mb-3">
+                            <div <?= $approval['status'] === 'approved' ? 'success' : 'danger' ?> 
+                            bg-opacity-10 p-3 rounded border-start border-<?= $approval['status'] === 'approved' ? 'success' : 'danger' ?> 
+                            border-4 mb-3">
                                 <h6 class="fw-bold text-<?= $approval['status'] === 'approved' ? 'success' : 'danger' ?> mb-2">
                                     <i class="fas fa-comment me-2"></i>เหตุผล/ข้อเสนอแนะ
                                 </h6>
@@ -642,7 +803,7 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
 
                         <!-- ข้อมูลการมอบหมาย -->
                         <?php if ($approval['status'] === 'approved' && $approval['dev_name']): ?>
-                            <div class="bg-info bg-opacity-10 p-3 rounded border-start border-info border-4 mb-3">
+                            <div >
                                 <h6 class="fw-bold text-info mb-2">
                                     <i class="fas fa-user-cog me-2"></i>ข้อมูลการมอบหมาย
                                 </h6>
@@ -735,6 +896,50 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
         </div>
     </div>
 
+
+          </div>
+        </div>
+      </div>
+
+      <!-- <footer class="footer">
+        <div class="container-fluid d-flex justify-content-between">
+          <nav class="pull-left">
+
+          </nav>
+          <div class="copyright">
+            © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
+            <i class="fa fa-heart heart text-danger"></i>
+
+          </div>
+          <div>
+
+          </div>
+        </div>
+      </footer> -->
+    </div>
+  </div>
+
+
+
+
+  </div>
+  <!--   Core JS Files   -->
+  <script src="../assets/js/core/jquery-3.7.1.min.js"></script>
+  <script src="../assets/js/core/popper.min.js"></script>
+  <script src="../assets/js/core/bootstrap.min.js"></script>
+  <!-- Chart JS -->
+  <script src="../assets/js/plugin/chart.js/chart.min.js"></script>
+  <!-- jQuery Scrollbar -->
+  <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+  <!-- Kaiadmin JS -->
+  <script src="../assets/js/kaiadmin.min.js"></script>
+  <!-- Kaiadmin DEMO methods, don't include it in your project! -->
+  <script src="../assets/js/setting-demo2.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let currentFilter = '<?= $filter_type ?>';
@@ -787,11 +992,13 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
         }
 
         // Auto-refresh every 2 minutes
-        setInterval(function() {
-            if (document.visibilityState === 'visible') {
-                location.reload();
-            }
-        }, 120000);
+        // setInterval(function() {
+        //     if (document.visibilityState === 'visible') {
+        //         location.reload();
+        //     }
+        // }, 120000);
     </script>
+
 </body>
+
 </html>

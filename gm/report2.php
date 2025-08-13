@@ -2,12 +2,10 @@
 session_start();
 require_once __DIR__ . '/../config/database.php';
 
-
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'assignor') {
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'gmapprover') {
     header("Location: ../index.php");
     exit();
 }
-
 
 // ดึงข้อมูลสำหรับรายงาน
 $date_from = $_GET['date_from'] ?? date('Y-m-01');
@@ -51,6 +49,7 @@ if ($department_filter !== 'all') {
     $where_conditions[] = "requester.department = ?";
     $params[] = $department_filter;
 }
+
 $document_number_filter = $_GET['document_number'] ?? null;
 if ($document_number_filter) {
     $where_conditions[] = "dn.document_number LIKE ?";
@@ -62,6 +61,7 @@ if ($year_filter) {
     $where_conditions[] = "dn.year = ?";
     $params[] = $year_filter;
 }
+
 
 
 if ($status_filter !== 'all') {
@@ -220,25 +220,25 @@ foreach ($requests as $req) {
                 'in_progress' => 0
             ];
         }
-        
+
         $dev_performance[$dev_key]['total_tasks']++;
         $dev_performance[$dev_key]['total_hours'] += $req['hours_spent'];
-        
+
         if (in_array($req['task_status'], ['completed', 'accepted'])) {
             $dev_performance[$dev_key]['completed_tasks']++;
         }
-        
+
         if (in_array($req['task_status'], ['received', 'in_progress', 'on_hold'])) {
             $dev_performance[$dev_key]['in_progress']++;
         }
-        
+
         if ($req['rating']) {
             $current_avg = $dev_performance[$dev_key]['avg_rating'];
             $current_count = $dev_performance[$dev_key]['total_ratings'];
             $dev_performance[$dev_key]['avg_rating'] = (($current_avg * $current_count) + $req['rating']) / ($current_count + 1);
             $dev_performance[$dev_key]['total_ratings']++;
         }
-        
+
         // ตรวจสอบการส่งงานตรงเวลา
         if ($req['delivery_status'] === 'on_time') {
             $dev_performance[$dev_key]['on_time']++;
@@ -293,80 +293,240 @@ $avg_dev_hours = count($completed_tasks) > 0 ? round($total_dev_hours / count($c
 $rated_tasks = array_filter($requests, fn($r) => $r['rating'] > 0);
 $total_rating = array_sum(array_column($rated_tasks, 'rating'));
 $avg_rating = count($rated_tasks) > 0 ? round($total_rating / count($rated_tasks), 1) : 0;
+
+
+?>
+<?php
+// ====== ส่วน PHP Query ที่คุณให้มา ======
+// (วางโค้ดของคุณตั้งแต่ session_start() จนถึงจุดที่คำนวณสถิติทั้งหมด)
+
 ?>
 
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BobbyCareDev-รายงานระบบจัดการคำขอบริการ</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/approved-title.css">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>BobbyCareDev-Dashboard</title>
+  <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
+  <link rel="icon" href="/BobbyCareRemake/img/logo/bobby-icon.png" type="image/x-icon" />
+
+  <!-- Fonts and icons -->
+  <script src="../assets/js/plugin/webfont/webfont.min.js"></script>
+  <script>
+    WebFont.load({
+      google: {
+        families: ["Public Sans:300,400,500,600,700"]
+      },
+      custom: {
+        families: [
+          "Font Awesome 5 Solid",
+          "Font Awesome 5 Regular",
+          "Font Awesome 5 Brands",
+          "simple-line-icons",
+        ],
+        urls: ["../assets/css/fonts.min.css"],
+      },
+      active: function() {
+        sessionStorage.fonts = true;
+      },
+    });
+  </script>
+
+  <!-- CSS Files -->
+  <link rel="stylesheet" href="../assets/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="../assets/css/plugins.min.css" />
+  <link rel="stylesheet" href="../assets/css/kaiadmin.min.css" />
+
+  <!-- CSS Just for demo purpose, don't include it in your project -->
+  <link rel="stylesheet" href="../assets/css/demo.css" />
+
     <link rel="stylesheet" href="css/report.css">
-    <link rel="stylesheet" href="css/developer_dashboard.css">
-    <link rel="icon" type="image/png" href="/BobbyCareRemake/img/logo/bobby-icon.png">
-    <link rel="stylesheet" href="../css/nav.css">
-    <style>
-       
-    </style>
+       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+
 </head>
+
 <body>
- 
- <nav class="custom-navbar navbar navbar-expand-lg shadow-sm">
-    <div class="container custom-navbar-container">
-        <!-- โลโก้ + ชื่อระบบ (ฝั่งซ้าย) -->
-        <a class="navbar-brand d-flex align-items-center custom-navbar-brand" href="index.php">
-            <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
-            <!-- ชื่อระบบ หรือ โลโก้อย่างเดียว ฝั่งซ้าย -->
-        </a>
 
-        <!-- ปุ่ม toggle สำหรับ mobile -->
-        <button class="navbar-toggler custom-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <!-- เมนู -->
-        <div class="collapse navbar-collapse" id="navbarContent">
-            <!-- ซ้าย: เมนูหลัก -->
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0 custom-navbar-menu">
-                 <li class="nav-item">
-                        <a class="nav-link" href="view_requests.php"><i class="fas fa-tasks me-1"></i>ตรวจสอบคำขอ
-                    </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="approved_list.php"><i class="fas fa-chart-bar me-1"></i> รายการที่อนุมัติ</a>
-                    </li>
-                     <li class="nav-item">
-                        <a class="nav-link" href="view_completed_tasks.php"><i class="fas fa-chart-bar me-1"></i>UserReviews</a>
-                    </li>
-                     <li class="nav-item">
-                        <a class="nav-link" href="assignor_dashboard.php"><i class="fas fa-chart-bar me-1"></i>Dashboard_DEV</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="report.php"><i class="fas fa-chart-bar me-1"></i>Report</a>
-                    </li>
-            </ul>
-
-            <!-- ขวา: ชื่อผู้ใช้ + ออกจากระบบ -->
-            <ul class="navbar-nav mb-2 mb-lg-0 align-items-center">
-                <li class="nav-item d-flex align-items-center me-3">
-                    <i class="fas fa-user-circle me-1"></i>
-                    <span class="custom-navbar-title">ผู้จัดการเเผนกคุณ: <?= htmlspecialchars($_SESSION['name']) ?>!</span>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-danger" href="../logout.php">
-                        <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
-                    </a>
-                </li>
-            </ul>
+  <div class="wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar" data-background-color="dark">
+      <div class="sidebar-logo">
+        <!-- Logo Header -->
+        <div class="logo-header" data-background-color="dark">
+          <a href="developer_dashboard2.php" class="logo">
+            <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="30" />
+          </a>
+          <div class="nav-toggle">
+            <button class="btn btn-toggle toggle-sidebar">
+              <i class="gg-menu-right"></i>
+            </button>
+            <button class="btn btn-toggle sidenav-toggler">
+              <i class="gg-menu-left"></i>
+            </button>
+          </div>
+          <button class="topbar-toggler more">
+            <i class="gg-more-vertical-alt"></i>
+          </button>
         </div>
+        <!-- End Logo Header -->
+      </div>
+      <div class="sidebar-wrapper scrollbar scrollbar-inner">
+        <div class="sidebar-content">
+          <ul class="nav nav-secondary">
+            <li class="nav-item">
+              <a data-bs-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
+                <i class="fas fa-home"></i>
+                <p>Dashboard</p>
+                <span class="caret"></span>
+              </a>
+              <div class="collapse" id="dashboard">
+                <ul class="nav nav-collapse">
+                  <li>
+                    <a href="gmindex.php">
+                      <span class="sub-item">หน้าหลัก</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="developer_dashboard2.php">
+                      <span class="sub-item">Dashboard</span>
+                    </a>
+                  </li>
+                </ul>
+              </div>
+
+            </li>
+            <li class="nav-section">
+              <span class="sidebar-mini-icon">
+                <i class="fa fa-ellipsis-h"></i>
+              </span>
+              <h4 class="text-section">Components</h4>
+            </li>
+
+            <li class="nav-item">
+              <a href="approved_list2.php">
+                <i class="fas fa-desktop"></i>
+                <p>รายการที่อนุมัติ</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="view_completed_tasks2.php">
+                <i class="fas fa-desktop"></i>
+                <p>User Reviews</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+            <li class="nav-item active">
+              <a href="widgets.html">
+                <i class="far fa-chart-bar"></i>
+                <p>Dashboard_DEV</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="report2.php">
+                <i class="fas fa-desktop"></i>
+                <p>Report</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+          </ul>
+        </div>
+      </div>
     </div>
-</nav>
+    <!-- End Sidebar -->
+
+    <div class="main-panel">
+      <div class="main-header">
+        <div class="main-header-logo">
+          <!-- Logo Header -->
+          <div class="logo-header" data-background-color="dark">
+            <a href="../index.html" class="logo">
+              <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="20" />
+            </a>
+            <div class="nav-toggle">
+              <button class="btn btn-toggle toggle-sidebar">
+                <i class="gg-menu-right"></i>
+              </button>
+              <button class="btn btn-toggle sidenav-toggler">
+                <i class="gg-menu-left"></i>
+              </button>
+            </div>
+            <button class="topbar-toggler more">
+              <i class="gg-more-vertical-alt"></i>
+            </button>
+          </div>
+          <!-- End Logo Header -->
+        </div>
+
+        <!-- Navbar Header -->
+        <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+          <div class="container-fluid">
+            <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+
+              <!-- โปรไฟล์ -->
+              <li class="nav-item topbar-user dropdown hidden-caret">
+                <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+
+                  <div class="avatar-sm">
+                    <img src="<?= htmlspecialchars($picture_url) ?>" alt="..." class="avatar-img rounded-circle" />
+                  </div>
+
+                  <span class="profile-username">
+                    <span class="op-7">ผู้จัดการทั่วไป:</span>
+                    <span class="fw-bold"><?= htmlspecialchars($_SESSION['name']) ?></span>
+                  </span>
+                </a>
+                <ul class="dropdown-menu dropdown-user animated fadeIn">
+                  <div class="dropdown-user-scroll scrollbar-outer">
+                    <li>
+                      <div class="user-box">
+                        <div class="avatar-lg">
+                          <img src="<?= htmlspecialchars($picture_url) ?>" alt="image profile" class="avatar-img rounded" />
+                        </div>
+                        <div class="u-text">
+                          <h4><?= htmlspecialchars($_SESSION['name']) ?> </h4>
+
+                          <!-- <p class="text-muted"><?= htmlspecialchars($email) ?></p> -->
+                          <a href="" class="btn btn-xs btn-secondary btn-sm">View Profile</a>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider"></div>
+                      <a class="dropdown-item" href="#">My Profile</a>
+
+                      <div class="dropdown-divider"></div>
+                      <a class="dropdown-item" href="../logout.php">Logout</a>
+                    </li>
+                  </div>
+                </ul>
+              </li>
 
 
-    <!-- Header -->
+            </ul>
+          </div>
+        </nav>
+        <!-- End Navbar -->
+      </div>
+
+
+
+
+      <div class="container">
+
+
+
+
+
+
+ <!-- Header -->
     <div class="report-header">
         <div class="container">
 
@@ -383,7 +543,7 @@ $avg_rating = count($rated_tasks) > 0 ? round($total_rating / count($rated_tasks
                     </div>
                     <div class="col-md-4">
                         <i class="fas fa-user me-2"></i>
-                        <strong>ลงชื่อผู้จัดการเเผนก:</strong> <?= htmlspecialchars($_SESSION['name']) ?>
+                        <strong>ลงชื่อผู้จัดการทั่วไป:</strong> <?= htmlspecialchars($_SESSION['name']) ?>
                     </div>
                 </div>
             </div>
@@ -551,6 +711,7 @@ $avg_rating = count($rated_tasks) > 0 ? round($total_rating / count($rated_tasks
             </div>
 
         </div>
+       
 
         <!-- Detailed Table -->
         <div class="table-section page-break">
@@ -741,9 +902,6 @@ $avg_rating = count($rated_tasks) > 0 ? round($total_rating / count($rated_tasks
                 </div>
             <?php endif; ?>
         </div>
-
-
-        
 <br>
 
  <!-- Charts Section -->
@@ -816,6 +974,61 @@ $avg_rating = count($rated_tasks) > 0 ? round($total_rating / count($rated_tasks
 
     </div>
 
+
+          
+
+
+
+            
+            
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <div class="container-fluid d-flex justify-content-between">
+        <nav class="pull-left">
+
+        </nav>
+        <div class="copyright">
+          © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
+          <i class="fa fa-heart heart text-danger"></i>
+
+        </div>
+        <div>
+
+        </div>
+      </div>
+    </footer>
+  </div>
+  </div>
+
+
+
+
+  </div>
+  <!--   Core JS Files   -->
+  <script src="../assets/js/core/jquery-3.7.1.min.js"></script>
+  <script src="../assets/js/core/popper.min.js"></script>
+  <script src="../assets/js/core/bootstrap.min.js"></script>
+  <!-- Chart JS -->
+  <script src="../assets/js/plugin/chart.js/chart.min.js"></script>
+  <!-- jQuery Scrollbar -->
+  <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+  <!-- Kaiadmin JS -->
+  <script src="../assets/js/kaiadmin.min.js"></script>
+  <!-- Kaiadmin DEMO methods, don't include it in your project! -->
+  <script src="../assets/js/setting-demo2.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+
+
+</body>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Auto-submit form when filters change
@@ -837,6 +1050,4 @@ $avg_rating = count($rated_tasks) > 0 ? round($total_rating / count($rated_tasks
             document.body.classList.remove('printing');
         });
     </script>
-</body>
-
 </html>
