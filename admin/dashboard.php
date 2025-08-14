@@ -90,6 +90,8 @@ if (!isset($_SESSION['admin_id'])) {
     <hr style="border-color: #d4d4d4ff;">
 
     <a href="manage_users.php" class="btn-hacker">👥 จัดการผู้ใช้</a>
+    <a href="departments_list.php" class="btn-hacker">จัดการเเผนกคลัง</a>
+    <a href="programs_list.php" class="btn-hacker">จัดการโปรเเกรม</a>
     <a href="logs.php" class="btn-hacker">📜 ดูประวัติการใช้งาน</a>
     <a href="logout.php" class="btn-hacker">🚪 ออกจากระบบ</a>
 

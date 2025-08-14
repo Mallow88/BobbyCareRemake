@@ -127,7 +127,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!-- ฟอร์มลงทะเบียน (ซ่อนก่อน) -->
 <div id="registerForm" style="display:none;">
-    <form method="POST" class="row g-4 mt-4">
+    <!-- <form method="POST" class="row g-4 mt-4"> -->
+        <form id="registerFormData" method="POST" class="row g-4 mt-4">
         <div class="col-12">
           <label class="form-label">LINE Name:</label>
           <input type="text" class="form-control" value="<?= htmlspecialchars($_SESSION['name']) ?>" disabled>
@@ -172,14 +173,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
        <input type="hidden" name="role" value="user">
 
 
-        <div class="col-12 text-end mt-4">
+        <!-- <div class="col-12 text-end mt-4">
           <button type="submit" class="btn btn-primary">บันทึกข้อมูล</button>
+        </div> -->
+        <div class="col-12 text-end mt-4">
+       <button type="button" id="btnSaveRegister" class="btn btn-primary">บันทึกข้อมูล</button>
+
         </div>
+
+        
     </form>
 </div>
 
   </div>
 </div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
 <script>
 document.getElementById('btnSearchTemplate').addEventListener('click', function() {
     let keyword = document.getElementById('searchTemplate').value.trim();
@@ -210,6 +221,39 @@ document.getElementById('btnSearchTemplate').addEventListener('click', function(
         })
         .catch(err => console.error(err));
 });
+</script>
+
+
+
+
+
+
+
+<!-- SweetAlert Script -->
+<script>
+ $("#btnSaveRegister").click(function () {
+  swal({
+    title: "ยืนยันการลงทะเบียน?",
+    text: "ตรวจสอบข้อมูลให้ครบถ้วน",
+    icon: "info",
+    buttons: {
+      confirm: {
+        text: "ยืนยัน",
+        className: "btn btn-success",
+      },
+      cancel: {
+        text: "ยกเลิก",
+        visible: true,
+        className: "btn btn-danger",
+      },
+    },
+  }).then(function (willSave) {
+    if (willSave) {
+      $("#registerFormData").submit();
+    }
+  });
+});
+
 </script>
 
 </body>
