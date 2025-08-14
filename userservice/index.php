@@ -387,10 +387,7 @@ foreach ($requests as &$request) {
             <div class="empty-state">
               <i class="fas fa-inbox"></i>
               <h3 class="fw-bold mb-3">ยังไม่มีคำขอบริการ</h3>
-              <p class="fs-5 mb-4">เริ่มต้นด้วยการสร้างคำขอบริการใหม่</p>
-              <a href="create.php" class="btn btn-gradient btn-lg">
-                <i class="fas fa-plus me-2"></i>สร้างคำขอแรก
-              </a>
+              
             </div>
           <?php else: ?>
             <div class="mb-4">
