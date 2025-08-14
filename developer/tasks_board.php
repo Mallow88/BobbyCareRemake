@@ -1,4 +1,4 @@
-<?php
+<?php 
 session_start();
 require_once __DIR__ . '/../config/database.php';
 
@@ -9,19 +9,18 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'developer') {
 
 $developer_id = $_SESSION['user_id'];
 
-
-
-// ฟังก์ชันสร้างเลขที่เอกสาร
+// ===== ฟังก์ชันสร้างเลขเอกสาร =====
 function generateDocumentNumber($conn, $warehouse_number, $code_name)
 {
     try {
         $current_year = date('y');
-        $current_month = date('n');
+        $current_month = date('m'); // เปลี่ยนเป็น m ให้ padding 0
 
         $stmt = $conn->prepare("
             SELECT COALESCE(MAX(running_number), 0) as max_running 
             FROM document_numbers
             WHERE warehouse_number = ? AND code_name = ? AND year = ? AND month = ?
+            FOR UPDATE
         ");
         $stmt->execute([$warehouse_number, $code_name, $current_year, $current_month]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -47,81 +46,10 @@ function generateDocumentNumber($conn, $warehouse_number, $code_name)
     }
 }
 
-// การประมวลผล POST
+// ====== การประมวลผล POST แยกตาม action ======
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $work_category = $_POST['work_category'] ?? null;
-    $service_id = $_POST['service_id'] ?? null;
-    
-    try {
-        $conn->beginTransaction();
-
-        // ตรวจสอบ category
-        if (empty($work_category)) {
-            throw new Exception("กรุณาเลือกหัวข้องานคลัง");
-        }
-
-        // ดึงข้อมูล service
-        $service_stmt = $conn->prepare("SELECT * FROM services WHERE id = ?");
-        $service_stmt->execute([$service_id]);
-        $service = $service_stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$service) {
-            throw new Exception("ไม่พบประเภทบริการที่เลือก");
-        }
-
-        // แยก warehouse_number และ code_name
-        $work_parts = explode('-', $work_category);
-        if (count($work_parts) !== 2) {
-            throw new Exception("รูปแบบหัวข้องานคลังไม่ถูกต้อง");
-        }
-        $warehouse_number = $work_parts[0];
-        $code_name = $work_parts[1];
-
-        // ✅ สร้างเลขที่เอกสาร
-        $doc_result = generateDocumentNumber($conn, $warehouse_number, $code_name);
-        $document_number = $doc_result['document_number'];
-        $document_id = $doc_result['document_id'];
-
-        // ✅ สร้าง service request (สมมุติสร้างแล้วได้ $request_id)
-        // $request_id = ... (สร้างงานใหม่และได้ ID กลับมา)
-
-        
-        // ✅ อัปเดตให้ผูกเลขเอกสารกับ service request
-        $update_doc = $conn->prepare("UPDATE document_numbers SET service_request_id = ? WHERE id = ?");
-        $update_doc->execute([$request_id, $document_id]);
-
-        $conn->commit();
-    } catch (Exception $e) {
-        $conn->rollBack();
-        error_log("เกิดข้อผิดพลาด: " . $e->getMessage());
-        // redirect หรือแสดง error message ตามต้องการ
-    }
-}
-
-// ดึงข้อมูล departments
-$dept_stmt = $conn->prepare("SELECT * FROM departments WHERE is_active = 1 ORDER BY warehouse_number, code_name");
-$dept_stmt->execute();
-$departments = $dept_stmt->fetchAll(PDO::FETCH_ASSOC);
-
-// จัดกลุ่ม departments ตาม warehouse
-$dept_by_warehouse = [];
-foreach ($departments as $dept) {
-    $warehouse_names = [
-        '01' => 'RDC',
-        '02' => 'CDC',
-        '03' => 'BDC'
-    ];
-    $warehouse_name = $warehouse_names[$dept['warehouse_number']] ?? $dept['warehouse_number'];
-    $dept_by_warehouse[$warehouse_name][] = $dept;
-}
-
-
-
-
-
-
-// จัดการ subtask actions
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // 1) อัปเดต subtask
     if (isset($_POST['update_subtask'])) {
         $subtask_id = $_POST['subtask_id'];
         $new_status = $_POST['new_status'];
@@ -130,7 +58,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $conn->beginTransaction();
 
-            // อัปเดตสถานะ subtask
+            // ดึง old_status ก่อน
+            $old_status_stmt = $conn->prepare("SELECT status, task_id FROM task_subtasks WHERE id = ?");
+            $old_status_stmt->execute([$subtask_id]);
+            $subtask_data = $old_status_stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$subtask_data) throw new Exception("ไม่พบ subtask");
+
+            // อัปเดต subtask
             $update_subtask = $conn->prepare("
                 UPDATE task_subtasks 
                 SET status = ?, notes = ?, 
@@ -141,41 +75,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ");
             $update_subtask->execute([$new_status, $notes, $new_status, $new_status, $subtask_id]);
 
-            // บันทึก log
+            // log
             $log_stmt = $conn->prepare("
                 INSERT INTO subtask_logs (subtask_id, old_status, new_status, changed_by, notes) 
-                VALUES (?, (SELECT status FROM task_subtasks WHERE id = ? LIMIT 1), ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?)
             ");
-            $log_stmt->execute([$subtask_id, $subtask_id, $new_status, $developer_id, $notes]);
+            $log_stmt->execute([$subtask_id, $subtask_data['status'], $new_status, $developer_id, $notes]);
 
-            // คำนวณ progress รวม
-            $task_id_stmt = $conn->prepare("SELECT task_id FROM task_subtasks WHERE id = ?");
-            $task_id_stmt->execute([$subtask_id]);
-            $task_id = $task_id_stmt->fetchColumn();
-
+            // คำนวณ progress
             $progress_stmt = $conn->prepare("
                 SELECT SUM(CASE WHEN status = 'completed' THEN percentage ELSE 0 END) as total_progress
                 FROM task_subtasks 
                 WHERE task_id = ?
             ");
-            $progress_stmt->execute([$task_id]);
+            $progress_stmt->execute([$subtask_data['task_id']]);
             $total_progress = $progress_stmt->fetchColumn() ?? 0;
 
-            // อัปเดต progress ในตาราง tasks
+            // อัปเดต task
             $update_task = $conn->prepare("UPDATE tasks SET progress_percentage = ? WHERE id = ?");
-            $update_task->execute([$total_progress, $task_id]);
+            $update_task->execute([$total_progress, $subtask_data['task_id']]);
 
-            // ถ้า progress = 100% ให้เปลี่ยนสถานะเป็น completed
             if ($total_progress >= 100) {
                 $complete_task = $conn->prepare("
                     UPDATE tasks 
                     SET task_status = 'completed', completed_at = NOW() 
                     WHERE id = ? AND task_status != 'completed'
                 ");
-                $complete_task->execute([$task_id]);
+                $complete_task->execute([$subtask_data['task_id']]);
 
                 $update_sr = $conn->prepare("UPDATE service_requests SET developer_status = 'completed' WHERE id = (SELECT service_request_id FROM tasks WHERE id = ?)");
-                $update_sr->execute([$task_id]);
+                $update_sr->execute([$subtask_data['task_id']]);
             }
 
             $conn->commit();
@@ -186,238 +115,195 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "เกิดข้อผิดพลาด: " . $e->getMessage();
         }
     }
-}
 
+    // 2) สร้างงานใหม่
+    elseif (isset($_POST['create_task'])) {
+        $user_id = $_POST['user_id'];
+        $title = trim($_POST['title'] ?? '');
+        $description = trim($_POST['description'] ?? '');
+        $service_id = $_POST['service_id'] ?? null;
+        $priority = $_POST['priority'] ?? 'medium';
+        $estimated_days = $_POST['estimated_days'] ?? 1;
+        $deadline = $_POST['deadline'] ?? null;
+        $work_category = $_POST['work_category'] ?? null;
 
-// สร้างงานใหม่ 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['create_task'])) {
-    $user_id = $_POST['user_id']; // คนที่ร้องขอ
-    $title = trim($_POST['title'] ?? '');
-    $description = trim($_POST['description'] ?? '');
-    $service_id = $_POST['service_id'] ?? null;
-    $priority = $_POST['priority'] ?? 'medium';
-    $estimated_days = $_POST['estimated_days'] ?? 1;
-    $deadline = $_POST['deadline'] ?? null;
+        if ($title && $description && $service_id && $work_category) {
+            try {
+                $conn->beginTransaction();
 
-    if ($title && $description && $service_id) {
+                // 2.1 สร้าง service_request
+                $stmt = $conn->prepare("
+                    INSERT INTO service_requests (
+                        user_id, title, description, service_id, priority, 
+                        estimated_days, deadline, status, current_step, developer_status
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, 'approved', 'developer_self_created', 'received')
+                ");
+                $stmt->execute([$user_id, $title, $description, $service_id, $priority, $estimated_days, $deadline]);
+                $request_id = $conn->lastInsertId();
+
+                // 2.2 สร้างเลขเอกสาร
+                $work_parts = explode('-', $work_category);
+                if (count($work_parts) !== 2) {
+                    throw new Exception("รูปแบบหัวข้องานคลังไม่ถูกต้อง");
+                }
+                $warehouse_number = $work_parts[0];
+                $code_name = $work_parts[1];
+
+                $doc_result = generateDocumentNumber($conn, $warehouse_number, $code_name);
+                $update_doc = $conn->prepare("UPDATE document_numbers SET service_request_id = ? WHERE id = ?");
+                $update_doc->execute([$request_id, $doc_result['document_id']]);
+
+                // 2.3 สร้าง task
+                $completion_date = $deadline ?: date('Y-m-d', strtotime('+' . $estimated_days . ' days'));
+                $stmt = $conn->prepare("
+                    INSERT INTO tasks (
+                        service_request_id, developer_user_id, task_status, 
+                        progress_percentage, started_at, accepted_at, estimated_completion
+                    ) VALUES (?, ?, 'received', 10, NOW(), NOW(), ?)
+                ");
+                $stmt->execute([$request_id, $developer_id, $completion_date]);
+
+                // 2.4 จัดการไฟล์แนบ
+                if (isset($_FILES['attachments']) && !empty($_FILES['attachments']['name'][0])) {
+                    $upload_dir = __DIR__ . '/../uploads/';
+                    if (!is_dir($upload_dir)) {
+                        mkdir($upload_dir, 0755, true);
+                    }
+
+                    $allowed_types = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'txt', 'zip', 'rar'];
+                    $max_file_size = 10 * 1024 * 1024;
+
+                    foreach ($_FILES['attachments']['name'] as $key => $filename) {
+                        $error_code = $_FILES['attachments']['error'][$key];
+                        if ($error_code === UPLOAD_ERR_OK) {
+                            $file_extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+                            if (!in_array($file_extension, $allowed_types)) {
+                                throw new Exception("ไฟล์ $filename ไม่ใช่ประเภทที่อนุญาต");
+                            }
+                            if ($_FILES['attachments']['size'][$key] > $max_file_size) {
+                                throw new Exception("ไฟล์ $filename มีขนาดใหญ่เกินไป");
+                            }
+
+                            $safe_filename = basename($filename);
+                            $stored_filename = $request_id . '_' . time() . '_' . $key . '.' . $file_extension;
+                            $upload_path = $upload_dir . $stored_filename;
+
+                            if (move_uploaded_file($_FILES['attachments']['tmp_name'][$key], $upload_path)) {
+                                $file_stmt = $conn->prepare("
+                                    INSERT INTO request_attachments (service_request_id, original_filename, stored_filename, file_size, file_type) 
+                                    VALUES (?, ?, ?, ?, ?)
+                                ");
+                                $file_stmt->execute([
+                                    $request_id,
+                                    $safe_filename,
+                                    $stored_filename,
+                                    $_FILES['attachments']['size'][$key],
+                                    $file_extension
+                                ]);
+                            } else {
+                                throw new Exception("ไม่สามารถย้ายไฟล์ $filename ไปยังโฟลเดอร์ปลายทางได้");
+                            }
+                        }
+                    }
+                }
+
+                $conn->commit();
+                header("Location: tasks_board.php");
+                exit();
+            } catch (Exception $e) {
+                $conn->rollBack();
+                $error = "เกิดข้อผิดพลาด: " . $e->getMessage();
+            }
+        } else {
+            $error = "กรุณากรอกข้อมูลให้ครบถ้วน";
+        }
+    }
+
+    // 3) อัปเดตสถานะงาน
+    elseif (isset($_POST['update_status'])) {
+        $task_id = $_POST['task_id'];
+        $new_status = $_POST['new_status'];
+        $progress = $_POST['progress'];
+        $notes = $_POST['notes'] ?? '';
+
         try {
             $conn->beginTransaction();
 
-            // สร้าง service request status ตั้งเป็น 'approved' ทันที (แสดงว่าไม่ต้องรออนุมัติ)
-            //current_step = developer_self_created แสดงว่ามาจากการสร้างเอง
-            //user_id = developer_id
-            $stmt = $conn->prepare("
-                INSERT INTO service_requests (
-                    user_id, title, description, service_id, priority, 
-                    estimated_days, deadline, status, current_step, developer_status
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, 'approved', 'developer_self_created', 'received')
-            ");
-            $stmt->execute([$user_id, $title, $description, $service_id, $priority, $estimated_days, $deadline]);
-            $request_id = $conn->lastInsertId();
+            $stmt = $conn->prepare("UPDATE tasks SET task_status = ?, progress_percentage = ?, developer_notes = ?, updated_at = NOW() WHERE id = ? AND developer_user_id = ?");
+            $stmt->execute([$new_status, $progress, $notes, $task_id, $developer_id]);
 
+            $stmt = $conn->prepare("UPDATE service_requests SET developer_status = ? WHERE id = (SELECT service_request_id FROM tasks WHERE id = ?)");
+            $stmt->execute([$new_status, $task_id]);
 
+            $stmt = $conn->prepare("INSERT INTO task_status_logs (task_id, old_status, new_status, changed_by, notes) VALUES (?, ?, ?, ?, ?)");
+            $stmt->execute([$task_id, '', $new_status, $developer_id, $notes]);
 
-
-
-// ✅ แยก work_category เพื่อสร้างเลขเอกสาร
-$work_category = $_POST['work_category'] ?? null;
-if (!$work_category) {
-    throw new Exception("กรุณาเลือกหัวข้องานคลัง");
-}
-
-$work_parts = explode('-', $work_category);
-if (count($work_parts) !== 2) {
-    throw new Exception("รูปแบบหัวข้องานคลังไม่ถูกต้อง");
-}
-
-$warehouse_number = $work_parts[0];
-$code_name = $work_parts[1];
-
-// ✅ สร้างเลขที่เอกสาร
-$doc_result = generateDocumentNumber($conn, $warehouse_number, $code_name);
-$document_id = $doc_result['document_id'];
-
-// ✅ ผูก service_request_id กับเลขเอกสาร
-$update_doc = $conn->prepare("UPDATE document_numbers SET service_request_id = ? WHERE id = ?");
-$update_doc->execute([$request_id, $document_id]);
-
-
-
-
-
-
-
-
-
-
-
-            // สร้าง task task_status = 'received' — dev รับงานแล้ว สามารถเเก้เป็น completed ได้
-            $stmt = $conn->prepare("
-                INSERT INTO tasks (
-                    service_request_id, developer_user_id, task_status, 
-                    progress_percentage, started_at, accepted_at, estimated_completion
-                ) VALUES (?, ?, 'received', 10, NOW(), NOW(), ?)
-            ");
-            $completion_date = $deadline ?: date('Y-m-d', strtotime('+' . $estimated_days . ' days'));
-            $stmt->execute([$request_id, $developer_id, $completion_date]);
-
-            // ✅ จัดการไฟล์แนบ (หลังจากมี $request_id แล้วเท่านั้น)
-            if (isset($_FILES['attachments']) && !empty($_FILES['attachments']['name'][0])) {
-                $upload_dir = __DIR__ . '/../uploads/';
-                if (!is_dir($upload_dir)) {
-                    mkdir($upload_dir, 0755, true);
-                }
-
-                $allowed_types = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'txt', 'zip', 'rar'];
-                $max_file_size = 10 * 1024 * 1024; // 10MB
-
-                foreach ($_FILES['attachments']['name'] as $key => $filename) {
-                    $error_code = $_FILES['attachments']['error'][$key];
-
-                    if ($error_code === UPLOAD_ERR_OK) {
-                        $file_extension = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
-
-                        if (!in_array($file_extension, $allowed_types)) {
-                            throw new Exception("ไฟล์ $filename ไม่ใช่ประเภทที่อนุญาต");
-                        }
-
-                        if ($_FILES['attachments']['size'][$key] > $max_file_size) {
-                            throw new Exception("ไฟล์ $filename มีขนาดใหญ่เกินไป");
-                        }
-
-                        $stored_filename = $request_id . '_' . time() . '_' . $key . '.' . $file_extension;
-                        $upload_path = $upload_dir . $stored_filename;
-
-                        if (move_uploaded_file($_FILES['attachments']['tmp_name'][$key], $upload_path)) {
-                            $file_stmt = $conn->prepare("
-                            INSERT INTO request_attachments (service_request_id, original_filename, stored_filename, file_size, file_type) 
-                            VALUES (?, ?, ?, ?, ?)
-                        ");
-                            $file_stmt->execute([
-                                $request_id,
-                                $filename,
-                                $stored_filename,
-                                $_FILES['attachments']['size'][$key],
-                                $file_extension
-                            ]);
-                        } else {
-                            throw new Exception("ไม่สามารถย้ายไฟล์ $filename ไปยังโฟลเดอร์ปลายทางได้");
-                        }
-                    } elseif ($error_code !== UPLOAD_ERR_NO_FILE) {
-                        // กรณี error ในการอัปโหลดไฟล์อื่นๆ เช่น ไฟล์ใหญ่เกินไป, upload หยุดกลางคัน
-                        throw new Exception("เกิดข้อผิดพลาดในการอัปโหลดไฟล์ $filename รหัสข้อผิดพลาด: $error_code");
-                    }
-                }
+            if ($new_status === 'completed') {
+                $stmt = $conn->prepare("UPDATE tasks SET completed_at = NOW() WHERE id = ?");
+                $stmt->execute([$task_id]);
             }
+
             $conn->commit();
             header("Location: tasks_board.php");
-            exit(); // <--- ออกจากสคริปต์เลยหลัง redirect
+            exit();
         } catch (Exception $e) {
             $conn->rollBack();
             $error = "เกิดข้อผิดพลาด: " . $e->getMessage();
         }
-    } else {
-        $error = "กรุณากรอกข้อมูลให้ครบถ้วน";
     }
-}
 
+    // 4) ลบงาน
+    elseif (isset($_POST['delete_task'])) {
+        $task_id = $_POST['task_id'];
+        try {
+            $conn->beginTransaction();
+            $check_stmt = $conn->prepare("
+                SELECT sr.current_step, sr.id as sr_id FROM tasks t
+                JOIN service_requests sr ON t.service_request_id = sr.id
+                WHERE t.id = ? AND t.developer_user_id = ?
+            ");
+            $check_stmt->execute([$task_id, $developer_id]);
+            $task_data = $check_stmt->fetch(PDO::FETCH_ASSOC);
 
-// อัปเดตสถานะงาน
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_status'])) {
-    $task_id = $_POST['task_id'];
-    $new_status = $_POST['new_status'];
-    $progress = $_POST['progress'];
-    $notes = $_POST['notes'] ?? '';
+            if ($task_data && $task_data['current_step'] === 'developer_self_created') {
+                $stmt = $conn->prepare("DELETE FROM tasks WHERE id = ? AND developer_user_id = ?");
+                $stmt->execute([$task_id, $developer_id]);
 
-    try {
-        $conn->beginTransaction();
-
-        // อัปเดตสถานะใน tasks
-        $stmt = $conn->prepare("UPDATE tasks SET task_status = ?, progress_percentage = ?, developer_notes = ?, updated_at = NOW() WHERE id = ? AND developer_user_id = ?");
-        $stmt->execute([$new_status, $progress, $notes, $task_id, $developer_id]);
-
-        // อัปเดตสถานะใน service_requests
-        $stmt = $conn->prepare("UPDATE service_requests SET developer_status = ? WHERE id = (SELECT service_request_id FROM tasks WHERE id = ?)");
-        $stmt->execute([$new_status, $task_id]);
-
-        // บันทึก log
-        $stmt = $conn->prepare("INSERT INTO task_status_logs (task_id, old_status, new_status, changed_by, notes) VALUES (?, ?, ?, ?, ?)");
-        $stmt->execute([$task_id, '', $new_status, $developer_id, $notes]);
-
-        // ถ้าเป็นการส่งงาน ให้อัปเดต completed_at
-        if ($new_status === 'completed') {
-            $stmt = $conn->prepare("UPDATE tasks SET completed_at = NOW() WHERE id = ?");
-            $stmt->execute([$task_id]);
+                $stmt = $conn->prepare("DELETE FROM service_requests WHERE id = ?");
+                $stmt->execute([$task_data['sr_id']]);
+            } else {
+                $error = "ไม่สามารถลบงานที่ได้รับมอบหมายได้";
+            }
+            $conn->commit();
+        } catch (Exception $e) {
+            $conn->rollBack();
+            $error = "เกิดข้อผิดพลาด: " . $e->getMessage();
         }
-
-        $conn->commit();
-        header("Location: tasks_board.php");
-        exit();
-    } catch (Exception $e) {
-        $conn->rollBack();
-        $error = "เกิดข้อผิดพลาด: " . $e->getMessage();
     }
 }
 
-// ลบงานส่วนตัว
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_task'])) {
-    $task_id = $_POST['task_id'];
+// ===== ดึงข้อมูล =====
+$dept_stmt = $conn->prepare("SELECT * FROM departments WHERE is_active = 1 ORDER BY warehouse_number, code_name");
+$dept_stmt->execute();
+$departments = $dept_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    try {
-        $conn->beginTransaction();
-
-        // ตรวจสอบว่าเป็นงานส่วนตัวหรือไม่
-        $check_stmt = $conn->prepare("
-            SELECT sr.current_step FROM tasks t
-            JOIN service_requests sr ON t.service_request_id = sr.id
-            WHERE t.id = ? AND t.developer_user_id = ?
-        ");
-        $check_stmt->execute([$task_id, $developer_id]);
-        $task_data = $check_stmt->fetch(PDO::FETCH_ASSOC);
-
-        if ($task_data && $task_data['current_step'] === 'developer_self_created') {
-            // ลบ task และ service_request
-            $stmt = $conn->prepare("DELETE FROM tasks WHERE id = ? AND developer_user_id = ?");
-            $stmt->execute([$task_id, $developer_id]);
-
-            $stmt = $conn->prepare("DELETE FROM service_requests WHERE id = (SELECT service_request_id FROM tasks WHERE id = ?)");
-            $stmt->execute([$task_id]);
-
-            // $success = "ลบงานเรียบร้อยแล้ว";
-        } else {
-            $error = "ไม่สามารถลบงานที่ได้รับมอบหมายได้";
-        }
-
-        $conn->commit();
-    } catch (Exception $e) {
-        $conn->rollBack();
-        $error = "เกิดข้อผิดพลาด: " . $e->getMessage();
-    }
+$dept_by_warehouse = [];
+$warehouse_names = ['01' => 'RDC', '02' => 'CDC', '03' => 'BDC'];
+foreach ($departments as $dept) {
+    $warehouse_name = $warehouse_names[$dept['warehouse_number']] ?? $dept['warehouse_number'];
+    $dept_by_warehouse[$warehouse_name][] = $dept;
 }
 
-// ดึงงานทั้งหมดของ developer
 $stmt = $conn->prepare("
     SELECT 
-        t.*,
-        sr.title,
-        sr.description,
-        sr.created_at as request_date,
-        sr.current_step,
-        sr.priority,
-        sr.deadline,
-        requester.name AS requester_name,
-        requester.lastname AS requester_lastname,
-        requester.employee_id,
-        requester.position,
-        requester.department,
-        ur.rating,
-        ur.review_comment,
-        ur.status as review_status,
-        ur.revision_notes,
+        t.*, sr.title, sr.description, sr.created_at as request_date,
+        sr.current_step, sr.priority, sr.deadline,
+        requester.name AS requester_name, requester.lastname AS requester_lastname,
+        requester.employee_id, requester.position, requester.department,
+        ur.rating, ur.review_comment, ur.status as review_status, ur.revision_notes,
         ur.reviewed_at as user_reviewed_at,
         aa.estimated_days,
-        s.name as service_name,
-        s.category as service_category,
+        s.name as service_name, s.category as service_category,
         dn.document_number AS document_number
     FROM tasks t
     JOIN service_requests sr ON t.service_request_id = sr.id
@@ -429,13 +315,9 @@ $stmt = $conn->prepare("
     WHERE t.developer_user_id = ?
     ORDER BY t.created_at DESC
 ");
-
-
-
 $stmt->execute([$developer_id]);
 $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// ดึงรายการ services ประเภท service
 $services_stmt = $conn->prepare("SELECT * FROM services WHERE category = 'service' AND is_active = 1 ORDER BY name");
 $services_stmt->execute();
 $services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -449,21 +331,10 @@ $users_stmt = $conn->prepare("
 $users_stmt->execute();
 $users = $users_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-
-
-// จัดกลุ่มงานตามสถานะ
-$tasks_by_status = [
-    'pending' => [],
-    'received' => [],
-    'in_progress' => [],
-    'on_hold' => [],
-    'completed' => []
-];
-
+$tasks_by_status = ['pending'=>[], 'received'=>[], 'in_progress'=>[], 'on_hold'=>[], 'completed'=>[]];
 foreach ($tasks as $task) {
-    $status = $task['task_status'];
-    if (isset($tasks_by_status[$status])) {
-        $tasks_by_status[$status][] = $task;
+    if (isset($tasks_by_status[$task['task_status']])) {
+        $tasks_by_status[$task['task_status']][] = $task;
     }
 }
 ?>
