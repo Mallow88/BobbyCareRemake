@@ -913,13 +913,16 @@ foreach ($requests as &$request) {
 
 
                     <!-- Timeline Button -->
-                    <div class="text-end mt-3">
-                      <button class="btn btn-sm btn-primary view-timeline-btn"
-                        data-request-id="<?= $req['id'] ?>"
-                        data-subtasks='<?= json_encode($req['subtasks']) ?>'>
-                        <i class="fas fa-stream me-1"></i> ดูไทม์ไลน์
-                      </button>
-                    </div>
+                   <?php if (!empty($req['task_status'])): ?>
+    <div class="text-end mt-3">
+        <button class="btn btn-sm btn-primary view-timeline-btn"
+            data-request-id="<?= $req['id'] ?>"
+            data-subtasks='<?= json_encode($req['subtasks']) ?>'>
+            <i class="fas fa-stream me-1"></i> ดูไทม์ไลน์
+        </button>
+    </div>
+<?php endif; ?>
+
 
                   </div>
                 </div>
