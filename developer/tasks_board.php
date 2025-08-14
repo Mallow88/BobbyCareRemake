@@ -1455,17 +1455,17 @@ foreach ($tasks as $task) {
                                 </div>
 
                                   <select class="form-select" id="work_category" name="work_category" required>
-                                <option value="">-- เลือกหัวข้องานคลัง --</option>
-                                <?php foreach ($dept_by_warehouse as $warehouse => $depts): ?>
-                                    <optgroup label="<?= $warehouse ?>">
-                                        <?php foreach ($depts as $dept): ?>
-                                            <option value="<?= $dept['warehouse_number'] ?>-<?= $dept['code_name'] ?>">
-                                                <?= $dept['code_name'] ?>
-                                            </option>
+                                        <option value="">-- เลือกหัวข้องานคลัง --</option>
+                                        <?php foreach ($dept_by_warehouse as $warehouse => $depts): ?>
+                                            <optgroup label="<?= $warehouse ?>">
+                                                <?php foreach ($depts as $dept): ?>
+                                                    <option value="<?= $dept['warehouse_number'] ?>-<?= $dept['code_name'] ?>">
+                                                        <?= $dept['department_code'] ?> - <?= $dept['code_name'] ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </optgroup>
                                         <?php endforeach; ?>
-                                    </optgroup>
-                                <?php endforeach; ?>
-                            </select>
+                                    </select>
 
                                 <div class="mb-3">
                                     <label for="estimated_days" class="form-label fw-bold">วัน:</label>
