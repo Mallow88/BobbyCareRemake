@@ -588,7 +588,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <span class="badge badge-success"></span>
                             </a>
                         </li>
-<!-- 
+                        <!-- 
                         <li class="nav-item">
                             <a href="../profile.php">
                                 <i class="fas fa-user"></i>
@@ -742,13 +742,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                                     <label for="work_category" class="form-label">
                                         <i class="fas fa-warehouse me-1"></i>หัวข้องานคลัง
-                                        <button type="button"
-                                            class="btn btn-sm btn-outline-secondary ms-2"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#warehouseTopicModal"
-                                            style="padding: 2px 8px;">
-                                            <i class="fas fa-question-circle text-secondary"></i>
-                                        </button>
+                                    
                                     </label>
 
 
@@ -758,12 +752,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <optgroup label="<?= $warehouse ?>">
                                                 <?php foreach ($depts as $dept): ?>
                                                     <option value="<?= $dept['warehouse_number'] ?>-<?= $dept['code_name'] ?>">
-                                                        <?= $dept['code_name'] ?>
+                                                        <?= $dept['department_code'] ?> - <?= $dept['code_name'] ?>
                                                     </option>
                                                 <?php endforeach; ?>
                                             </optgroup>
                                         <?php endforeach; ?>
                                     </select>
+
 
                                 </div>
 
@@ -1059,11 +1054,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             </label>
                                             <select class="form-select">
                                                 <option value="">-- เลือกโปรแกรม --</option>
-                                            <?php foreach ($programs as $program): ?>
-                                                <option value="<?= htmlspecialchars($program['name']) ?>">
-                                                    <?= htmlspecialchars($program['name']) ?>
-                                                </option>
-                                            <?php endforeach; ?>
+                                                <?php foreach ($programs as $program): ?>
+                                                    <option value="<?= htmlspecialchars($program['name']) ?>">
+                                                        <?= htmlspecialchars($program['name']) ?>
+                                                    </option>
+                                                <?php endforeach; ?>
                                             </select>
                                         </div>
 
