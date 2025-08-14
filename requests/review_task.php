@@ -396,7 +396,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="content-card">
-            <a href="track_status.php" class="back-btn">
+            <a href="index2.php" class="back-btn">
                 <i class="fas fa-arrow-left"></i> กลับรายการ
             </a>
 
