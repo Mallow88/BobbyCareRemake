@@ -286,20 +286,20 @@ foreach ($requests as &$request) {
             </li>
 
             <li class="nav-item">
-              <a href="track_status.php">
+              <a href="track_status2.php">
                 <i class="fas fa-spinner"></i>
                 <p>ติดตามสถานะ</p>
                 <span class="badge badge-success"></span>
               </a>
             </li>
 
-            <li class="nav-item">
+            <!-- <li class="nav-item">
               <a href="../profile.php">
                 <i class="fas fa-user"></i>
                 <p>โปรไฟล์</p>
                 <span class="badge badge-success"></span>
               </a>
-            </li>
+            </li> -->
 
             <li class="nav-item">
               <a href="../logout.php">
@@ -840,7 +840,7 @@ foreach ($requests as &$request) {
                                                             <i class="fas fa-clock text-warning"></i> รอการรีวิวจากคุณ
                                                         </div>
                                                         <div class="mt-3">
-                                                            <a href="review_task.php?request_id=<?= $req['id'] ?>" class="btn btn-primary btn-sm">
+                                                            <a href="review_task2.php?request_id=<?= $req['id'] ?>" class="btn btn-primary btn-sm">
                                                                 <i class="fas fa-star me-1"></i>รีวิวงาน
                                                             </a>
                                                         </div>

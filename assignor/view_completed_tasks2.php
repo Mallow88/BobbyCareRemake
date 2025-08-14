@@ -293,10 +293,10 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
       <div class="sidebar-wrapper scrollbar scrollbar-inner">
         <div class="sidebar-content">
           <ul class="nav nav-secondary">
-            <li class="nav-item active ">
-              <a data-bs-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
+            <li class="nav-item ">
+               <a data-bs-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
                 <i class="fas fa-home"></i>
-                <p>Dashboard</p>
+                <p>หน้าหลัก</p>
                 <span class="caret"></span>
               </a>
               <div class="collapse" id="dashboard">
@@ -333,7 +333,7 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
               </a>
             </li>
 
-            <li class="nav-item ">
+            <li class="nav-item active">
               <a href="view_completed_tasks2.php">
                 <i class="fas fa-comments"></i> <!-- UserReviews -->
                 <p>UserReviews</p>
@@ -342,7 +342,7 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </li>
 
             <li class="nav-item">
-              <a href="assignor_dashboard.php2">
+              <a href="assignor_dashboard2.php">
                 <i class="fas fa-tachometer-alt"></i> <!-- Dashboard_DEV -->
                 <p>Dashboard_DEV</p>
                 <span class="badge badge-success"></span>

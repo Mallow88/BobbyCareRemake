@@ -350,7 +350,7 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="card-header">
                   <div class="card-header d-flex justify-content-between align-items-center">
                     <div class="card-title mb-0">คำขอล่าสุด</div>
-                    <a href="requests/index.php" class="btn btn-outline-primary btn-sm">
+                    <a href="requests/index2.php" class="btn btn-outline-primary btn-sm">
                       ดูทั้งหมด
                     </a>
                   </div>

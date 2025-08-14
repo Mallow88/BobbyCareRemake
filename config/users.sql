@@ -45,8 +45,6 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `line_id`, `name`, `lastname`, `position`, `email`, `created_at`, `phone`, `role`, `created_by_admin_id`) VALUES
-(1, 'U0770f6d5ea92bb7de46d36d18bf976c5', 'DEV', 'NS ', NULL, 'test@gmail.com', '2025-07-21 02:09:31', '08887898784', 'user', NULL),
-(2, 'Ucdeb083644ac0ea108e85ba498a1c784', 'สัภยา', 'เกสร', 'ผู้จัดการเเผนก', 'sappaya@gmail.com', '2025-07-21 03:35:15', '088777777', 'assignor ', NULL);
 
 --
 -- Indexes for dumped tables

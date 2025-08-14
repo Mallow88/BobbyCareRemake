@@ -617,6 +617,9 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <div class="step-details">
                                         <strong>โดย:</strong> <?= htmlspecialchars($req['assignor_name']) ?>
                                         <br><strong>มอบหมายให้:</strong> <?= htmlspecialchars($req['dev_name'] . ' ' . $req['dev_lastname']) ?>
+                                        <?php if (!empty($req['budget_approved'])): ?>
+                                                        <br><strong>งบประมาณที่ขอ:</strong> <?= htmlspecialchars($req['budget_approved']) ?>
+                                                    <?php endif; ?>
                                         <?php if ($req['assignor_reason']): ?>
                                             <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($req['assignor_reason']) ?>
                                         <?php endif; ?>
@@ -638,10 +641,7 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($req['gm_reason']) ?>
                                         <?php endif; ?>
                                         <?php if ($req['budget_approved']): ?>
-                                            <div class="budget-info mt-2">
-                                                <i class="fas fa-money-bill-wave me-1"></i>
-                                                งบประมาณที่อนุมัติ: <?= number_format($req['budget_approved'], 2) ?> บาท
-                                            </div>
+                                           
                                         <?php endif; ?>
                                     </div>
                                 </div>

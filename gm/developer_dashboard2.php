@@ -615,71 +615,67 @@ $year_now = (int)date('Y');
             <li class="nav-item">
               <a data-bs-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
                 <i class="fas fa-home"></i>
-                <p>Dashboard</p>
-                <span class="caret"></span>
-              </a>
-              <div class="collapse" id="dashboard">
-                <ul class="nav nav-collapse">
-                  <li>
-                    <a href="gmindex.php">
-                      <span class="sub-item">หน้าหลัก</span>
-                    </a>
-                  </li>
-                  <li>
-                    <a href="developer_dashboard2.php">
-                      <span class="sub-item">Dashboard</span>
-                    </a>
-                  </li>
-                </ul>
-              </div>
+                 <p>หน้าหลัก</p>
+                                <span class="caret"></span>
+                            </a>
+                            <div class="collapse" id="dashboard">
+                                <ul class="nav nav-collapse">
+                                    <li>
+                                        <a href="gmindex2.php">
+                                            <span class="sub-item">หน้าหลัก</span>
+                                        </a>
+                                    </li>
 
-            </li>
-            <li class="nav-section">
-              <span class="sidebar-mini-icon">
-                <i class="fa fa-ellipsis-h"></i>
-              </span>
-              <h4 class="text-section">Components</h4>
-            </li>
+                                </ul>
+                            </div>
 
-            <li class="nav-item">
-              <a href="approved_list2.php">
-                <i class="fas fa-desktop"></i>
-                <p>รายการที่อนุมัติ</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li>
+                        </li>
+                        <li class="nav-section">
+                            <span class="sidebar-mini-icon">
+                                <i class="fa fa-ellipsis-h"></i>
+                            </span>
+                            <h4 class="text-section">Components</h4>
+                        </li>
 
-            <li class="nav-item">
-              <a href="view_completed_tasks2.php">
-                <i class="fas fa-desktop"></i>
-                <p>User Reviews</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li>
+                        <li class="nav-item ">
+                            <a href="approved_list2.php">
+                                <i class="fas fa-check-circle"></i> <!-- รายการที่อนุมัติ -->
+                                <p>รายการที่อนุมัติเเล้ว</p>
+                                <span class="badge badge-success"></span>
+                            </a>
+                        </li>
 
-            <li class="nav-item active">
-              <a href="developer_dashboard2.php">
-                <i class="far fa-chart-bar"></i>
-                <p>Dashboard_DEV</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li>
+                        <li class="nav-item">
+                            <a href="view_completed_tasks2.php">
+                                <i class="fas fa-comments"></i> <!-- รีวิวจากผู้ใช้ -->
+                                <p>User Reviews</p>
+                                <span class="badge badge-success"></span>
+                            </a>
+                        </li>
 
-            <li class="nav-item">
-              <a href="report.php">
-                <i class="fas fa-desktop"></i>
-                <p>Report</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li>
+                        <li class="nav-item active">
+                            <a href="developer_dashboard2.php">
+                                <i class="fas fa-tachometer-alt"></i> <!-- Dashboard -->
+                                <p>Dashboard_DEV</p>
+                                <span class="badge badge-success"></span>
+                            </a>
+                        </li>
 
-            <li class="nav-item">
-              <a href="../logout.php">
-                <i class="fas fa-desktop"></i>
-                <p>Logout</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li>
+                        <li class="nav-item">
+                            <a href="report2.php">
+                                <i class="fas fa-file-alt"></i> <!-- Report -->
+                                <p>Report</p>
+                                <span class="badge badge-success"></span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="../logout.php">
+                                <i class="fas fa-sign-out-alt"></i> <!-- Logout -->
+                                <p>Logout</p>
+                                <span class="badge badge-success"></span>
+                            </a>
+                        </li>
 
           </ul>
         </div>

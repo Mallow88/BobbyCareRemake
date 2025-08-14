@@ -440,9 +440,15 @@ $services_stmt = $conn->prepare("SELECT * FROM services WHERE category = 'servic
 $services_stmt->execute();
 $services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$users_stmt = $conn->prepare("SELECT id, name, lastname FROM users WHERE role = 'userservice' ORDER BY name");
+$users_stmt = $conn->prepare("
+    SELECT id, name, lastname 
+    FROM users 
+    WHERE role IN ('userservice', 'user') 
+    ORDER BY name
+");
 $users_stmt->execute();
 $users = $users_stmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 
 // จัดกลุ่มงานตามสถานะ

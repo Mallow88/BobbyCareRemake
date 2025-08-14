@@ -596,7 +596,7 @@ $year_now = (int)date('Y');
       <div class="sidebar-logo">
         <!-- Logo Header -->
         <div class="logo-header" data-background-color="dark">
-          <a href="developer_dashboard2.php" class="logo">
+          <a href="index2.php" class="logo">
             <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="30" />
           </a>
           <div class="nav-toggle">
@@ -619,21 +619,17 @@ $year_now = (int)date('Y');
             <li class="nav-item">
               <a data-bs-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
                 <i class="fas fa-home"></i>
-                <p>Dashboard</p>
+                <p>หน้าหลัก</p>
                 <span class="caret"></span>
               </a>
               <div class="collapse" id="dashboard">
                 <ul class="nav nav-collapse">
                   <li>
-                    <a href="gmindex.php">
+                    <a href="index2.php">
                       <span class="sub-item">หน้าหลัก</span>
                     </a>
                   </li>
-                  <li>
-                    <a href="developer_dashboard2.php">
-                      <span class="sub-item">Dashboard</span>
-                    </a>
-                  </li>
+
                 </ul>
               </div>
 
@@ -644,42 +640,41 @@ $year_now = (int)date('Y');
               </span>
               <h4 class="text-section">Components</h4>
             </li>
-
             <li class="nav-item">
-              <a href="approved_list2.php">
-                <i class="fas fa-desktop"></i>
-                <p>รายการที่อนุมัติ</p>
+              <a href="view_requests2.php">
+                <i class="fas fa-search"></i> <!-- ตรวจสอบคำขอ -->
+                <p>ตรวจสอบคำขอ</p>
                 <span class="badge badge-success"></span>
               </a>
             </li>
 
             <li class="nav-item">
+              <a href="approved_list2.php">
+                <i class="fas fa-check-circle"></i> <!-- รายการที่อนุมัติ -->
+                <p>รายการที่อนุมัติ</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+            <li class="nav-item ">
               <a href="view_completed_tasks2.php">
-                <i class="fas fa-desktop"></i>
-                <p>User Reviews</p>
+                <i class="fas fa-comments"></i> <!-- UserReviews -->
+                <p>UserReviews</p>
                 <span class="badge badge-success"></span>
               </a>
             </li>
 
             <li class="nav-item active">
               <a href="assignor_dashboard2.php">
-                <i class="far fa-chart-bar"></i>
+                <i class="fas fa-tachometer-alt"></i> <!-- Dashboard_DEV -->
                 <p>Dashboard_DEV</p>
                 <span class="badge badge-success"></span>
               </a>
             </li>
 
             <li class="nav-item">
-              <a href="report.php">
-                <i class="fas fa-desktop"></i>
-                <p>Report</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li>
-
-            <li class="nav-item">
               <a href="../logout.php">
-                <i class="fas fa-desktop"></i>
+                <i class="fas fa-sign-out-alt"></i> <!-- Logout -->
                 <p>Logout</p>
                 <span class="badge badge-success"></span>
               </a>
@@ -732,30 +727,7 @@ $year_now = (int)date('Y');
                     <span class="fw-bold"><?= htmlspecialchars($_SESSION['name']) ?></span>
                   </span>
                 </a>
-                <ul class="dropdown-menu dropdown-user animated fadeIn">
-                  <div class="dropdown-user-scroll scrollbar-outer">
-                    <li>
-                      <div class="user-box">
-                        <div class="avatar-lg">
-                          <img src="<?= htmlspecialchars($picture_url) ?>" alt="image profile" class="avatar-img rounded" />
-                        </div>
-                        <div class="u-text">
-                          <h4><?= htmlspecialchars($_SESSION['name']) ?> </h4>
-
-                          <!-- <p class="text-muted"><?= htmlspecialchars($email) ?></p> -->
-                          <a href="" class="btn btn-xs btn-secondary btn-sm">View Profile</a>
-                        </div>
-                      </div>
-                    </li>
-                    <li>
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="#">My Profile</a>
-
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="../logout.php">Logout</a>
-                    </li>
-                  </div>
-                </ul>
+                
               </li>
 
 
@@ -1006,7 +978,7 @@ $year_now = (int)date('Y');
 
 
 
-
+<!-- 
             <div class="col-sm-6 col-lg-3">
               <div class="card p-3">
                 <div class="d-flex align-items-center">
@@ -1037,7 +1009,7 @@ $year_now = (int)date('Y');
                 </div>
               </div>
             </div>
-          </div>
+          </div> -->
 
 
 

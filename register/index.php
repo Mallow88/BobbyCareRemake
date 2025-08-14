@@ -16,67 +16,90 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $phone = $_POST['phone'] ?? '';
     $department = $_POST['department'] ?? '';
     $employee_id = $_POST['employee_id'] ?? '';
+    $role = $_POST['role'] ?? 'user';
 
     if ($name && $lastname) {
         $stmt = $conn->prepare("
             INSERT INTO users 
-                (line_id, name, lastname, email, position, phone, department, employee_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (line_id, name, lastname, email, position, phone, department, employee_id, role)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
-            $line_id, $name, $lastname, $email, $position, $phone, $department, $employee_id
+            $line_id, $name, $lastname, $email, $position, $phone, $department, $employee_id, $role
         ]);
 
         $_SESSION['user_id'] = $conn->lastInsertId();
         $_SESSION['name'] = $name;
-        header("Location: ../dashboard.php");
+        header("Location: ../dashboard2.php");
         exit();
     } else {
         $error = "กรุณากรอกชื่อและนามสกุล";
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <title>ลงทะเบียนข้อมูลเพิ่มเติม</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-
-  <style>
+<meta charset="UTF-8">
+<title>BobbyCareDev</title>
+<link rel="icon" href="/BobbyCareRemake/img/logo/bobby-icon.png" type="image/x-icon" />
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+<style>
     body {
-      background: linear-gradient(to right, #eef2f3, #d4dde4);
+        background: linear-gradient(135deg, #eef2f3, #d4dde4);
+        font-family: 'Prompt', sans-serif;
     }
-
     .card {
-      border: none;
-      border-radius: 1.5rem;
+        border: none;
+        border-radius: 1.5rem;
+        overflow: hidden;
     }
-
     .card-header {
-      background: linear-gradient(to right, #0d6efd, #3b82f6);
-      color: white;
-      border-radius: 1.5rem 1.5rem 0 0;
-      padding: 2rem 1.5rem;
-      text-align: center;
+        background: linear-gradient(to right, #0d6efd, #3b82f6);
+        color: white;
+        padding: 2rem 1.5rem;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
     }
-
+    .card-header h3 {
+        margin: 0;
+        font-weight: 600;
+    }
     .form-control, .form-select {
-      border-radius: 0.75rem;
+        border-radius: 0.75rem;
+        border: 1px solid #dee2e6;
+        transition: all 0.3s ease;
     }
-
+    .form-control:focus, .form-select:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13,110,253,.25);
+    }
     .btn-primary {
-      border-radius: 0.75rem;
-      padding: 0.6rem 2rem;
-      font-weight: 500;
+        border-radius: 0.75rem;
+        padding: 0.6rem 2rem;
+        font-weight: 500;
+        background: linear-gradient(to right, #0d6efd, #3b82f6);
+        border: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
     }
-
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(13,110,253,0.4);
+    }
     .form-label span {
-      color: red;
+        color: red;
     }
-  </style>
+    /* ปรับช่องค้นหาให้ดูพรีเมียม */
+    .input-group .form-control {
+        border-radius: 0.75rem 0 0 0.75rem;
+    }
+    .input-group .btn {
+        border-radius: 0 0.75rem 0.75rem 0;
+    }
+</style>
+
 </head>
 <body>
 
@@ -91,29 +114,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="alert alert-danger"><?= htmlspecialchars($error) ?></div>
       <?php endif; ?>
 
-      <form method="POST" class="row g-4">
+      <!-- Search Template -->
+    <div class="col-12 mb-3">
+    <label class="form-label">ค้นหาจากรายชื่อ</label>
+    <div class="input-group">
+      <input type="text" id="searchTemplate" class="form-control" placeholder="พิมพ์ชื่อหรือรหัสพนักงาน">
+      <button type="button" id="btnSearchTemplate" class="btn btn-secondary">
+        <i class="bi bi-search"></i> ค้นหา
+      </button>
+    </div>
+</div>
+
+<!-- ฟอร์มลงทะเบียน (ซ่อนก่อน) -->
+<div id="registerForm" style="display:none;">
+    <form method="POST" class="row g-4 mt-4">
         <div class="col-12">
           <label class="form-label">LINE Name:</label>
           <input type="text" class="form-control" value="<?= htmlspecialchars($_SESSION['name']) ?>" disabled>
         </div>
-
         <div class="col-md-6">
-          <label for="name" class="form-label">ชื่อจริง <span>*</span></label>
+          <label class="form-label">ชื่อจริง <span>*</span></label>
           <input type="text" class="form-control" name="name" required>
         </div>
-
         <div class="col-md-6">
-          <label for="lastname" class="form-label">นามสกุล <span>*</span></label>
+          <label class="form-label">นามสกุล <span>*</span></label>
           <input type="text" class="form-control" name="lastname" required>
         </div>
-
         <div class="col-md-6">
-          <label for="employee_id" class="form-label">รหัสพนักงาน</label>
+          <label class="form-label">รหัสพนักงาน</label>
           <input type="text" class="form-control" name="employee_id">
         </div>
-
         <div class="col-md-6">
-          <label for="position" class="form-label">ตำแหน่งงาน</label>
+          <label class="form-label">ตำแหน่งงาน</label>
           <select name="position" class="form-select">
             <option value="">-- กรุณาเลือกตำแหน่ง --</option>
             <option value="พนักงาน">พนักงาน</option>
@@ -125,94 +157,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <option value="ผู้จัดการฝ่าย">ผู้จัดการฝ่าย</option>
           </select>
         </div>
-
         <div class="col-md-6">
-          <label for="department" class="form-label">หน่วยงาน</label>
-          <select name="department" class="form-select">
-            <option value="">-- กรุณาเลือกหน่วยงาน --</option>
-            <optgroup label="RDC">
-              <option value="แผนก Break Case">แผนก Break Case</option>
-              <option value="แผนก Full Case">แผนก Full Case</option>
-              <option value="แผนก MIS">แผนก MIS</option>
-              <option value="แผนก O2O">แผนก O2O</option>
-              <option value="แผนกข้อมูลจ่าย">แผนกข้อมูลจ่าย</option>
-              <option value="แผนกข้อมูลรับ">แผนกข้อมูลรับ</option>
-              <option value="แผนกควบคุมสินค้า">แผนกควบคุมสินค้า</option>
-              <option value="แผนกความปลอดภัย">แผนกความปลอดภัย</option>
-              <option value="แผนกจัดเก็บและเติม">แผนกจัดเก็บและเติม</option>
-              <option value="แผนกจัดส่งขาเข้า">แผนกจัดส่งขาเข้า</option>
-              <option value="แผนกจัดส่งขาออก">แผนกจัดส่งขาออก</option>
-              <option value="แผนกธุรการ">แผนกธุรการ</option>
-              <option value="แผนกบริหารจัดการ Riders">แผนกบริหารจัดการ Riders</option>
-              <option value="แผนกบริหารจัดการสินค้าฝากส่งและพัสดุ">แผนกบริหารจัดการสินค้าฝากส่งและพัสดุ</option>
-              <option value="แผนกบำรุงรักษา">แผนกบำรุงรักษา</option>
-              <option value="แผนกพัฒนาระบบงาน">แผนกพัฒนาระบบงาน</option>
-              <option value="แผนกพัฒนาองค์กร">แผนกพัฒนาองค์กร</option>
-              <option value="แผนกรับคืนสินค้า">แผนกรับคืนสินค้า</option>
-              <option value="แผนกรับสินค้า">แผนกรับสินค้า</option>
-              <option value="แผนกวางแผนจัดส่ง">แผนกวางแผนจัดส่ง</option>
-              <option value="แผนกส่งมอบสินค้า">แผนกส่งมอบสินค้า</option>
-              <option value="แผนกสินค้าควบคุม">แผนกสินค้าควบคุม</option>
-              <option value="แผนกสินค้าพิเศษ">แผนกสินค้าพิเศษ</option>
-            </optgroup>
-
-            <optgroup label="CDC">
-              <option value="แผนก MIS">แผนก MIS</option>
-              <option value="แผนกข้อมูลจ่าย">แผนกข้อมูลจ่าย</option>
-              <option value="แผนกข้อมูลรับ">แผนกข้อมูลรับ</option>
-              <option value="แผนกควบคุมคุณภาพ">แผนกควบคุมคุณภาพ</option>
-              <option value="แผนกความปลอดภัย">แผนกความปลอดภัย</option>
-              <option value="แผนกจัดส่งขาเข้า">แผนกจัดส่งขาเข้า</option>
-              <option value="แผนกจัดส่งขาออก">แผนกจัดส่งขาออก</option>
-              <option value="แผนกบำรุงรักษา">แผนกบำรุงรักษา</option>
-              <option value="แผนกรับสินค้า">แผนกรับสินค้า</option>
-              <option value="แผนกส่งมอบสินค้า">แผนกส่งมอบสินค้า</option>
-            </optgroup>
-
-            <optgroup label="BDC">
-              <option value="แผนกข้อมูลเบเกอรี่">แผนกข้อมูลเบเกอรี่</option>
-              <option value="แผนกควบคุมคุณภาพ">แผนกควบคุมคุณภาพ</option>
-              <option value="แผนกจัดส่งเบเกอรี่">แผนกจัดส่งเบเกอรี่</option>
-              <option value="แผนกจัดสินค้า">แผนกจัดสินค้า</option>
-              <option value="แผนกรับคืนสินค้าสินค้าเบเกอรี่">แผนกรับคืนสินค้าสินค้าเบเกอรี่</option>
-              <option value="แผนกรับและส่งมอบเบเกอรี่">แผนกรับและส่งมอบเบเกอรี่</option>
-            </optgroup>
-
-            <optgroup label="ฝ่าย (นครสวรรค์)">
-              <option value="ฝ่ายจัดสินค้า (RDC.นครสวรรค์)">ฝ่ายจัดสินค้า (RDC.นครสวรรค์)</option>
-              <option value="ฝ่ายควบคุมสินค้าคงคลัง (RDC.นครสวรรค์)">ฝ่ายควบคุมสินค้าคงคลัง</option>
-              <option value="ฝ่ายกระจายสินค้า (CDC.นครสวรรค์)">ฝ่ายกระจายสินค้า (CDC.นครสวรรค์)</option>
-              <option value="ฝ่ายกระจายสินค้า (BDC.นครสวรรค์)">ฝ่ายกระจายสินค้า (BDC.นครสวรรค์)</option>
-              <option value="ฝ่ายจัดเก็บและเติม (RDC.นครสวรรค์)">ฝ่ายจัดเก็บและเติม</option>
-              <option value="ฝ่ายจัดส่งสินค้า (Complex นครสวรรค์)">ฝ่ายจัดส่งสินค้า</option>
-              <option value="ฝ่ายบริหารทั่วไป (Complex นครสวรรค์)">ฝ่ายบริหารทั่วไป</option>
-              <option value="ฝ่ายวิศวกรรม (Complex นครสวรรค์)">ฝ่ายวิศวกรรม</option>
-              <option value="ฝ่ายรับและส่งมอบ (RDC.นครสวรรค์)">ฝ่ายรับและส่งมอบ</option>
-            </optgroup>
-
-            <option value="อื่นๆ">อื่นๆ</option>
-          </select>
+          <label class="form-label">หน่วยงาน</label>
+          <input type="text" name="department" class="form-control">
         </div>
-
         <div class="col-md-6">
-          <label for="phone" class="form-label">เบอร์โทรศัพท์</label>
+          <label class="form-label">เบอร์โทรศัพท์</label>
           <input type="text" class="form-control" name="phone">
         </div>
-
         <div class="col-12">
-          <label for="email" class="form-label">อีเมล</label>
+          <label class="form-label">อีเมล</label>
           <input type="email" class="form-control" name="email">
         </div>
+       <input type="hidden" name="role" value="user">
+
 
         <div class="col-12 text-end mt-4">
           <button type="submit" class="btn btn-primary">บันทึกข้อมูล</button>
         </div>
-      </form>
-    </div>
-  </div>
+    </form>
 </div>
 
-<!-- Bootstrap Icons (optional) -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  </div>
+</div>
+<script>
+document.getElementById('btnSearchTemplate').addEventListener('click', function() {
+    let keyword = document.getElementById('searchTemplate').value.trim();
+    if (keyword === '') {
+        alert('กรุณากรอกชื่อหรือรหัสพนักงาน');
+        return;
+    }
+    fetch('search_usertemplate.php?q=' + encodeURIComponent(keyword))
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.name) {
+                // เติมข้อมูลลงฟอร์ม
+                document.querySelector('[name="name"]').value = data.name;
+                document.querySelector('[name="lastname"]').value = data.lastname;
+                document.querySelector('[name="employee_id"]').value = data.employee_id;
+                document.querySelector('[name="position"]').value = data.position;
+                document.querySelector('[name="department"]').value = data.department;
+                document.querySelector('[name="phone"]').value = data.phone;
+                document.querySelector('[name="email"]').value = data.email;
+                document.querySelector('[name="role"]').value = data.role;
+
+                // แสดงฟอร์ม
+                document.getElementById('registerForm').style.display = 'block';
+            } else {
+                alert('ไม่พบข้อมูลที่ค้นหา');
+                document.getElementById('registerForm').style.display = 'none';
+            }
+        })
+        .catch(err => console.error(err));
+});
+</script>
+
 </body>
 </html>

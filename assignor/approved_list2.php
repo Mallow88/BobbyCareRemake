@@ -482,10 +482,10 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
       <div class="sidebar-wrapper scrollbar scrollbar-inner">
         <div class="sidebar-content">
           <ul class="nav nav-secondary">
-            <li class="nav-item active ">
-              <a data-bs-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
+            <li class="nav-item ">
+               <a data-bs-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
                 <i class="fas fa-home"></i>
-                <p>Dashboard</p>
+                <p>หน้าหลัก</p>
                 <span class="caret"></span>
               </a>
               <div class="collapse" id="dashboard">
@@ -514,7 +514,7 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
               </a>
             </li>
 
-            <li class="nav-item">
+            <li class="nav-item active ">
               <a href="approved_list2.php">
                 <i class="fas fa-check-circle"></i> <!-- รายการที่อนุมัติ -->
                 <p>รายการที่อนุมัติ</p>
@@ -800,6 +800,14 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
                                 <?= nl2br(htmlspecialchars($approval['reason'])) ?>
                             </div>
                         <?php endif; ?>
+                        
+                        
+                        <!-- รายละเอียดคำขอ -->
+                        <div class="bg-light p-3 rounded mb-3">
+                            <strong>งบประมาณ:</strong><br>
+                            <?= nl2br(htmlspecialchars($approval['budget_approved'])) ?>
+
+                        </div>
 
                         <!-- ข้อมูลการมอบหมาย -->
                         <?php if ($approval['status'] === 'approved' && $approval['dev_name']): ?>

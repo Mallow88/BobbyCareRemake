@@ -395,10 +395,10 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
       <div class="sidebar-wrapper scrollbar scrollbar-inner">
         <div class="sidebar-content">
           <ul class="nav nav-secondary">
-            <li class="nav-item active ">
+            <li class="nav-item  ">
               <a data-bs-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
                 <i class="fas fa-home"></i>
-                <p>Dashboard</p>
+                <p>หน้าหลัก</p>
                 <span class="caret"></span>
               </a>
               <div class="collapse" id="dashboard">
@@ -419,7 +419,7 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
               </span>
               <h4 class="text-section">Components</h4>
             </li>
-            <li class="nav-item">
+            <li class="nav-item active">
               <a href="view_requests2.php">
                 <i class="fas fa-search"></i> <!-- ตรวจสอบคำขอ -->
                 <p>ตรวจสอบคำขอ</p>
@@ -735,93 +735,95 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
                             <?php endif; ?>
                         </div>
 
-                        <form method="post" action="assign_status.php" class="approval-form">
-                            <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
+                       <form method="post" action="assign_status.php" class="approval-form border rounded p-3 bg-light shadow-sm">
+    <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
 
-                            <h5 class="fw-bold mb-3">
-                                <i class="fas fa-tasks me-2"></i>มอบหมายงานและพิจารณา
-                            </h5>
+    <h5 class="fw-bold mb-4 text-primary">
+        <i class="fas fa-tasks me-2"></i>มอบหมายงานและพิจารณา
+    </h5>
 
-                            <!-- เลือก Service ประเภท Development -->
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label for="developer_<?= $req['id'] ?>" class="form-label fw-semibold">
+                <i class="fas fa-user-cog me-2"></i>มอบหมายให้ผู้พัฒนา:
+            </label>
+            <select name="assigned_developer_id" id="developer_<?= $req['id'] ?>" class="form-select" required>
+                <option value="">-- เลือกผู้พัฒนา --</option>
+                <?php foreach ($developers as $dev): ?>
+                    <option value="<?= $dev['id'] ?>">
+                        <?= htmlspecialchars($dev['name'] . ' ' . $dev['lastname']) ?>
+                    </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
 
+        <div class="col-md-6">
+            <label for="priority_<?= $req['id'] ?>" class="form-label fw-semibold">
+                <i class="fas fa-exclamation-circle me-2"></i>ระดับความสำคัญ:
+            </label>
+            <select name="priority_level" id="priority_<?= $req['id'] ?>" class="form-select">
+                <option value="low">ต่ำ</option>
+                <option value="medium" selected>ปานกลาง</option>
+                <option value="high">สูง</option>
+                <option value="urgent">เร่งด่วน</option>
+            </select>
+        </div>
 
-                            <div class="form-row">
-                                <div class="form-group">
-                                    <label for="developer_<?= $req['id'] ?>">
-                                        <i class="fas fa-user-cog me-2"></i>มอบหมายให้ผู้พัฒนา:
-                                    </label>
-                                    <select name="assigned_developer_id" id="developer_<?= $req['id'] ?>" class="form-select" required>
-                                        <option value="">-- เลือกผู้พัฒนา --</option>
-                                        <?php foreach ($developers as $dev): ?>
-                                            <option value="<?= $dev['id'] ?>">
-                                                <?= htmlspecialchars($dev['name'] . ' ' . $dev['lastname']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
+        <div class="col-md-6">
+            <label for="budget_approved_<?= $req['id'] ?>" class="form-label fw-semibold">
+                <i class="fas fa-coins me-2"></i>งบประมาณที่อนุมัติ (บาท):
+            </label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-coins"></i></span>
+                <input type="number" name="budget_approved" id="budget_approved_<?= $req['id'] ?>" class="form-control" step="0.01" min="0" placeholder="ระบุจำนวนงบประมาณ (ถ้าใช้)">
+            </div>
+        </div>
 
-                                <div class="form-group">
-                                    <label for="priority_<?= $req['id'] ?>">
-                                        <i class="fas fa-exclamation-circle me-2"></i>ระดับความสำคัญ:
-                                    </label>
-                                    <select name="priority_level" id="priority_<?= $req['id'] ?>" class="form-select">
-                                        <option value="low">ต่ำ</option>
-                                        <option value="medium" selected>ปานกลาง</option>
-                                        <option value="high">สูง</option>
-                                        <option value="urgent">เร่งด่วน</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-group mb-3">
-                                <label for="estimated_days_<?= $req['id'] ?>">
-                                    <i class="fas fa-calendar-alt me-2"></i>ประมาณการเวลา (วัน):
-                                </label>
-                                <input type="number" name="estimated_days" id="estimated_days_<?= $req['id'] ?>" class="form-control" min="1" max="365" placeholder="จำนวนวันที่คาดว่าจะใช้">
-                            </div>
+        <div class="col-md-6">
+            <label for="estimated_days_<?= $req['id'] ?>" class="form-label fw-semibold">
+                <i class="fas fa-calendar-alt me-2"></i>ประมาณการเวลา (วัน):
+            </label>
+            <input type="number" name="estimated_days" id="estimated_days_<?= $req['id'] ?>" class="form-control" min="1" max="365" placeholder="จำนวนวันที่คาดว่าจะใช้">
+        </div>
 
-                            <div class="form-group mb-3">
-                                <label for="deadline_<?= $req['id'] ?>">
-                                    <i class="fas fa-clock me-2"></i>กำหนดเสร็จ (วันและเวลา):
-                                </label>
-                                <div class="input-group">
-                                    <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                                    <input type="datetime-local" name="deadline" id="deadline_<?= $req['id'] ?>" class="form-control">
-                                </div>
-                                <div class="form-text text-muted">เลือกวันและเวลาที่ต้องการให้เสร็จงาน</div>
-                            </div>
+        <div class="col-md-6">
+            <label for="deadline_<?= $req['id'] ?>" class="form-label fw-semibold">
+                <i class="fas fa-clock me-2"></i>กำหนดเสร็จ:
+            </label>
+            <div class="input-group">
+                <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
+                <input type="datetime-local" name="deadline" id="deadline_<?= $req['id'] ?>" class="form-control">
+            </div>
+            <div class="form-text text-muted">เลือกวันและเวลาที่ต้องการให้เสร็จงาน</div>
+        </div>
 
+        <div class="col-md-6">
+            <label class="form-label fw-semibold">การพิจารณา:</label>
+            <div class="d-flex gap-3">
+                <label class="form-check-label">
+                    <input type="radio" name="status" value="approved" class="form-check-input" required>
+                    <i class="fas fa-check-circle text-success me-1"></i> อนุมัติและมอบหมายงาน
+                </label>
+                <label class="form-check-label">
+                    <input type="radio" name="status" value="rejected" class="form-check-input" required>
+                    <i class="fas fa-times-circle text-danger me-1"></i> ไม่อนุมัติ
+                </label>
+            </div>
+        </div>
 
-                            <div class="form-group">
-                                <label>การพิจารณา:</label>
-                                <div class="radio-group">
-                                    <label class="radio-option approve-option">
-                                        <input type="radio" name="status" value="approved" required>
-                                        <i class="fas fa-check-circle"></i>
-                                        อนุมัติและมอบหมายงาน
-                                    </label>
-                                    <label class="radio-option reject-option">
-                                        <input type="radio" name="status" value="rejected" required>
-                                        <i class="fas fa-times-circle"></i>
-                                        ไม่อนุมัติ
-                                    </label>
-                                </div>
-                            </div>
+        <div class="col-12">
+            <label for="reason_<?= $req['id'] ?>" class="form-label fw-semibold">เหตุผล/ข้อเสนอแนะ:</label>
+            <textarea name="reason" id="reason_<?= $req['id'] ?>" class="form-control" rows="3" placeholder="ระบุเหตุผลหรือข้อเสนอแนะ"></textarea>
+        </div>
 
-                            <div class="form-group">
-                                <label for="reason_<?= $req['id'] ?>">เหตุผล/ข้อเสนอแนะ:</label>
-                                <textarea
-                                    name="reason"
-                                    id="reason_<?= $req['id'] ?>"
-                                    class="form-control"
-                                    placeholder="ระบุเหตุผลหรือข้อเสนอแนะ"
-                                    rows="3"></textarea>
-                            </div>
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-primary px-4">
+                <i class="fas fa-paper-plane me-2"></i>ส่งผลการพิจารณา
+            </button>
+        </div>
+    </div>
+</form>
 
-                            <button type="submit" class="submit-btn">
-                                <i class="fas fa-paper-plane me-2"></i>
-                                ส่งผลการพิจารณา
-                            </button>
-                        </form>
                     </div>
                 <?php endforeach; ?>
             <?php endif; ?>

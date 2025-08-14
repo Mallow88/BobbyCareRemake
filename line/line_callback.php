@@ -87,13 +87,13 @@ $role = trim(strtolower($user['role']));
 
 switch ($role) {
     case 'assignor':
-        header("Location: ../assignor/index.php");
+        header("Location: ../assignor/index2.php");
         break;
     case 'divmgr':
-        header("Location: ../div_mgr/index.php");
+        header("Location: ../div_mgr/index2.php");
         break;
     case 'gmapprover': 
-        header("Location: ../gm/gmindex.php");
+        header("Location: ../gm/gmindex2.php");
         break;
     case 'seniorgm': 
         header("Location: ../seniorgm/seniorindex.php");
@@ -105,7 +105,7 @@ switch ($role) {
         header("Location: ../userservice/index.php");
         break;
     default:
-        header("Location: ../dashboard.php");
+        header("Location: ../dashboard2.php");
         break;
 }
 

@@ -63,7 +63,7 @@ $recent_approvals = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 <head>
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>BobbyCareDev-Dashboard</title>
+  <title>BobbyCareDev</title>
   <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
   <link rel="icon" href="/BobbyCareRemake/img/logo/bobby-icon.png" type="image/x-icon" />
 
@@ -129,7 +129,7 @@ $recent_approvals = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
             <li class="nav-item active ">
               <a data-bs-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
                 <i class="fas fa-home"></i>
-                <p>Dashboard</p>
+                <p>หน้าหลัก</p>
                 <span class="caret"></span>
               </a>
               <div class="collapse" id="dashboard">
@@ -234,7 +234,7 @@ $recent_approvals = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
                   </div>
 
                   <span class="profile-username">
-                    <span class="op-7">ผู้จัดการทั่วไป:</span>
+                    <span class="op-7">ผู้จัดการเเผนก:</span>
                     <span class="fw-bold"><?= htmlspecialchars($_SESSION['name']) ?></span>
                   </span>
                 </a>
@@ -388,7 +388,7 @@ $recent_approvals = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="card card-round">
                   <div class="card-header d-flex justify-content-between align-items-center">
                     <div class="card-title mb-0">รายการอนุมัติล่าสุด</div>
-                    <a href="requests/index.php" class="btn btn-outline-primary btn-sm">
+                    <a href="approved_list2.php" class="btn btn-outline-primary btn-sm">
                       ดูทั้งหมด
                     </a>
                   </div>
@@ -416,8 +416,8 @@ $recent_approvals = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
                               <tr>
                                 <td>
                                   <h6 class="fw-bold mb-0">
-                                    <?= htmlspecialchars(substr($approval['title'], 0, 40)) ?>
-                                    <?= strlen($approval['title']) > 40 ? '...' : '' ?>
+                                    <?= htmlspecialchars(substr($approval['title'], 0, 1000)) ?>
+                                    <?= strlen($approval['title']) > 1000 ? '...' : '' ?>
                                   </h6>
                                 </td>
                                 <td class="text-end">

@@ -20,6 +20,7 @@ $assigned_developer_id = $_POST['assigned_developer_id'] ?? null;
 $priority_level = $_POST['priority_level'] ?? 'medium';
 $estimated_days = $_POST['estimated_days'] ?? null;
 $deadline = $_POST['deadline'] ?? null;
+$budget_approved = $_POST['budget_approved'] ?? null; // ✅ เพิ่ม budget_approved
 
 // ✅ ลบ: development_service_id
 // ✅ ลบการ validate development_service_id
@@ -38,23 +39,30 @@ if ($status === 'approved' && !$assigned_developer_id) {
 try {
     $conn->beginTransaction();
 
-    // บันทึกการอนุมัติ
+       // ✅ บันทึกการอนุมัติพร้อม budget_approved
     $stmt = $conn->prepare("
         INSERT INTO assignor_approvals (
             service_request_id, assignor_user_id, assigned_developer_id,
-            status, reason, estimated_days, priority_level, reviewed_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())
+            status, reason, estimated_days, priority_level, budget_approved, reviewed_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW())
         ON DUPLICATE KEY UPDATE 
         assigned_developer_id = VALUES(assigned_developer_id),
         status = VALUES(status), 
         reason = VALUES(reason), 
         estimated_days = VALUES(estimated_days),
         priority_level = VALUES(priority_level),
+        budget_approved = VALUES(budget_approved),
         reviewed_at = NOW()
     ");
     $stmt->execute([
-        $request_id, $assignor_id, $assigned_developer_id,
-        $status, $reason, $estimated_days, $priority_level
+        $request_id, 
+        $assignor_id, 
+        $assigned_developer_id,
+        $status, 
+        $reason, 
+        $estimated_days, 
+        $priority_level,
+        $budget_approved
     ]);
 
     // ✅ ลบส่วนนี้: ไม่ต้องอัปเดต service_id อีกแล้ว
