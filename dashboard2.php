@@ -103,22 +103,13 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="sidebar-content">
           <ul class="nav nav-secondary">
             <li class="nav-item active">
-              <a data-bs-toggle="collapse" href="dashboard2.php" class="collapsed" aria-expanded="false">
+              <a href="dashboard2.php">
                 <i class="fas fa-home"></i>
                 <p>หน้าหลัก</p>
-                <span class="caret"></span>
               </a>
-              <div class="collapse" id="dashboard">
-                <ul class="nav nav-collapse">
-                  <li>
-                    <a href="dashboard2.php">
-                      <span class="sub-item">หน้าหลัก</span>
-                    </a>
-                  </li>
-                </ul>
-              </div>
             </li>
-            <li class="nav-section">
+
+            <li class="nav-section ">
               <span class="sidebar-mini-icon">
                 <i class="fa fa-ellipsis-h"></i>
               </span>
@@ -142,20 +133,20 @@ $recent_requests = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
             </li>
 
             <li class="nav-item">
-              <a href="requests/track_status.php">
+              <a href="requests/track_status2.php">
                 <i class="fas fa-spinner"></i>
                 <p>ติดตามสถานะ</p>
                 <span class="badge badge-success"></span>
               </a>
             </li>
 
-            <li class="nav-item">
+            <!-- <li class="nav-item">
               <a href="profile.php">
                 <i class="fas fa-user"></i>
                 <p>โปรไฟล์</p>
                 <span class="badge badge-success"></span>
               </a>
-            </li>
+            </li> -->
 
             <li class="nav-item">
               <a href="logout.php">

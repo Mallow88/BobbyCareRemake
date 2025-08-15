@@ -247,23 +247,12 @@ foreach ($requests as &$request) {
       <div class="sidebar-wrapper scrollbar scrollbar-inner">
         <div class="sidebar-content">
           <ul class="nav nav-secondary">
-            <li class="nav-item">
-              <a data-bs-toggle="collapse" href="dashboard2.php" class="collapsed" aria-expanded="false">
-                <i class="fas fa-home"></i>
-                <p>หน้าหลัก</p>
-                <span class="caret"></span>
-              </a>
-              <div class="collapse" id="dashboard">
-                <ul class="nav nav-collapse">
-                  <li>
-                    <a href="dashboard2.php">
-                      <span class="sub-item">หน้าหลัก 1</span>
-                    </a>
-                  </li>
-                </ul>
-              </div>
-
-            </li>
+            <li class="nav-item ">
+                            <a href="../dashboard2.php">
+                                <i class="fas fa-home"></i>
+                                <p>หน้าหลัก</p>
+                            </a>
+                        </li>
             <li class="nav-section">
               <span class="sidebar-mini-icon">
                 <i class="fa fa-ellipsis-h"></i>
@@ -394,7 +383,7 @@ foreach ($requests as &$request) {
 
       <div class="container">
 
-
+   <div class="page-inner">
 
         <!-- Filter Form -->
         <div class="glass-card p-4 mb-4">
@@ -442,7 +431,7 @@ foreach ($requests as &$request) {
               <i class="fas fa-inbox"></i>
               <h3 class="fw-bold mb-3">ยังไม่มีคำขอบริการ</h3>
               <p class="fs-5 mb-4">เริ่มต้นด้วยการสร้างคำขอบริการใหม่</p>
-              <a href="create.php" class="btn btn-gradient btn-lg">
+              <a href="create2.php" class="btn btn-gradient btn-lg">
                 <i class="fas fa-plus me-2"></i>สร้างคำขอแรก
               </a>
             </div>

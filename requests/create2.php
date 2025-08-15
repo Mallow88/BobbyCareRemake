@@ -49,7 +49,7 @@ function generateDocumentNumber($conn, $warehouse_number, $code_name)
         $conn->beginTransaction();
 
         $current_year = date('y');  // 2 หลัก เช่น 25
-        $current_month = date('n'); // 1-12 (ถ้าอยากได้เลขเต็ม 2 หลัก ใช้ 'm')
+        $current_month = date('m'); // 1-12 (ถ้าอยากได้เลขเต็ม 2 หลัก ใช้ 'm')
 
         // ดึงเลขรันนิ่งล่าสุดแยกตาม warehouse, code_name, ปี, เดือน
         $stmt = $conn->prepare("
@@ -173,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $insert_data['current_tools'] = $_POST['current_tools'] ?? null;
             $insert_data['system_impact'] = $_POST['system_impact'] ?? null;
             $insert_data['related_documents'] = $_POST['related_documents'] ?? null;
-            $insert_data['expected_benefits'] = $_POST['expected_benefits'] ?? null;
+            // $insert_data['expected_benefits'] = $_POST['expected_benefits'] ?? null;
 
             // ข้อมูลตามประเภทบริการ
             switch ($service['name']) {
@@ -182,7 +182,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $insert_data['target_users'] = $_POST['target_users'] ?? null;
                     $insert_data['main_functions'] = $_POST['main_functions'] ?? null;
                     $insert_data['data_requirements'] = $_POST['data_requirements'] ?? null;
-                    $insert_data['expected_benefits'] = $_POST['expected_benefits'] ?? null;
+                    $insert_data['expected_benefits'] = $_POST['expected_benefits_new'] ?? null;
                     break;
 
                 case 'โปรแกรมเดิม (แก้ปัญหา)':
@@ -190,7 +190,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $insert_data['problem_description'] = $_POST['problem_description'] ?? null;
                     $insert_data['error_frequency'] = $_POST['error_frequency'] ?? null;
                     $insert_data['steps_to_reproduce'] = $_POST['steps_to_reproduce'] ?? null;
-                    $insert_data['expected_benefits'] = $_POST['expected_benefits'] ?? null;
+                    $insert_data['expected_benefits'] = $_POST['expected_benefits_fix_problem'] ?? null;
                     break;
 
                 case 'โปรแกรมเดิม (เปลี่ยนข้อมูล)':
@@ -198,7 +198,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $insert_data['data_to_change'] = $_POST['data_to_change'] ?? null;
                     $insert_data['new_data_value'] = $_POST['new_data_value'] ?? null;
                     $insert_data['change_reason'] = $_POST['change_reason'] ?? null;
-                    $insert_data['expected_benefits'] = $_POST['expected_benefits'] ?? null;
+                    $insert_data['expected_benefits'] = $_POST['expected_benefits_change_data'] ?? null;
                     break;
 
                 case 'โปรแกรมเดิม (เพิ่มฟังก์ชั่น)':
@@ -213,7 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $decoration_types = $_POST['decoration_type'] ?? [];
                     $insert_data['decoration_type'] = is_array($decoration_types) ? implode(',', $decoration_types) : null;
                     $insert_data['reference_examples'] = $_POST['reference_examples'] ?? null;
-                    $insert_data['expected_benefits'] = $_POST['expected_benefits'] ?? null;
+                    $insert_data['expected_benefits'] = $_POST['expected_benefits_decorate'] ?? null;
                     break;
             }
         }
@@ -541,23 +541,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="sidebar-wrapper scrollbar scrollbar-inner">
                 <div class="sidebar-content">
                     <ul class="nav nav-secondary">
-                        <li class="nav-item">
-                            <a data-bs-toggle="collapse" href="dashboard2.php" class="collapsed" aria-expanded="false">
+                        <li class="nav-item ">
+                            <a href="../dashboard2.php">
                                 <i class="fas fa-home"></i>
                                 <p>หน้าหลัก</p>
-                                <span class="caret"></span>
                             </a>
-                            <div class="collapse" id="dashboard">
-                                <ul class="nav nav-collapse">
-                                    <li>
-                                        <a href="dashboard2.php">
-                                            <span class="sub-item">หน้าหลัก 1</span>
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
-
                         </li>
+
                         <li class="nav-section">
                             <span class="sidebar-mini-icon">
                                 <i class="fa fa-ellipsis-h"></i>
@@ -690,7 +680,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 
-
+   <div class="page-inner">
                 <!-- Form -->
                 <div class="glass-card p-4">
                     <?php if (!empty($error)): ?>
@@ -742,7 +732,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                                     <label for="work_category" class="form-label">
                                         <i class="fas fa-warehouse me-1"></i>หัวข้องานคลัง
-                                    
+
                                     </label>
 
 
@@ -865,7 +855,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <label for="expected_benefits" class="form-label">
                                             <i class="fas fa-chart-line me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
                                         </label>
-                                        <textarea class="form-control" id="expected_benefits" name="expected_benefits" rows="2"
+                                        <textarea class="form-control" id="expected_benefits_new" name="expected_benefits_new" rows="2"
                                             placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้
 คำเตือน: ให้ชัดเจนว่าประโยชน์นั้นเป็นเชิงปริมาณหรือคุณภาพ เพื่อให้วัดผลได้ "></textarea>
                                     </div>
@@ -933,7 +923,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <label for="expected_benefits" class="form-label">
                                                 <i class="fas fa-chart-line me-2"></i> ประโยชน์ที่คาดว่าจะได้รับ
                                             </label>
-                                            <textarea class="form-control" id="expected_benefits" name="expected_benefits" rows="2"
+                                            <textarea class="form-control" id="expected_benefits_fix_problem" name="expected_benefits_fix_problem" rows="2"
                                                 placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้
 คำเตือน: ให้ชัดเจนว่าประโยชน์นั้นเป็นเชิงปริมาณหรือคุณภาพ เพื่อให้วัดผลได้"></textarea>
                                         </div>
@@ -995,7 +985,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <label for="expected_benefits" class="form-label">
                                                 <i class="fas fa-chart-line me-2"></i> ประโยชน์ที่คาดว่าจะได้รับ
                                             </label>
-                                            <textarea class="form-control" id="expected_benefits" name="expected_benefits" rows="2"
+                                            <textarea class="form-control" id="expected_benefits_change_data" name="expected_benefits_change_data" rows="2"
                                                 placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้
 คำเตือน: ให้ชัดเจนว่าประโยชน์นั้นเป็นเชิงปริมาณหรือคุณภาพ เพื่อให้วัดผลได้"></textarea>
                                         </div>
@@ -1052,7 +1042,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <label class="form-label">
                                                 <i class="fas fa-desktop me-2"></i> ชื่อโปรแกรมที่ต้องการตกแต่ง <span class="text-danger">*</span>
                                             </label>
-                                            <select class="form-select">
+                                             <select class="form-select" id="program_name_decorate" name="program_name_decorate">
                                                 <option value="">-- เลือกโปรแกรม --</option>
                                                 <?php foreach ($programs as $program): ?>
                                                     <option value="<?= htmlspecialchars($program['name']) ?>">
@@ -1070,18 +1060,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <div class="row">
                                                 <div class="col-6">
                                                     <div class="form-check">
-                                                        <input type="checkbox" class="form-check-input"> ปรับปรุงหน้าตาระบบ
+                                                        <input type="checkbox" class="form-check-input" id="ui_design" name="decoration_type[]" value="ปรับปรุงหน้าตาระบบ"> ปรับปรุงหน้าตาระบบ
                                                     </div>
                                                     <div class="form-check">
-                                                        <input type="checkbox" class="form-check-input"> เปลี่ยนสีธีม, ปุ่ม, ฟังก์ชั่น
+                                                        <input type="checkbox" class="form-check-input" id="color_scheme" name="decoration_type[]" value="เปลี่ยนสีธีม,ปุ่ม,ฟังก์ชั่น"> เปลี่ยนสีธีม, ปุ่ม, ฟังก์ชั่น
                                                     </div>
                                                 </div>
                                                 <div class="col-6">
                                                     <div class="form-check">
-                                                        <input type="checkbox" class="form-check-input"> ปรับปรุงการจัดวาง, หัวข้อ
+                                                        <input type="checkbox" class="form-check-input" id="layout_improve" name="decoration_type[]" value="ปรับปรุงการจัดวาง,หัวข้อ"> ปรับปรุงการจัดวาง, หัวข้อ
                                                     </div>
                                                     <div class="form-check">
-                                                        <input type="checkbox" class="form-check-input"> เปลี่ยน ICON
+                                                        <input type="checkbox" class="form-check-input" id="icon" name="decoration_type[]" value="เปลี่ยนICON" > เปลี่ยน ICON
                                                     </div>
                                                 </div>
                                             </div>
@@ -1094,13 +1084,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <label class="form-label">
                                                 <i class="fas fa-images me-2"></i> ตัวอย่างอ้างอิงหรือโปรแกรมที่ใกล้เคียง
                                             </label>
-                                            <textarea class="form-control" rows="2" placeholder="มีระบบหรือโปรแกรมที่ใกล้เคียงให้อ้างอิงหรือไม่ (ถ้ามี) ถ้าไม่มีให้ระบุไม่มี"></textarea>
+                                            <textarea class="form-control" id="reference_examples" name="reference_examples" rows="2" placeholder="มีระบบหรือโปรแกรมที่ใกล้เคียงให้อ้างอิงหรือไม่ (ถ้ามี) ถ้าไม่มีให้ระบุไม่มี"></textarea>
                                         </div>
                                         <div class="col-md-6 mb-3">
                                             <label class="form-label">
                                                 <i class="fas fa-chart-line me-2"></i> ประโยชน์ที่คาดว่าจะได้รับ
                                             </label>
-                                            <textarea class="form-control" rows="2" placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้
+                                            <textarea class="form-control" id="expected_benefits_decorate" name="expected_benefits_decorate"   rows="2" placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้
 คำเตือน: ให้ชัดเจนว่าประโยชน์นั้นเป็นเชิงปริมาณหรือคุณภาพ เพื่อให้วัดผลได้
                                             "></textarea>
                                         </div>
@@ -1370,61 +1360,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             });
         });
     </script>
-    <div class="modal fade" id="warehouseTopicModal" tabindex="-1" aria-labelledby="warehouseTopicModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="warehouseTopicModalLabel">รายการหัวข้องานคลัง</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <ul class="list-group list-group-flush small">
-                        <li class="list-group-item">RDC Assignment Desk ASS</li>
-                        <li class="list-group-item">RDC Break case BC</li>
-                        <li class="list-group-item">RDC Full case FC</li>
-                        <li class="list-group-item">RDC MIS MIS</li>
-                        <li class="list-group-item">RDC O2O O2O</li>
-                        <li class="list-group-item">RDC ข้อมูลจ่าย DOU</li>
-                        <li class="list-group-item">RDC ข้อมูลรับ DIN</li>
-                        <li class="list-group-item">RDC ความถูกต้องสินค้า INV</li>
-                        <li class="list-group-item">RDC ความปลอดภัยสินค้า SHE</li>
-                        <li class="list-group-item">RDC รับและจัดเก็บสินค้า FL</li>
-                        <li class="list-group-item">RDC จัดส่งเข้า TIN</li>
-                        <li class="list-group-item">RDC จัดส่งออก TOU</li>
-                        <li class="list-group-item">RDC ธุรการ ADM</li>
-                        <li class="list-group-item">RDC Rider RD</li>
-                        <li class="list-group-item">RDC บริหารสินค้าใกล้หมดและพัลต SPD</li>
-                        <li class="list-group-item">RDC บริหารวิศวกรรม ENG</li>
-                        <li class="list-group-item">RDC พัฒนาระบบ DEV</li>
-                        <li class="list-group-item">RDC พัฒนางานองค์กร OD</li>
-                        <li class="list-group-item">RDC รับสินค้า RTV</li>
-                        <li class="list-group-item">RDC รับสินค้า (อีกช่อง) REC</li>
-                        <li class="list-group-item">RDC วางแผนจัดส่ง PLA</li>
-                        <li class="list-group-item">RDC วิเคราะห์สินค้า LD</li>
-                        <li class="list-group-item">RDC สินค้าความลับ SEC</li>
-                        <li class="list-group-item">RDC สินค้าพิเศษ POP</li>
-                        <li class="list-group-item">CDC MIS MIS</li>
-                        <li class="list-group-item">CDC ข้อมูลจ่าย DOU</li>
-                        <li class="list-group-item">CDC ข้อมูลรับ DIN</li>
-                        <li class="list-group-item">CDC QC QC</li>
-                        <li class="list-group-item">CDC SHE SHE</li>
-                        <li class="list-group-item">CDC จัดส่งเข้า IN</li>
-                        <li class="list-group-item">CDC จัดส่งออก OUT</li>
-                        <li class="list-group-item">CDC จัดสินค้า PIC</li>
-                        <li class="list-group-item">CDC วิศวกรรม ENG</li>
-                        <li class="list-group-item">CDC รับสินค้า REC</li>
-                        <li class="list-group-item">CDC ส่งมอบ LDA</li>
-                        <li class="list-group-item">BDC ข้อมูล DAT</li>
-                        <li class="list-group-item">BDC ตรวจสอบคุณภาพ QC</li>
-                        <li class="list-group-item">BDC จัดส่ง TR</li>
-                        <li class="list-group-item">BDC จัดสินค้า PIC</li>
-                        <li class="list-group-item">BDC รับและส่งมอบ RL</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </div>
-
+    
 
 </body>
 

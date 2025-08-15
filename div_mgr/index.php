@@ -13,6 +13,7 @@ $user_id = $_SESSION['user_id'];
 $stmt = $conn->prepare("
     SELECT sr.*, u.name, u.lastname, u.employee_id, u.position, u.department, u.phone, u.email,
            s.name as service_name, s.category as service_category,
+           
            dn.document_number,
            dn.created_at as document_created_at,
            (SELECT COUNT(*) FROM request_attachments WHERE service_request_id = sr.id) as attachment_count
@@ -36,10 +37,9 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $request_id = $_POST['request_id'];
     $status = $_POST['status'];
-    $document_number = trim($_POST['document_number'] ?? '');
-    $reason = trim($_POST['reason'] ?? '');
+    $reason = $_POST['reason'] ?? '';
 
-    if ($status === 'rejected' && $reason === '') {
+    if ($status === 'rejected' && trim($reason) === '') {
         $error = "กรุณาระบุเหตุผลเมื่อไม่อนุมัติ";
     } else {
         try {
@@ -47,17 +47,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // บันทึกการอนุมัติ
             $stmt = $conn->prepare("
-                INSERT INTO div_mgr_approvals (service_request_id, div_mgr_user_id, status, reason, reviewed_at, document_number) 
-                VALUES (?, ?, ?, ?, NOW(), ?)
+                INSERT INTO div_mgr_approvals (service_request_id, div_mgr_user_id, status, reason, reviewed_at) 
+                VALUES (?, ?, ?, ?, NOW())
                 ON DUPLICATE KEY UPDATE 
-                    status = VALUES(status), 
-                    reason = VALUES(reason),
-                    document_number = VALUES(document_number), 
-                    reviewed_at = NOW()
+                status = VALUES(status), 
+                reason = VALUES(reason), 
+                reviewed_at = NOW()
             ");
-            $stmt->execute([$request_id, $user_id, $status, $reason, $document_number]);
+            $stmt->execute([$request_id, $user_id, $status, $reason]);
 
-            // อัปเดตสถานะ
+            // อัปเดตสถานะใน service_requests
             $new_status = $status === 'approved' ? 'assignor_review' : 'rejected';
             $stmt = $conn->prepare("UPDATE service_requests SET status = ?, current_step = ? WHERE id = ?");
             $stmt->execute([$new_status, $status === 'approved' ? 'div_mgr_approved' : 'div_mgr_rejected', $request_id]);
@@ -72,29 +71,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $conn->commit();
             header("Location: index.php");
             exit();
+
         } catch (Exception $e) {
             $conn->rollBack();
             $error = "เกิดข้อผิดพลาด: " . $e->getMessage();
         }
     }
 }
-
 ?>
 
 <!DOCTYPE html>
 <html lang="th">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BobbyCareDev-ผู้จัดการฝ่าย</title>
+    <title>อนุมัติคำขอ - ผู้จัดการฝ่าย</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="icon" type="image/png" href="/BobbyCareRemake/img/logo/bobby-icon.png">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../css/nav.css">
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #ffffffff 0%, #341355 100%);
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             --card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
             --glass-bg: rgba(255, 255, 255, 0.95);
             --glass-border: rgba(255, 255, 255, 0.2);
@@ -180,29 +176,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             font-size: 0.9rem;
         }
 
-        .info-icon.employee {
-            background: #667eea;
-        }
-
-        .info-icon.user {
-            background: #10b981;
-        }
-
-        .info-icon.position {
-            background: #f59e0b;
-        }
-
-        .info-icon.department {
-            background: #8b5cf6;
-        }
-
-        .info-icon.phone {
-            background: #ef4444;
-        }
-
-        .info-icon.email {
-            background: #06b6d4;
-        }
+        .info-icon.employee { background: #667eea; }
+        .info-icon.user { background: #10b981; }
+        .info-icon.position { background: #f59e0b; }
+        .info-icon.department { background: #8b5cf6; }
+        .info-icon.phone { background: #ef4444; }
+        .info-icon.email { background: #06b6d4; }
 
         .service-badge {
             padding: 8px 16px;
@@ -231,20 +210,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-transform: uppercase;
         }
 
-        .category-rdc {
-            background: #dbeafe;
-            color: #1e40af;
-        }
-
-        .category-cdc {
-            background: #d1fae5;
-            color: #065f46;
-        }
-
-        .category-bdc {
-            background: #fef3c7;
-            color: #92400e;
-        }
+        .category-rdc { background: #dbeafe; color: #1e40af; }
+        .category-cdc { background: #d1fae5; color: #065f46; }
+        .category-bdc { background: #fef3c7; color: #92400e; }
 
         .btn-gradient {
             background: linear-gradient(135deg, #667eea, #764ba2);
@@ -349,11 +317,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .page-title {
                 font-size: 2rem;
             }
-
+            
             .user-info-grid {
                 grid-template-columns: 1fr;
             }
-
+            
             .radio-group {
                 flex-direction: column;
                 gap: 10px;
@@ -361,52 +329,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </style>
 </head>
-
 <body>
-
-
-   <nav class="custom-navbar navbar navbar-expand-lg shadow-sm">
-    <div class="container custom-navbar-container">
-        <!-- โลโก้ + ชื่อระบบ (ฝั่งซ้าย) -->
-        <a class="navbar-brand d-flex align-items-center custom-navbar-brand" href="index.php">
-            <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
-            <!-- ชื่อระบบ หรือ โลโก้อย่างเดียว ฝั่งซ้าย -->
-        </a>
-
-        <!-- ปุ่ม toggle สำหรับ mobile -->
-        <button class="navbar-toggler custom-navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-
-        <!-- เมนู -->
-        <div class="collapse navbar-collapse" id="navbarContent">
-            <!-- ซ้าย: เมนูหลัก -->
-            <ul class="navbar-nav me-auto mb-2 mb-lg-0 custom-navbar-menu">
-                <li class="nav-item">
-                            <a class="nav-link" href="view_logs.php"><i class="fas fa-history me-1"></i> ประวัติการอนุมัติ</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="index2.php"><i class="fas fa-history me-1"></i> ทดสอบ</a>
-                        </li>
-            </ul>
-
-            <!-- ขวา: ชื่อผู้ใช้ + ออกจากระบบ -->
-            <ul class="navbar-nav mb-2 mb-lg-0 align-items-center">
-                <li class="nav-item d-flex align-items-center me-3">
-                    <i class="fas fa-user-circle me-1"></i>
-                    <span class="custom-navbar-title">ผู้จัดการฝ่ายคุณ: <?= htmlspecialchars($_SESSION['name']) ?>!</span>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link text-danger" href="../logout.php">
-                        <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
-                    </a>
-                </li>
-            </ul>
-        </div>
-    </div>
-</nav>
     <div class="container mt-5">
-
+        <!-- Header -->
+        <div class="header-card p-5 mb-5">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center mb-3">
+                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-4" style="width: 70px; height: 70px;">
+                            <i class="fas fa-user-tie text-white fs-2"></i>
+                        </div>
+                        <div>
+                            <h1 class="page-title mb-2">ผู้จัดการฝ่าย</h1>
+                            <p class="text-muted mb-0 fs-5">พิจารณาและอนุมัติคำขอบริการจากผู้ใช้งาน</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="d-flex gap-2 justify-content-lg-end justify-content-start flex-wrap">
+                        <a href="view_logs.php" class="btn btn-gradient">
+                            <i class="fas fa-history me-2"></i>ประวัติการอนุมัติ
+                        </a>
+                        <a href="../logout.php" class="btn btn-outline-danger">
+                            <i class="fas fa-sign-out-alt me-2"></i>ออกจากระบบ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Content -->
         <div class="glass-card p-4">
@@ -436,20 +386,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="d-flex justify-content-between align-items-start mb-3">
                             <div class="flex-grow-1">
 
-                                <!-- ข้อมูลเลขที่เอกสาร -->
-                                <?php if (!empty($req['document_number'])): ?>
+                                   <!-- ข้อมูลเลขที่เอกสาร -->
+                                 <?php if (!empty($req['document_number'])): ?>
                                     <div class="text-muted mb-2">
                                         <i class="fas fa-file-alt me-1"></i> เลขที่เอกสาร: <?= htmlspecialchars($req['document_number']) ?>
                                     </div>
-                                    <!-- ส่งค่า document_number ไปใน form ด้วย -->
-                                    <input type="hidden" name="document_number" value="<?= htmlspecialchars($req['document_number']) ?>">
                                 <?php endif; ?>
-
 
                                 <!-- หัวข้อ -->
                                 <div class="request-title"><?= htmlspecialchars($req['title']) ?></div>
-
-                                <!-- ประเภทบริการ -->
+                                
+                                  <!-- ประเภทบริการ -->
                                 <div class="d-flex gap-2 mb-2">
                                     <?php if ($req['service_name']): ?>
                                         <span class="service-badge service-<?= $req['service_category'] ?>">
@@ -463,9 +410,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <?php endif; ?>
                                 </div>
 
-
+                                
                             </div>
-                            <!-- เอกสารสร้างเมื่อ -->
+                              <!-- เอกสารสร้างเมื่อ -->
                             <div class="text-muted">
                                 <i class="fas fa-calendar me-1"></i>
                                 <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
@@ -529,75 +476,76 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </div>
                             </div>
                         </div>
+                        
 
+<?php if (strtolower($req['service_category'] ?? '') === 'development'): ?>
 
-                        <?php if ($req['service_category'] === 'development'): ?>
-                            <div class="bg-info bg-opacity-10 p-3 rounded-3 mb-3 border-start border-info border-4">
-                                <h6 class="fw-bold text-info mb-3">
-                                    <i class="fas fa-code me-2"></i>ข้อมูล Development
-                                </h6>
-                                <div class="row">
-                                    <?php
-                                    $fields = [
-                                        'program_purpose' => 'วัตถุประสงค์',
-                                        'target_users' => 'กลุ่มผู้ใช้งาน',
-                                        'main_functions' => 'ฟังก์ชันหลัก',
-                                        'data_requirements' => 'ข้อมูลที่ต้องใช้',
-                                        'current_program_name' => 'โปรแกรมที่มีปัญหา',
-                                        'problem_description' => 'รายละเอียดปัญหา',
-                                        'error_frequency' => 'ความถี่ของปัญหา',
-                                        'steps_to_reproduce' => 'ขั้นตอนการทำให้เกิดปัญหา',
-                                        'program_name_change' => 'โปรแกรมที่ต้องการเปลี่ยนข้อมูล',
-                                        'data_to_change' => 'ข้อมูลที่ต้องการเปลี่ยน',
-                                        'new_data_value' => 'ข้อมูลใหม่ที่ต้องการ',
-                                        'change_reason' => 'เหตุผลในการเปลี่ยนแปลง',
-                                        'program_name_function' => 'โปรแกรมที่ต้องการเพิ่มฟังก์ชั่น',
-                                        'new_functions' => 'ฟังก์ชั่นใหม่ที่ต้องการ',
-                                        'function_benefits' => 'ประโยชน์ของฟังก์ชั่นใหม่',
-                                        'integration_requirements' => 'ความต้องการเชื่อมต่อ',
-                                        'program_name_decorate' => 'โปรแกรมที่ต้องการตกแต่ง',
-                                        'decoration_type' => 'ประเภทการตกแต่ง',
-                                        'reference_examples' => 'ตัวอย่างอ้างอิง',
-                                        'current_workflow' => 'ขั้นตอนการทำงานเดิม',
-                                        'approach_ideas' => 'แนวทาง/ไอเดีย',
-                                        'related_programs' => 'โปรแกรมที่คาดว่าจะเกี่ยวข้อง',
-                                        'current_tools' => 'ปกติใช้โปรแกรมอะไรทำงานอยู่',
-                                        'system_impact' => 'ผลกระทบต่อระบบ',
-                                        'related_documents' => 'เอกสารการทำงานที่เกี่ยวข้อง',
-                                    ];
+    <div class="bg-info bg-opacity-10 p-3 rounded-3 mb-3 border-start border-info border-4">
+        <h6 class="fw-bold text-info mb-3">
+            <i class="fas fa-code me-2"></i>ข้อมูล Development
+        </h6>
+        <div class="row">
+            <?php
+                $fields = [
+                    'program_purpose' => 'วัตถุประสงค์',
+                    'target_users' => 'กลุ่มผู้ใช้งาน',
+                    'main_functions' => 'ฟังก์ชันหลัก',
+                    'data_requirements' => 'ข้อมูลที่ต้องใช้',
+                    'current_program_name' => 'โปรแกรมที่มีปัญหา',
+                    'problem_description' => 'รายละเอียดปัญหา',
+                    'error_frequency' => 'ความถี่ของปัญหา',
+                    'steps_to_reproduce' => 'ขั้นตอนการทำให้เกิดปัญหา',
+                    'program_name_change' => 'โปรแกรมที่ต้องการเปลี่ยนข้อมูล',
+                    'data_to_change' => 'ข้อมูลที่ต้องการเปลี่ยน',
+                    'new_data_value' => 'ข้อมูลใหม่ที่ต้องการ',
+                    'change_reason' => 'เหตุผลในการเปลี่ยนแปลง',
+                    'program_name_function' => 'โปรแกรมที่ต้องการเพิ่มฟังก์ชั่น',
+                    'new_functions' => 'ฟังก์ชั่นใหม่ที่ต้องการ',
+                    'function_benefits' => 'ประโยชน์ของฟังก์ชั่นใหม่',
+                    'integration_requirements' => 'ความต้องการเชื่อมต่อ',
+                    'program_name_decorate' => 'โปรแกรมที่ต้องการตกแต่ง',
+                    'decoration_type' => 'ประเภทการตกแต่ง',
+                    'reference_examples' => 'ตัวอย่างอ้างอิง',
+                    'current_workflow' => 'ขั้นตอนการทำงานเดิม',
+                    'approach_ideas' => 'แนวทาง/ไอเดีย',
+                    'related_programs' => 'โปรแกรมที่คาดว่าจะเกี่ยวข้อง',
+                    'current_tools' => 'ปกติใช้โปรแกรมอะไรทำงานอยู่',
+                    'system_impact' => 'ผลกระทบต่อระบบ',
+                    'related_documents' => 'เอกสารการทำงานที่เกี่ยวข้อง',
+                ];
 
-                                    foreach ($fields as $key => $label):
-                                        if (!empty($req[$key])):
-                                    ?>
-                                            <div class="col-md-6 mb-3">
-                                                <strong><?= $label ?>:</strong><br>
-                                                <?= nl2br(htmlspecialchars($req[$key])) ?>
-                                            </div>
-                                    <?php
-                                        endif;
-                                    endforeach;
-                                    ?>
-                                </div>
-                            </div>
-                        <?php endif; ?>
-                        <?php if ($req['expected_benefits']): ?>
-                            <div class="bg-success bg-opacity-10 p-3 rounded-3 mb-3 border-start border-success border-4">
-                                <h6 class="fw-bold text-success mb-2">
-                                    <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
-                                </h6>
-                                <p class="mb-0"><?= nl2br(htmlspecialchars($req['expected_benefits'])) ?></p>
-                            </div>
-                        <?php endif; ?>
+                foreach ($fields as $key => $label):
+                    if (!empty($req[$key])):
+            ?>
+            <div class="col-md-6 mb-3">
+                <strong><?= $label ?>:</strong><br>
+                <?= nl2br(htmlspecialchars($req[$key])) ?>
+            </div>
+            <?php
+                    endif;
+                endforeach;
+            ?>
+        </div>
+    </div>
+<?php endif; ?>
+<?php if ($req['expected_benefits']): ?>
+    <div class="bg-success bg-opacity-10 p-3 rounded-3 mb-3 border-start border-success border-4">
+        <h6 class="fw-bold text-success mb-2">
+            <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+        </h6>
+        <p class="mb-0"><?= nl2br(htmlspecialchars($req['expected_benefits'])) ?></p>
+    </div>
+<?php endif; ?>
 
 
 
                         <?php if ($req['attachment_count'] > 0): ?>
-                            <div class="mt-3">
-                                <span class="badge bg-info">
-                                    <i class="fas fa-paperclip me-1"></i>
-                                    <?= $req['attachment_count'] ?> ไฟล์แนบ
-                                </span>
-                            </div>
+                        <div class="mt-3">
+                            <span class="badge bg-info">
+                                <i class="fas fa-paperclip me-1"></i>
+                                <?= $req['attachment_count'] ?> ไฟล์แนบ
+                            </span>
+                        </div>
                         <?php endif; ?>
 
                         <?php
@@ -607,12 +555,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         ?>
 
                         <form method="post" class="approval-form">
-                            <?php if (!empty($req['document_number'])): ?>
-                                <input type="hidden" name="document_number" value="<?= htmlspecialchars($req['document_number']) ?>">
-                            <?php endif; ?>
-
                             <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
-
+                            
                             <h5 class="fw-bold mb-3">
                                 <i class="fas fa-gavel me-2"></i>การพิจารณา
                             </h5>
@@ -634,12 +578,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                             <div class="mb-3">
                                 <label for="reason_<?= $req['id'] ?>" class="form-label">เหตุผล/ข้อเสนอแนะ:</label>
-                                <textarea
-                                    name="reason"
-                                    id="reason_<?= $req['id'] ?>"
+                                <textarea 
+                                    name="reason" 
+                                    id="reason_<?= $req['id'] ?>" 
                                     class="form-control"
                                     rows="3"
-                                    placeholder="ระบุเหตุผลหรือข้อเสนอแนะ (จำเป็นเมื่อไม่อนุมัติ)"></textarea>
+                                    placeholder="ระบุเหตุผลหรือข้อเสนอแนะ (จำเป็นเมื่อไม่อนุมัติ)"
+                                ></textarea>
                             </div>
 
                             <button type="submit" class="submit-btn">
@@ -661,7 +606,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 const form = this.closest('form');
                 const textarea = form.querySelector('textarea');
                 const label = form.querySelector('label[for^="reason"]');
-
+                
                 if (this.value === 'rejected') {
                     textarea.required = true;
                     label.innerHTML = 'เหตุผลการไม่อนุมัติ: <span style="color: red;">*</span>';
@@ -675,5 +620,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
     </script>
 </body>
-
 </html>

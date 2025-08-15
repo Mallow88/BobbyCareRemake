@@ -790,7 +790,7 @@ foreach ($requests as &$request) {
                                   <i class="fas fa-clock text-warning"></i> รอการรีวิวจากคุณ
                                 </div>
                                 <div class="mt-3">
-                                  <a href="../requests/review_task.php?request_id=<?= $req['id'] ?>" class="btn btn-primary btn-sm">
+                                  <a href="review_service.php?request_id=<?= $req['id'] ?>" class="btn btn-primary btn-sm">
                                     <i class="fas fa-star me-1"></i>รีวิวงาน
                                   </a>
                                 </div>

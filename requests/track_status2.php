@@ -687,23 +687,12 @@ function getApprovalStatus($status) {
       <div class="sidebar-wrapper scrollbar scrollbar-inner">
         <div class="sidebar-content">
           <ul class="nav nav-secondary">
-            <li class="nav-item">
-              <a data-bs-toggle="collapse" href="dashboard2.php" class="collapsed" aria-expanded="false">
-                <i class="fas fa-home"></i>
-                <p>หน้าหลัก</p>
-                <span class="caret"></span>
-              </a>
-              <div class="collapse" id="dashboard">
-                <ul class="nav nav-collapse">
-                  <li>
-                    <a href="dashboard2.php">
-                      <span class="sub-item">หน้าหลัก 1</span>
-                    </a>
-                  </li>
-                </ul>
-              </div>
-              
-            </li>
+             <li class="nav-item ">
+                            <a href="../dashboard2.php">
+                                <i class="fas fa-home"></i>
+                                <p>หน้าหลัก</p>
+                            </a>
+                        </li>
            <li class="nav-section">
               <span class="sidebar-mini-icon">
                 <i class="fa fa-ellipsis-h"></i>
@@ -837,7 +826,7 @@ function getApprovalStatus($status) {
 
 
 
-
+   <div class="page-inner">
           <!-- ส่วนกรองข้อมูล -->
         <div class="filter-section">
             <form method="GET" class="filter-form">
