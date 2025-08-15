@@ -616,23 +616,11 @@ $year_now = (int)date('Y');
       <div class="sidebar-wrapper scrollbar scrollbar-inner">
         <div class="sidebar-content">
           <ul class="nav nav-secondary">
-            <li class="nav-item">
-              <a data-bs-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
+            <li class="nav-item active">
+              <a href="index2.php">
                 <i class="fas fa-home"></i>
                 <p>หน้าหลัก</p>
-                <span class="caret"></span>
               </a>
-              <div class="collapse" id="dashboard">
-                <ul class="nav nav-collapse">
-                  <li>
-                    <a href="index2.php">
-                      <span class="sub-item">หน้าหลัก</span>
-                    </a>
-                  </li>
-
-                </ul>
-              </div>
-
             </li>
             <li class="nav-section">
               <span class="sidebar-mini-icon">

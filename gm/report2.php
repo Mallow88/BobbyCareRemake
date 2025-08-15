@@ -309,92 +309,80 @@ $avg_rating = count($rated_tasks) > 0 ? round($total_rating / count($rated_tasks
 <html lang="en">
 
 <head>
-  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-  <title>BobbyCareDev-Dashboard</title>
-  <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
-  <link rel="icon" href="/BobbyCareRemake/img/logo/bobby-icon.png" type="image/x-icon" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>BobbyCareDev-Dashboard</title>
+    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
+    <link rel="icon" href="/BobbyCareRemake/img/logo/bobby-icon.png" type="image/x-icon" />
 
-  <!-- Fonts and icons -->
-  <script src="../assets/js/plugin/webfont/webfont.min.js"></script>
-  <script>
-    WebFont.load({
-      google: {
-        families: ["Public Sans:300,400,500,600,700"]
-      },
-      custom: {
-        families: [
-          "Font Awesome 5 Solid",
-          "Font Awesome 5 Regular",
-          "Font Awesome 5 Brands",
-          "simple-line-icons",
-        ],
-        urls: ["../assets/css/fonts.min.css"],
-      },
-      active: function() {
-        sessionStorage.fonts = true;
-      },
-    });
-  </script>
+    <!-- Fonts and icons -->
+    <script src="../assets/js/plugin/webfont/webfont.min.js"></script>
+    <script>
+        WebFont.load({
+            google: {
+                families: ["Public Sans:300,400,500,600,700"]
+            },
+            custom: {
+                families: [
+                    "Font Awesome 5 Solid",
+                    "Font Awesome 5 Regular",
+                    "Font Awesome 5 Brands",
+                    "simple-line-icons",
+                ],
+                urls: ["../assets/css/fonts.min.css"],
+            },
+            active: function() {
+                sessionStorage.fonts = true;
+            },
+        });
+    </script>
 
-  <!-- CSS Files -->
-  <link rel="stylesheet" href="../assets/css/bootstrap.min.css" />
-  <link rel="stylesheet" href="../assets/css/plugins.min.css" />
-  <link rel="stylesheet" href="../assets/css/kaiadmin.min.css" />
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="../assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../assets/css/plugins.min.css" />
+    <link rel="stylesheet" href="../assets/css/kaiadmin.min.css" />
 
-  <!-- CSS Just for demo purpose, don't include it in your project -->
-  <link rel="stylesheet" href="../assets/css/demo.css" />
+    <!-- CSS Just for demo purpose, don't include it in your project -->
+    <link rel="stylesheet" href="../assets/css/demo.css" />
 
     <link rel="stylesheet" href="css/report.css">
-       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 
 </head>
 
 <body>
 
-  <div class="wrapper">
-    <!-- Sidebar -->
-    <div class="sidebar" data-background-color="dark">
-      <div class="sidebar-logo">
-        <!-- Logo Header -->
-        <div class="logo-header" data-background-color="dark">
-          <a href="developer_dashboard2.php" class="logo">
-            <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="30" />
-          </a>
-          <div class="nav-toggle">
-            <button class="btn btn-toggle toggle-sidebar">
-              <i class="gg-menu-right"></i>
-            </button>
-            <button class="btn btn-toggle sidenav-toggler">
-              <i class="gg-menu-left"></i>
-            </button>
-          </div>
-          <button class="topbar-toggler more">
-            <i class="gg-more-vertical-alt"></i>
-          </button>
-        </div>
-        <!-- End Logo Header -->
-      </div>
-      <div class="sidebar-wrapper scrollbar scrollbar-inner">
-        <div class="sidebar-content">
-          <ul class="nav nav-secondary">
-            <li class="nav-item">
-              <a data-bs-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
-                <i class="fas fa-home"></i>
-                 <p>หน้าหลัก</p>
-                                <span class="caret"></span>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar" data-background-color="dark">
+            <div class="sidebar-logo">
+                <!-- Logo Header -->
+                <div class="logo-header" data-background-color="dark">
+                    <a href="developer_dashboard2.php" class="logo">
+                        <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="30" />
+                    </a>
+                    <div class="nav-toggle">
+                        <button class="btn btn-toggle toggle-sidebar">
+                            <i class="gg-menu-right"></i>
+                        </button>
+                        <button class="btn btn-toggle sidenav-toggler">
+                            <i class="gg-menu-left"></i>
+                        </button>
+                    </div>
+                    <button class="topbar-toggler more">
+                        <i class="gg-more-vertical-alt"></i>
+                    </button>
+                </div>
+                <!-- End Logo Header -->
+            </div>
+            <div class="sidebar-wrapper scrollbar scrollbar-inner">
+                <div class="sidebar-content">
+                    <ul class="nav nav-secondary">
+                          <li class="nav-item ">
+                            <a href="gmindex2.php">
+                                <i class="fas fa-home"></i>
+                                <p>หน้าหลัก</p>
                             </a>
-                            <div class="collapse" id="dashboard">
-                                <ul class="nav nav-collapse">
-                                    <li>
-                                        <a href="gmindex2.php">
-                                            <span class="sub-item">หน้าหลัก</span>
-                                        </a>
-                                    </li>
-
-                                </ul>
-                            </div>
-
                         </li>
                         <li class="nav-section">
                             <span class="sidebar-mini-icon">
@@ -443,618 +431,619 @@ $avg_rating = count($rated_tasks) > 0 ? round($total_rating / count($rated_tasks
                             </a>
                         </li>
 
-          </ul>
-        </div>
-      </div>
-    </div>
-    <!-- End Sidebar -->
-
-    <div class="main-panel">
-      <div class="main-header">
-        <div class="main-header-logo">
-          <!-- Logo Header -->
-          <div class="logo-header" data-background-color="dark">
-            <a href="../index.html" class="logo">
-              <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="20" />
-            </a>
-            <div class="nav-toggle">
-              <button class="btn btn-toggle toggle-sidebar">
-                <i class="gg-menu-right"></i>
-              </button>
-              <button class="btn btn-toggle sidenav-toggler">
-                <i class="gg-menu-left"></i>
-              </button>
+                    </ul>
+                </div>
             </div>
-            <button class="topbar-toggler more">
-              <i class="gg-more-vertical-alt"></i>
-            </button>
-          </div>
-          <!-- End Logo Header -->
         </div>
+        <!-- End Sidebar -->
 
-        <!-- Navbar Header -->
-        <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
-          <div class="container-fluid">
-            <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-
-              <!-- โปรไฟล์ -->
-              <li class="nav-item topbar-user dropdown hidden-caret">
-                <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
-
-                  <div class="avatar-sm">
-                    <img src="<?= htmlspecialchars($picture_url) ?>" alt="..." class="avatar-img rounded-circle" />
-                  </div>
-
-                  <span class="profile-username">
-                    <span class="op-7">ผู้จัดการทั่วไป:</span>
-                    <span class="fw-bold"><?= htmlspecialchars($_SESSION['name']) ?></span>
-                  </span>
-                </a>
-                <ul class="dropdown-menu dropdown-user animated fadeIn">
-                  <div class="dropdown-user-scroll scrollbar-outer">
-                    <li>
-                      <div class="user-box">
-                        <div class="avatar-lg">
-                          <img src="<?= htmlspecialchars($picture_url) ?>" alt="image profile" class="avatar-img rounded" />
+        <div class="main-panel">
+            <div class="main-header">
+                <div class="main-header-logo">
+                    <!-- Logo Header -->
+                    <div class="logo-header" data-background-color="dark">
+                        <a href="../index.html" class="logo">
+                            <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="20" />
+                        </a>
+                        <div class="nav-toggle">
+                            <button class="btn btn-toggle toggle-sidebar">
+                                <i class="gg-menu-right"></i>
+                            </button>
+                            <button class="btn btn-toggle sidenav-toggler">
+                                <i class="gg-menu-left"></i>
+                            </button>
                         </div>
-                        <div class="u-text">
-                          <h4><?= htmlspecialchars($_SESSION['name']) ?> </h4>
+                        <button class="topbar-toggler more">
+                            <i class="gg-more-vertical-alt"></i>
+                        </button>
+                    </div>
+                    <!-- End Logo Header -->
+                </div>
 
-                          <!-- <p class="text-muted"><?= htmlspecialchars($email) ?></p> -->
-                          <a href="" class="btn btn-xs btn-secondary btn-sm">View Profile</a>
+                <!-- Navbar Header -->
+                <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+                    <div class="container-fluid">
+                        <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+
+                            <!-- โปรไฟล์ -->
+                            <li class="nav-item topbar-user dropdown hidden-caret">
+                                <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+
+                                    <div class="avatar-sm">
+                                        <img src="<?= htmlspecialchars($picture_url) ?>" alt="..." class="avatar-img rounded-circle" />
+                                    </div>
+
+                                    <span class="profile-username">
+                                        <span class="op-7">ผู้จัดการทั่วไป:</span>
+                                        <span class="fw-bold"><?= htmlspecialchars($_SESSION['name']) ?></span>
+                                    </span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-user animated fadeIn">
+                                    <div class="dropdown-user-scroll scrollbar-outer">
+                                        <li>
+                                            <div class="user-box">
+                                                <div class="avatar-lg">
+                                                    <img src="<?= htmlspecialchars($picture_url) ?>" alt="image profile" class="avatar-img rounded" />
+                                                </div>
+                                                <div class="u-text">
+                                                    <h4><?= htmlspecialchars($_SESSION['name']) ?> </h4>
+
+                                                    <!-- <p class="text-muted"><?= htmlspecialchars($email) ?></p> -->
+                                                    <a href="" class="btn btn-xs btn-secondary btn-sm">View Profile</a>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item" href="#">My Profile</a>
+
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item" href="../logout.php">Logout</a>
+                                        </li>
+                                    </div>
+                                </ul>
+                            </li>
+
+
+                        </ul>
+                    </div>
+                </nav>
+                <!-- End Navbar -->
+            </div>
+
+
+
+
+            <div class="container">
+
+
+
+
+
+
+                <!-- Header -->
+                <div class="report-header">
+                    <div class="container">
+
+                        <p class="fas fa-chart-line"> BobbyCareDev Service Request Management System Report</p>
+                        <div class="report-meta">
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <i class="fas fa-calendar me-2"></i>
+                                    <strong>ช่วงเวลา:</strong> <?= date('d/m/Y', strtotime($date_from)) ?> - <?= date('d/m/Y', strtotime($date_to)) ?>
+                                </div>
+                                <div class="col-md-4">
+                                    <i class="fas fa-clock me-2"></i>
+                                    <strong>สร้างรายงาน:</strong> <?= date('d/m/Y H:i:s') ?>
+                                </div>
+                                <div class="col-md-4">
+                                    <i class="fas fa-user me-2"></i>
+                                    <strong>ลงชื่อผู้จัดการทั่วไป:</strong> <?= htmlspecialchars($_SESSION['name']) ?>
+                                </div>
+                            </div>
                         </div>
-                      </div>
-                    </li>
-                    <li>
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="#">My Profile</a>
-
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="../logout.php">Logout</a>
-                    </li>
-                  </div>
-                </ul>
-              </li>
-
-
-            </ul>
-          </div>
-        </nav>
-        <!-- End Navbar -->
-      </div>
-
-
-
-
-      <div class="container">
-
-
-
-
-
-
- <!-- Header -->
-    <div class="report-header">
-        <div class="container">
-
-            <p class="fas fa-chart-line"> BobbyCareDev Service Request Management System Report</p>
-            <div class="report-meta">
-                <div class="row">
-                    <div class="col-md-4">
-                        <i class="fas fa-calendar me-2"></i>
-                        <strong>ช่วงเวลา:</strong> <?= date('d/m/Y', strtotime($date_from)) ?> - <?= date('d/m/Y', strtotime($date_to)) ?>
-                    </div>
-                    <div class="col-md-4">
-                        <i class="fas fa-clock me-2"></i>
-                        <strong>สร้างรายงาน:</strong> <?= date('d/m/Y H:i:s') ?>
-                    </div>
-                    <div class="col-md-4">
-                        <i class="fas fa-user me-2"></i>
-                        <strong>ลงชื่อผู้จัดการทั่วไป:</strong> <?= htmlspecialchars($_SESSION['name']) ?>
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    <div class="container">
-        <!-- Filters -->
-        <div class="filters-section no-print">
-            <h3 class="filters-title">
-                <i class="fas fa-filter me-2"></i>ตัวกรองข้อมูล
-            </h3>
-            <form method="GET" class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">
-                        <i class="fas fa-calendar-alt me-1"></i>วันที่เริ่มต้น
-                    </label>
-                    <input type="date" name="date_from" class="form-control" value="<?= $date_from ?>" required>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">
-                        <i class="fas fa-calendar-alt me-1"></i>วันที่สิ้นสุด
-                    </label>
-                    <input type="date" name="date_to" class="form-control" value="<?= $date_to ?>" required>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">
-                        <i class="fas fa-user-cog me-1"></i>Developer
-                    </label>
-                    <select name="developer_id" class="form-select">
-                        <option value="all" <?= $developer_id === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
-                        <?php foreach ($developers as $dev): ?>
-                            <option value="<?= $dev['id'] ?>" <?= $developer_id == $dev['id'] ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($dev['name'] . ' ' . $dev['lastname']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">
-                        <i class="fas fa-tasks me-1"></i>สถานะ
-                    </label>
-                    <select name="status_filter" class="form-select">
-                        <option value="all" <?= $status_filter === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
-                        <option value="pending_approval" <?= $status_filter === 'pending_approval' ? 'selected' : '' ?>>รอการอนุมัติ</option>
-                        <option value="in_development" <?= $status_filter === 'in_development' ? 'selected' : '' ?>>กำลังพัฒนา</option>
-                        <option value="completed" <?= $status_filter === 'completed' ? 'selected' : '' ?>>เสร็จสิ้น</option>
-                        <option value="rejected" <?= $status_filter === 'rejected' ? 'selected' : '' ?>>ไม่อนุมัติ</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">
-                        <i class="fas fa-cogs me-1"></i>ประเภทบริการ
-                    </label>
-                    <select name="service_category" class="form-select">
-                        <option value="all" <?= $service_category === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
-                        <option value="development" <?= $service_category === 'development' ? 'selected' : '' ?>>Development</option>
-                        <option value="service" <?= $service_category === 'service' ? 'selected' : '' ?>>Service</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">
-                        <i class="fas fa-exclamation-circle me-1"></i>ความสำคัญ
-                    </label>
-                    <select name="priority_filter" class="form-select">
-                        <option value="all" <?= $priority_filter === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
-                        <option value="low" <?= $priority_filter === 'low' ? 'selected' : '' ?>>ต่ำ</option>
-                        <option value="medium" <?= $priority_filter === 'medium' ? 'selected' : '' ?>>ปานกลาง</option>
-                        <option value="high" <?= $priority_filter === 'high' ? 'selected' : '' ?>>สูง</option>
-                        <option value="urgent" <?= $priority_filter === 'urgent' ? 'selected' : '' ?>>เร่งด่วน</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label fw-bold">
-                        <i class="fas fa-building me-1"></i>หน่วยงาน
-                    </label>
-                    <select name="department_filter" class="form-select">
-                        <option value="all" <?= $department_filter === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
-                        <?php foreach ($departments as $dept): ?>
-                            <option value="<?= htmlspecialchars($dept['department']) ?>" <?= $department_filter === $dept['department'] ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($dept['department']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-3">
-    <label for="document_number" class="form-label fw-bold">เลขที่เอกสาร</label>
-    <input type="text" class="form-control" id="document_number" name="document_number" 
-        value="<?= isset($_GET['document_number']) ? htmlspecialchars($_GET['document_number']) : '' ?>" 
-        placeholder="กรอกเลขที่เอกสาร">
-</div>
+                <div class="container">
+                    <!-- Filters -->
+                    <div class="filters-section no-print">
+                        <h3 class="filters-title">
+                            <i class="fas fa-filter me-2"></i>ตัวกรองข้อมูล
+                        </h3>
+                        <form method="GET" class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-calendar-alt me-1"></i>วันที่เริ่มต้น
+                                </label>
+                                <input type="date" name="date_from" class="form-control" value="<?= $date_from ?>" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-calendar-alt me-1"></i>วันที่สิ้นสุด
+                                </label>
+                                <input type="date" name="date_to" class="form-control" value="<?= $date_to ?>" required>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-user-cog me-1"></i>Developer
+                                </label>
+                                <select name="developer_id" class="form-select">
+                                    <option value="all" <?= $developer_id === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
+                                    <?php foreach ($developers as $dev): ?>
+                                        <option value="<?= $dev['id'] ?>" <?= $developer_id == $dev['id'] ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($dev['name'] . ' ' . $dev['lastname']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-tasks me-1"></i>สถานะ
+                                </label>
+                                <select name="status_filter" class="form-select">
+                                    <option value="all" <?= $status_filter === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
+                                    <option value="pending_approval" <?= $status_filter === 'pending_approval' ? 'selected' : '' ?>>รอการอนุมัติ</option>
+                                    <option value="in_development" <?= $status_filter === 'in_development' ? 'selected' : '' ?>>กำลังพัฒนา</option>
+                                    <option value="completed" <?= $status_filter === 'completed' ? 'selected' : '' ?>>เสร็จสิ้น</option>
+                                    <option value="rejected" <?= $status_filter === 'rejected' ? 'selected' : '' ?>>ไม่อนุมัติ</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-cogs me-1"></i>ประเภทบริการ
+                                </label>
+                                <select name="service_category" class="form-select">
+                                    <option value="all" <?= $service_category === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
+                                    <option value="development" <?= $service_category === 'development' ? 'selected' : '' ?>>Development</option>
+                                    <option value="service" <?= $service_category === 'service' ? 'selected' : '' ?>>Service</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-exclamation-circle me-1"></i>ความสำคัญ
+                                </label>
+                                <select name="priority_filter" class="form-select">
+                                    <option value="all" <?= $priority_filter === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
+                                    <option value="low" <?= $priority_filter === 'low' ? 'selected' : '' ?>>ต่ำ</option>
+                                    <option value="medium" <?= $priority_filter === 'medium' ? 'selected' : '' ?>>ปานกลาง</option>
+                                    <option value="high" <?= $priority_filter === 'high' ? 'selected' : '' ?>>สูง</option>
+                                    <option value="urgent" <?= $priority_filter === 'urgent' ? 'selected' : '' ?>>เร่งด่วน</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold">
+                                    <i class="fas fa-building me-1"></i>หน่วยงาน
+                                </label>
+                                <select name="department_filter" class="form-select">
+                                    <option value="all" <?= $department_filter === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
+                                    <?php foreach ($departments as $dept): ?>
+                                        <option value="<?= htmlspecialchars($dept['department']) ?>" <?= $department_filter === $dept['department'] ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($dept['department']) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label for="document_number" class="form-label fw-bold">เลขที่เอกสาร</label>
+                                <input type="text" class="form-control" id="document_number" name="document_number"
+                                    value="<?= isset($_GET['document_number']) ? htmlspecialchars($_GET['document_number']) : '' ?>"
+                                    placeholder="กรอกเลขที่เอกสาร">
+                            </div>
 
-                <div class="col-md-3 d-flex align-items-end">
-                    <button type="submit" class="btn btn-primary me-2">
-                        <i class="fas fa-search me-2"></i>สร้างรายงาน
-                    </button>
-                    <button type="button" onclick="window.print()" class="btn btn-success">
-                        <i class="fas fa-print me-2"></i>พิมพ์
-                    </button>
-                </div>
-            </form>
-        </div>
+                            <div class="col-md-3 d-flex align-items-end">
+                                <button type="submit" class="btn btn-primary me-2">
+                                    <i class="fas fa-search me-2"></i>สร้างรายงาน
+                                </button>
+                                <button type="button" onclick="window.print()" class="btn btn-success">
+                                    <i class="fas fa-print me-2"></i>พิมพ์
+                                </button>
+                            </div>
+                        </form>
+                    </div>
 
-        <!-- Executive Summary -->
-        <div class="summary-section">
-            <h5 class="section-title mb-3">
-                <i class="fas fa-chart-bar me-2"></i>สรุปผลการดำเนินงาน
-            </h5>
+                    <!-- Executive Summary -->
+                    <div class="summary-section">
+                        <h5 class="section-title mb-3">
+                            <i class="fas fa-chart-bar me-2"></i>สรุปผลการดำเนินงาน
+                        </h5>
 
-            <!-- กลุ่มที่ 1 -->
-            <div class="summary-grid mb-3">
-                <div class="summary-item">
-                    <div class="summary-value"><?= $total_requests ?></div>
-                    <div class="summary-label">คำขอทั้งหมด</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value"><?= $avg_approval_days ?> วัน</div>
-                    <div class="summary-label">เวลาอนุมัติเฉลี่ย</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value"><?= $avg_dev_hours ?> ชม.</div>
-                    <div class="summary-label">เวลาพัฒนาเฉลี่ย</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value"><?= $avg_rating ?>/5</div>
-                    <div class="summary-label">คะแนนเฉลี่ย</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value"><?= round(($completed / max($total_requests, 1)) * 100, 1) ?>%</div>
-                    <div class="summary-label">อัตราความสำเร็จ</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value"><?= count($dev_performance) ?></div>
-                    <div class="summary-label">Developer ที่ทำงาน</div>
-                </div>
-            </div>
+                        <!-- กลุ่มที่ 1 -->
+                        <div class="summary-grid mb-3">
+                            <div class="summary-item">
+                                <div class="summary-value"><?= $total_requests ?></div>
+                                <div class="summary-label">คำขอทั้งหมด</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value"><?= $avg_approval_days ?> วัน</div>
+                                <div class="summary-label">เวลาอนุมัติเฉลี่ย</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value"><?= $avg_dev_hours ?> ชม.</div>
+                                <div class="summary-label">เวลาพัฒนาเฉลี่ย</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value"><?= $avg_rating ?>/5</div>
+                                <div class="summary-label">คะแนนเฉลี่ย</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value"><?= round(($completed / max($total_requests, 1)) * 100, 1) ?>%</div>
+                                <div class="summary-label">อัตราความสำเร็จ</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value"><?= count($dev_performance) ?></div>
+                                <div class="summary-label">Developer ที่ทำงาน</div>
+                            </div>
+                        </div>
 
-            <!-- กลุ่มที่ 2 -->
-            <div class="summary-grid">
-                <div class="summary-item">
-                    <div class="summary-value"><?= $pending_approval ?></div>
-                    <div class="summary-label">รอการอนุมัติ</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value"><?= $approved ?></div>
-                    <div class="summary-label">อนุมัติแล้ว</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value"><?= $rejected ?></div>
-                    <div class="summary-label">ไม่อนุมัติ</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value"><?= $in_development ?></div>
-                    <div class="summary-label">กำลังพัฒนา</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value"><?= $completed ?></div>
-                    <div class="summary-label">เสร็จสิ้น</div>
-                </div>
-                <div class="summary-item">
-                    <div class="summary-value"><?= $accepted ?></div>
-                    <div class="summary-label">ปิดงาน</div>
-                </div>
-                <!-- overdue เลยกำหนด  -->
-            </div>
+                        <!-- กลุ่มที่ 2 -->
+                        <div class="summary-grid">
+                            <div class="summary-item">
+                                <div class="summary-value"><?= $pending_approval ?></div>
+                                <div class="summary-label">รอการอนุมัติ</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value"><?= $approved ?></div>
+                                <div class="summary-label">อนุมัติแล้ว</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value"><?= $rejected ?></div>
+                                <div class="summary-label">ไม่อนุมัติ</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value"><?= $in_development ?></div>
+                                <div class="summary-label">กำลังพัฒนา</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value"><?= $completed ?></div>
+                                <div class="summary-label">เสร็จสิ้น</div>
+                            </div>
+                            <div class="summary-item">
+                                <div class="summary-value"><?= $accepted ?></div>
+                                <div class="summary-label">ปิดงาน</div>
+                            </div>
+                            <!-- overdue เลยกำหนด  -->
+                        </div>
 
-        </div>
-       
+                    </div>
 
-        <!-- Detailed Table -->
-        <div class="table-section page-break">
-            
-            <h3 class="section-title">
-                <i class="fas fa-table me-2"></i>รายละเอียดคำขอทั้งหมด
-            </h3>
 
- 
+                    <!-- Detailed Table -->
+                    <div class="table-section page-break">
 
-            <?php if (empty($requests)): ?>
-                <div class="text-center py-5">
-                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
-                    <h5 class="text-muted">ไม่มีข้อมูลในช่วงเวลาที่เลือก</h5>
-                    <p class="text-muted">กรุณาปรับเปลี่ยนตัวกรองเพื่อดูข้อมูล</p>
-                </div>
-            <?php else: ?>
-                <div class="table-responsive">
-                    <div class="table-responsive">
-                        <table class="table table-hover mb-0">
-                            <thead>
-                                <tr>
-                                    <th style="width: 8%;">ลำดับ</th>
-                                    <th style="width: 12%;">เลขที่เอกสาร</th>
-                                    <th style="width: 15%;">หัวข้อ</th>
-                                    <th style="width: 12%;">ผู้ขอ</th>
-                                    <th style="width: 10%;">หน่วยงาน</th>
-                                    <th style="width: 8%;">ประเภท</th>
-                                    <th style="width: 10%;">Developer</th>
-                                    <th style="width: 8%;">สถานะ</th>
-                                    <th style="width: 6%;">ความสำคัญ</th>
-                                    <th style="width: 6%;">เวลา(วัน)</th>
-                                    <th style="width: 5%;">คะแนน</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php foreach ($requests as $index => $req): ?>
-                                    <tr>
-                                        <td class="text-center fw-bold"><?= $index + 1 ?></td>
+                        <h3 class="section-title">
+                            <i class="fas fa-table me-2"></i>รายละเอียดคำขอทั้งหมด
+                        </h3>
 
-                                        <td>
-                                            <?php if ($req['document_number']): ?>
-                                                <span class="document-number"><?= htmlspecialchars($req['document_number']) ?></span>
-                                                <br><small class="text-muted"><?= date('d/m/y', strtotime($req['document_created_at'])) ?></small>
-                                            <?php else: ?>
-                                                <span class="text-muted">ไม่มี</span>
-                                            <?php endif; ?>
-                                        </td>
 
-                                        <td>
-                                            <div class="fw-bold" style="font-size: 0.9rem;">
-                                                <?= htmlspecialchars($req['title']) ?>
+
+                        <?php if (empty($requests)): ?>
+                            <div class="text-center py-5">
+                                <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                                <h5 class="text-muted">ไม่มีข้อมูลในช่วงเวลาที่เลือก</h5>
+                                <p class="text-muted">กรุณาปรับเปลี่ยนตัวกรองเพื่อดูข้อมูล</p>
+                            </div>
+                        <?php else: ?>
+                            <div class="table-responsive">
+                                <div class="table-responsive">
+                                    <table class="table table-hover mb-0">
+                                        <thead>
+                                            <tr>
+                                                <th style="width: 8%;">ลำดับ</th>
+                                                <th style="width: 12%;">เลขที่เอกสาร</th>
+                                                <th style="width: 15%;">หัวข้อ</th>
+                                                <th style="width: 12%;">ผู้ขอ</th>
+                                                <th style="width: 10%;">หน่วยงาน</th>
+                                                <th style="width: 8%;">ประเภท</th>
+                                                <th style="width: 10%;">Developer</th>
+                                                <th style="width: 8%;">สถานะ</th>
+                                                <th style="width: 6%;">ความสำคัญ</th>
+                                                <th style="width: 6%;">เวลา(วัน)</th>
+                                                <th style="width: 5%;">คะแนน</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($requests as $index => $req): ?>
+                                                <tr>
+                                                    <td class="text-center fw-bold"><?= $index + 1 ?></td>
+
+                                                    <td>
+                                                        <?php if ($req['document_number']): ?>
+                                                            <span class="document-number"><?= htmlspecialchars($req['document_number']) ?></span>
+                                                            <br><small class="text-muted"><?= date('d/m/y', strtotime($req['document_created_at'])) ?></small>
+                                                        <?php else: ?>
+                                                            <span class="text-muted">ไม่มี</span>
+                                                        <?php endif; ?>
+                                                    </td>
+
+                                                    <td>
+                                                        <div class="fw-bold" style="font-size: 0.9rem;">
+                                                            <?= htmlspecialchars($req['title']) ?>
+                                                        </div>
+
+                                                        <small class="text-muted">
+                                                            รายละเอียด
+                                                            <a href="#" data-bs-toggle="collapse" data-bs-target="#desc_<?= $req['id'] ?>" aria-expanded="false" aria-controls="desc_<?= $req['id'] ?>">
+                                                                ดูเพิ่มเติม
+                                                            </a>
+                                                        </small>
+
+                                                        <div class="collapse mt-2" id="desc_<?= $req['id'] ?>">
+                                                            <small class="text-muted d-block">
+                                                                <?= nl2br(htmlspecialchars($req['description'])) ?>
+                                                            </small>
+                                                        </div>
+                                                    </td>
+
+
+                                                    <td>
+                                                        <div class="fw-bold"><?= htmlspecialchars($req['requester_name'] . ' ' . $req['requester_lastname']) ?></div>
+                                                        <small class="text-muted"><?= htmlspecialchars($req['requester_employee_id'] ?? '') ?></small>
+                                                    </td>
+
+                                                    <td>
+                                                        <small><?= htmlspecialchars($req['requester_department'] ?? 'ไม่ระบุ') ?></small>
+                                                    </td>
+
+                                                    <td>
+                                                        <?php if ($req['service_name']): ?>
+                                                            <span class="service-badge service-<?= $req['service_category'] ?>">
+                                                                <?= htmlspecialchars($req['service_name']) ?>
+                                                            </span>
+                                                        <?php else: ?>
+                                                            <span class="text-muted">ไม่ระบุ</span>
+                                                        <?php endif; ?>
+                                                    </td>
+
+                                                    <td>
+                                                        <?php if ($req['dev_name']): ?>
+                                                            <div class="fw-bold"><?= htmlspecialchars($req['dev_name'] . ' ' . $req['dev_lastname']) ?></div>
+                                                            <?php if ($req['started_at']): ?>
+                                                                <small class="text-muted">เริ่ม: <?= date('d/m/y', strtotime($req['started_at'])) ?></small>
+                                                            <?php endif; ?>
+                                                        <?php else: ?>
+                                                            <span class="text-muted">ยังไม่มอบหมาย</span>
+                                                        <?php endif; ?>
+                                                    </td>
+
+                                                    <td>
+                                                        <?php if ($req['task_status']): ?>
+                                                            <span class="status-badge status-<?= $req['task_status'] ?>">
+                                                                <?php
+                                                                $status_labels = [
+                                                                    'pending' => 'รอรับ',
+                                                                    'received' => 'รับแล้ว',
+                                                                    'in_progress' => 'กำลังทำ',
+                                                                    'on_hold' => 'พักงาน',
+                                                                    'completed' => 'เสร็จแล้ว',
+                                                                    'accepted' => 'ยอมรับแล้ว'
+                                                                ];
+                                                                echo $status_labels[$req['task_status']] ?? $req['task_status'];
+                                                                ?>
+                                                            </span>
+                                                            <?php if ($req['progress_percentage']): ?>
+                                                                <br><small class="text-muted"><?= $req['progress_percentage'] ?>%</small>
+                                                            <?php endif; ?>
+                                                        <?php else: ?>
+                                                            <span class="status-badge status-<?= $req['status'] ?>">
+                                                                <?php
+                                                                $status_labels = [
+                                                                    'pending' => 'รอดำเนินการ',
+                                                                    'div_mgr_review' => 'ผู้จัดการฝ่าย',
+                                                                    'assignor_review' => 'ผู้จัดการแผนก',
+                                                                    'gm_review' => 'ผู้จัดการทั่วไป',
+                                                                    'senior_gm_review' => 'ผู้จัดการอาวุโส',
+                                                                    'approved' => 'อนุมัติแล้ว',
+                                                                    'rejected' => 'ไม่อนุมัติ'
+                                                                ];
+                                                                echo $status_labels[$req['status']] ?? $req['status'];
+                                                                ?>
+                                                            </span>
+                                                        <?php endif; ?>
+                                                    </td>
+
+                                                    <td>
+                                                        <?php
+                                                        $priority = $req['priority_level'] ?? $req['priority'] ?? 'medium';
+                                                        $priority_labels = ['low' => 'ต่ำ', 'medium' => 'ปานกลาง', 'high' => 'สูง', 'urgent' => 'เร่งด่วน'];
+                                                        ?>
+                                                        <span class="priority-badge priority-<?= $priority ?>">
+                                                            <?= $priority_labels[$priority] ?? $priority ?>
+                                                        </span>
+                                                    </td>
+
+                                                    <td class="text-center">
+                                                        <?php if ($req['hours_spent'] > 0): ?>
+                                                            <div class="fw-bold"><?= number_format($req['hours_spent'] / 24, 1) ?></div>
+                                                            <small class="text-muted">พัฒนา</small>
+                                                        <?php endif; ?>
+                                                        <div class="text-muted"><?= $req['approval_days'] ?></div>
+                                                        <small class="text-muted">อนุมัติ</small>
+                                                    </td>
+
+                                                    <td class="text-center">
+                                                        <?php if ($req['rating']): ?>
+                                                            <div class="rating-stars">
+                                                                <?= str_repeat('★', $req['rating']) ?>
+                                                            </div>
+                                                            <small class="text-muted"><?= $req['rating'] ?>/5</small>
+                                                        <?php else: ?>
+                                                            <span class="text-muted">-</span>
+                                                        <?php endif; ?>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+
+                            <!-- Summary Footer -->
+                            <div class="mt-4 p-3 bg-light rounded">
+                                <div class="row text-center">
+                                    <div class="col-md-3">
+                                        <strong>รวมคำขอ:</strong> <?= $total_requests ?> รายการ
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>เวลาอนุมัติเฉลี่ย:</strong> <?= $avg_approval_days ?> วัน
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>เวลาพัฒนาเฉลี่ย:</strong> <?= $avg_dev_hours ?> ชั่วโมง
+                                    </div>
+                                    <div class="col-md-3">
+                                        <strong>คะแนนเฉลี่ย:</strong> <?= $avg_rating ?>/5 ดาว
+                                    </div>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                    <br>
+
+                    <!-- Charts Section -->
+                    <div class="row">
+                        <!-- Service Statistics -->
+                        <div class="col-lg-6 col-md-12">
+                            <div class="chart-section">
+                                <h5 class="section-title">
+                                    <i class="fas fa-chart-donut me-2"></i>สถิติตามประเภทบริการ
+                                </h5>
+                                <?php foreach ($service_stats as $category => $count): ?>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <span class="service-badge service-<?= $category ?>">
+                                                <?= $category === 'development' ? 'Development' : 'Service' ?>
+                                            </span>
+                                            <span class="fw-bold"><?= $count ?> รายการ (<?= round(($count / max($total_requests, 1)) * 100, 1) ?>%)</span>
+                                        </div>
+                                        <div class="progress-bar-custom">
+                                            <div class="progress-fill" style="width: <?= ($count / max($total_requests, 1)) * 100 ?>%">
+                                                <?= round(($count / max($total_requests, 1)) * 100, 1) ?>%
                                             </div>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
 
-                                            <small class="text-muted">
-                                                รายละเอียด
-                                                <a href="#" data-bs-toggle="collapse" data-bs-target="#desc_<?= $req['id'] ?>" aria-expanded="false" aria-controls="desc_<?= $req['id'] ?>">
-                                                    ดูเพิ่มเติม
-                                                </a>
-                                            </small>
-
-                                            <div class="collapse mt-2" id="desc_<?= $req['id'] ?>">
-                                                <small class="text-muted d-block">
-                                                    <?= nl2br(htmlspecialchars($req['description'])) ?>
-                                                </small>
-                                            </div>
-                                        </td>
-
-
-                                        <td>
-                                            <div class="fw-bold"><?= htmlspecialchars($req['requester_name'] . ' ' . $req['requester_lastname']) ?></div>
-                                            <small class="text-muted"><?= htmlspecialchars($req['requester_employee_id'] ?? '') ?></small>
-                                        </td>
-
-                                        <td>
-                                            <small><?= htmlspecialchars($req['requester_department'] ?? 'ไม่ระบุ') ?></small>
-                                        </td>
-
-                                        <td>
-                                            <?php if ($req['service_name']): ?>
-                                                <span class="service-badge service-<?= $req['service_category'] ?>">
-                                                    <?= htmlspecialchars($req['service_name']) ?>
-                                                </span>
-                                            <?php else: ?>
-                                                <span class="text-muted">ไม่ระบุ</span>
-                                            <?php endif; ?>
-                                        </td>
-
-                                        <td>
-                                            <?php if ($req['dev_name']): ?>
-                                                <div class="fw-bold"><?= htmlspecialchars($req['dev_name'] . ' ' . $req['dev_lastname']) ?></div>
-                                                <?php if ($req['started_at']): ?>
-                                                    <small class="text-muted">เริ่ม: <?= date('d/m/y', strtotime($req['started_at'])) ?></small>
-                                                <?php endif; ?>
-                                            <?php else: ?>
-                                                <span class="text-muted">ยังไม่มอบหมาย</span>
-                                            <?php endif; ?>
-                                        </td>
-
-                                        <td>
-                                            <?php if ($req['task_status']): ?>
-                                                <span class="status-badge status-<?= $req['task_status'] ?>">
-                                                    <?php
-                                                    $status_labels = [
-                                                        'pending' => 'รอรับ',
-                                                        'received' => 'รับแล้ว',
-                                                        'in_progress' => 'กำลังทำ',
-                                                        'on_hold' => 'พักงาน',
-                                                        'completed' => 'เสร็จแล้ว',
-                                                        'accepted' => 'ยอมรับแล้ว'
-                                                    ];
-                                                    echo $status_labels[$req['task_status']] ?? $req['task_status'];
-                                                    ?>
-                                                </span>
-                                                <?php if ($req['progress_percentage']): ?>
-                                                    <br><small class="text-muted"><?= $req['progress_percentage'] ?>%</small>
-                                                <?php endif; ?>
-                                            <?php else: ?>
-                                                <span class="status-badge status-<?= $req['status'] ?>">
-                                                    <?php
-                                                    $status_labels = [
-                                                        'pending' => 'รอดำเนินการ',
-                                                        'div_mgr_review' => 'ผู้จัดการฝ่าย',
-                                                        'assignor_review' => 'ผู้จัดการแผนก',
-                                                        'gm_review' => 'ผู้จัดการทั่วไป',
-                                                        'senior_gm_review' => 'ผู้จัดการอาวุโส',
-                                                        'approved' => 'อนุมัติแล้ว',
-                                                        'rejected' => 'ไม่อนุมัติ'
-                                                    ];
-                                                    echo $status_labels[$req['status']] ?? $req['status'];
-                                                    ?>
-                                                </span>
-                                            <?php endif; ?>
-                                        </td>
-
-                                        <td>
-                                            <?php
-                                            $priority = $req['priority_level'] ?? $req['priority'] ?? 'medium';
-                                            $priority_labels = ['low' => 'ต่ำ', 'medium' => 'ปานกลาง', 'high' => 'สูง', 'urgent' => 'เร่งด่วน'];
-                                            ?>
+                        <!-- Priority Statistics -->
+                        <div class="col-lg-6 col-md-12">
+                            <div class="chart-section">
+                                <h5 class="section-title">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>สถิติตามความสำคัญของงาน
+                                </h5>
+                                <?php
+                                $priority_labels = ['urgent' => 'เร่งด่วน', 'high' => 'สูง', 'medium' => 'ปานกลาง', 'low' => 'ต่ำ'];
+                                foreach ($priority_stats as $priority => $count):
+                                ?>
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
                                             <span class="priority-badge priority-<?= $priority ?>">
                                                 <?= $priority_labels[$priority] ?? $priority ?>
                                             </span>
-                                        </td>
-
-                                        <td class="text-center">
-                                            <?php if ($req['hours_spent'] > 0): ?>
-                                                <div class="fw-bold"><?= number_format($req['hours_spent'] / 24, 1) ?></div>
-                                                <small class="text-muted">พัฒนา</small>
-                                            <?php endif; ?>
-                                            <div class="text-muted"><?= $req['approval_days'] ?></div>
-                                            <small class="text-muted">อนุมัติ</small>
-                                        </td>
-
-                                        <td class="text-center">
-                                            <?php if ($req['rating']): ?>
-                                                <div class="rating-stars">
-                                                    <?= str_repeat('★', $req['rating']) ?>
-                                                </div>
-                                                <small class="text-muted"><?= $req['rating'] ?>/5</small>
-                                            <?php else: ?>
-                                                <span class="text-muted">-</span>
-                                            <?php endif; ?>
-                                        </td>
-                                    </tr>
+                                            <span class="fw-bold"><?= $count ?> รายการ (<?= round(($count / max($total_requests, 1)) * 100, 1) ?>%)</span>
+                                        </div>
+                                        <div class="progress-bar-custom">
+                                            <div class="progress-fill" style="width: <?= ($count / max($total_requests, 1)) * 100 ?>%">
+                                                <?= round(($count / max($total_requests, 1)) * 100, 1) ?>%
+                                            </div>
+                                        </div>
+                                    </div>
                                 <?php endforeach; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Summary Footer -->
-                <div class="mt-4 p-3 bg-light rounded">
-                    <div class="row text-center">
-                        <div class="col-md-3">
-                            <strong>รวมคำขอ:</strong> <?= $total_requests ?> รายการ
-                        </div>
-                        <div class="col-md-3">
-                            <strong>เวลาอนุมัติเฉลี่ย:</strong> <?= $avg_approval_days ?> วัน
-                        </div>
-                        <div class="col-md-3">
-                            <strong>เวลาพัฒนาเฉลี่ย:</strong> <?= $avg_dev_hours ?> ชั่วโมง
-                        </div>
-                        <div class="col-md-3">
-                            <strong>คะแนนเฉลี่ย:</strong> <?= $avg_rating ?>/5 ดาว
+                            </div>
                         </div>
                     </div>
-                </div>
-            <?php endif; ?>
-        </div>
-<br>
 
- <!-- Charts Section -->
-        <div class="row">
-            <!-- Service Statistics -->
-            <div class="col-lg-6 col-md-12">
-                <div class="chart-section">
-                    <h5 class="section-title">
-                        <i class="fas fa-chart-donut me-2"></i>สถิติตามประเภทบริการ
-                    </h5>
-                    <?php foreach ($service_stats as $category => $count): ?>
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="service-badge service-<?= $category ?>">
-                                    <?= $category === 'development' ? 'Development' : 'Service' ?>
-                                </span>
-                                <span class="fw-bold"><?= $count ?> รายการ (<?= round(($count / max($total_requests, 1)) * 100, 1) ?>%)</span>
-                            </div>
-                            <div class="progress-bar-custom">
-                                <div class="progress-fill" style="width: <?= ($count / max($total_requests, 1)) * 100 ?>%">
-                                    <?= round(($count / max($total_requests, 1)) * 100, 1) ?>%
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
+
+
+                    <!-- Report Footer -->
+                    <div class="text-center mt-4 mb-5 text-white">
+                        <hr class="border-white">
+                        <p class="mb-1">
+                            <strong>BobbyCareDev Service Request Management System</strong>
+                        </p>
+                        <p class="mb-0">
+                            รายงานนี้สร้างโดยอัตโนมัติเมื่อ <?= date('d/m/Y H:i:s') ?> |
+                            ข้อมูล ณ วันที่ <?= date('d/m/Y') ?>
+                        </p>
+                    </div>
+
                 </div>
+
+
+
+
+
+
+
+
             </div>
 
-            <!-- Priority Statistics -->
-            <div class="col-lg-6 col-md-12">
-                <div class="chart-section">
-                    <h5 class="section-title">
-                        <i class="fas fa-exclamation-triangle me-2"></i>สถิติตามความสำคัญของงาน
-                    </h5>
-                    <?php
-                    $priority_labels = ['urgent' => 'เร่งด่วน', 'high' => 'สูง', 'medium' => 'ปานกลาง', 'low' => 'ต่ำ'];
-                    foreach ($priority_stats as $priority => $count):
-                    ?>
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between align-items-center mb-1">
-                                <span class="priority-badge priority-<?= $priority ?>">
-                                    <?= $priority_labels[$priority] ?? $priority ?>
-                                </span>
-                                <span class="fw-bold"><?= $count ?> รายการ (<?= round(($count / max($total_requests, 1)) * 100, 1) ?>%)</span>
-                            </div>
-                            <div class="progress-bar-custom">
-                                <div class="progress-fill" style="width: <?= ($count / max($total_requests, 1)) * 100 ?>%">
-                                    <?= round(($count / max($total_requests, 1)) * 100, 1) ?>%
-                                </div>
-                            </div>
-                        </div>
-                    <?php endforeach; ?>
-                </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- <footer class="footer">
+        <div class="container-fluid d-flex justify-content-between">
+            <nav class="pull-left">
+
+            </nav>
+            <div class="copyright">
+                © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
+                <i class="fa fa-heart heart text-danger"></i>
+
+            </div>
+            <div>
+
             </div>
         </div>
-
-        
-
-        <!-- Report Footer -->
-        <div class="text-center mt-4 mb-5 text-white">
-            <hr class="border-white">
-            <p class="mb-1">
-                <strong>BobbyCareDev Service Request Management System</strong>
-            </p>
-            <p class="mb-0">
-                รายงานนี้สร้างโดยอัตโนมัติเมื่อ <?= date('d/m/Y H:i:s') ?> |
-                ข้อมูล ณ วันที่ <?= date('d/m/Y') ?>
-            </p>
-        </div>
-
+    </footer> -->
+    </div>
     </div>
 
 
-          
 
 
-
-            
-            
-          </div>
-
-        </div>
-      </div>
     </div>
+    <!--   Core JS Files   -->
+    <script src="../assets/js/core/jquery-3.7.1.min.js"></script>
+    <script src="../assets/js/core/popper.min.js"></script>
+    <script src="../assets/js/core/bootstrap.min.js"></script>
+    <!-- Chart JS -->
+    <script src="../assets/js/plugin/chart.js/chart.min.js"></script>
+    <!-- jQuery Scrollbar -->
+    <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+    <!-- Kaiadmin JS -->
+    <script src="../assets/js/kaiadmin.min.js"></script>
+    <!-- Kaiadmin DEMO methods, don't include it in your project! -->
+    <script src="../assets/js/setting-demo2.js"></script>
 
-    <footer class="footer">
-      <div class="container-fluid d-flex justify-content-between">
-        <nav class="pull-left">
-
-        </nav>
-        <div class="copyright">
-          © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
-          <i class="fa fa-heart heart text-danger"></i>
-
-        </div>
-        <div>
-
-        </div>
-      </div>
-    </footer>
-  </div>
-  </div>
-
-
-
-
-  </div>
-  <!--   Core JS Files   -->
-  <script src="../assets/js/core/jquery-3.7.1.min.js"></script>
-  <script src="../assets/js/core/popper.min.js"></script>
-  <script src="../assets/js/core/bootstrap.min.js"></script>
-  <!-- Chart JS -->
-  <script src="../assets/js/plugin/chart.js/chart.min.js"></script>
-  <!-- jQuery Scrollbar -->
-  <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
-  <!-- Kaiadmin JS -->
-  <script src="../assets/js/kaiadmin.min.js"></script>
-  <!-- Kaiadmin DEMO methods, don't include it in your project! -->
-  <script src="../assets/js/setting-demo2.js"></script>
-
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
 
 
 </body>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Auto-submit form when filters change
-        document.querySelectorAll('select, input[type="date"]').forEach(element => {
-            element.addEventListener('change', function() {
-                // Auto-submit after a short delay to allow multiple selections
-                setTimeout(() => {
-                    this.form.submit();
-                }, 500);
-            });
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Auto-submit form when filters change
+    document.querySelectorAll('select, input[type="date"]').forEach(element => {
+        element.addEventListener('change', function() {
+            // Auto-submit after a short delay to allow multiple selections
+            setTimeout(() => {
+                this.form.submit();
+            }, 500);
         });
+    });
 
-        // Print optimization
-        window.addEventListener('beforeprint', function() {
-            document.body.classList.add('printing');
-        });
+    // Print optimization
+    window.addEventListener('beforeprint', function() {
+        document.body.classList.add('printing');
+    });
 
-        window.addEventListener('afterprint', function() {
-            document.body.classList.remove('printing');
-        });
-    </script>
+    window.addEventListener('afterprint', function() {
+        document.body.classList.remove('printing');
+    });
+</script>
+
 </html>

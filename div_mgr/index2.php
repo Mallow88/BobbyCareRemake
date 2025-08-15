@@ -500,7 +500,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <img src="<?= htmlspecialchars($picture_url) ?>" alt="..." class="avatar-img rounded-circle" />
                   </div>
                   <span class="profile-username">
-                    <span class="op-7">ผู้จัดการฝ่ายคุณคุณ:</span>
+                    <span class="op-7">ผู้จัดการฝ่ายคุณ:</span>
                     <span class="fw-bold"><?= htmlspecialchars($_SESSION['name']) ?></span>
                   </span>
                 </a>

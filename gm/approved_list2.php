@@ -245,23 +245,11 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
             <div class="sidebar-wrapper scrollbar scrollbar-inner">
                 <div class="sidebar-content">
                     <ul class="nav nav-secondary">
-                        <li class="nav-item">
-                            <a data-bs-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
+                         <li class="nav-item ">
+                            <a href="gmindex2.php">
                                 <i class="fas fa-home"></i>
                                 <p>หน้าหลัก</p>
-                                <span class="caret"></span>
                             </a>
-                            <div class="collapse" id="dashboard">
-                                <ul class="nav nav-collapse">
-                                    <li>
-                                        <a href="gmindex2.php">
-                                            <span class="sub-item">หน้าหลัก</span>
-                                        </a>
-                                    </li>
-
-                                </ul>
-                            </div>
-
                         </li>
                         <li class="nav-section">
                             <span class="sidebar-mini-icon">
@@ -394,6 +382,9 @@ $average_rating = $rating_count > 0 ? round($total_rating / $rating_count, 1) : 
 
 
             <div class="container">
+
+
+              <div class="page-inner">
 <div class="apprv-container container-fluid py-4">
 
 

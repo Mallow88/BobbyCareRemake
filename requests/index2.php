@@ -173,6 +173,7 @@ foreach ($requests as &$request) {
 }
 
 
+
 ?>
 
 <!DOCTYPE html>
@@ -563,18 +564,13 @@ foreach ($requests as &$request) {
                           onclick="toggleStatus('status_<?= $req['id'] ?>')">
                           <i class="fas fa-eye me-1"></i>ดูสถานะการอนุมัติ
                         </button>
-                        <?php if (in_array($req['status'], ['pending', 'rejected'])): ?>
+                        <?php if (in_array($req['status'], ['pending', 'rejected','not_assigned'])): ?>
                           <a href="edit.php?id=<?= $req['id'] ?>" class="btn btn-outline-warning btn-sm">
                             <i class="fas fa-edit me-1"></i>แก้ไข
                           </a>
                         <?php endif; ?>
                       </div>
                     </div>
-
-
-
-
-
 
 
 

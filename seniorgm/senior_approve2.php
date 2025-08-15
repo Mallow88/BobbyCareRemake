@@ -6,6 +6,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'seniorgm') {
     header("Location: ../index.php");
     exit();
 }
+$picture_url = $_SESSION['picture_url'] ?? null;
 
 $request_id = $_GET['id'] ?? null;
 if (!$request_id) {
@@ -137,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$request_id, $status, $senior_gm_id, $reason . ' ' . $final_notes]);
 
             $conn->commit();
-            header("Location: seniorindex.php");
+            header("Location: seniorindex2.php");
             exit();
         } catch (Exception $e) {
             $conn->rollBack();
@@ -146,19 +147,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 ?>
-
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BobbyCareDev-ผู้จัดการอาวุโส</title>
-    <link rel="stylesheet" href="../css/nav.css">
-    <link rel="icon" type="image/png" href="/BobbyCareRemake/img/logo/bobby-icon.png">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-    <style>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>BobbyCareRemake</title>
+    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
+    <link rel="icon" href="../img/logo/bobby-icon.png" type="image/x-icon" />
+
+    <!-- Fonts and icons -->
+    <script src="../assets/js/plugin/webfont/webfont.min.js"></script>
+    <script>
+        WebFont.load({
+            google: {
+                families: ["Public Sans:300,400,500,600,700"]
+            },
+            custom: {
+                families: [
+                    "Font Awesome 5 Solid",
+                    "Font Awesome 5 Regular",
+                    "Font Awesome 5 Brands",
+                    "simple-line-icons",
+                ],
+                urls: ["../assets/css/fonts.min.css"],
+            },
+            active: function() {
+                sessionStorage.fonts = true;
+            },
+        });
+    </script>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="../assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../assets/css/plugins.min.css" />
+    <link rel="stylesheet" href="../assets/css/kaiadmin.min.css" />
+
+    <!-- CSS Just for demo purpose, don't include it in your project -->
+    <link rel="stylesheet" href="../assets/css/demo.css" />
+ <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #ffffff 0%, #afafafff 100%);
             --card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
@@ -548,8 +575,158 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <body>
 
-    <div class="container mt-5">
-        <!-- Header -->
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar" data-background-color="dark">
+            <div class="sidebar-logo">
+                <!-- Logo Header -->
+                <div class="logo-header" data-background-color="dark">
+                    <a href="seniorindex2.php" class="logo">
+                        <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="30" />
+                    </a>
+                    <div class="nav-toggle">
+                        <button class="btn btn-toggle toggle-sidebar">
+                            <i class="gg-menu-right"></i>
+                        </button>
+                        <button class="btn btn-toggle sidenav-toggler">
+                            <i class="gg-menu-left"></i>
+                        </button>
+                    </div>
+                    <button class="topbar-toggler more">
+                        <i class="gg-more-vertical-alt"></i>
+                    </button>
+                </div>
+                <!-- End Logo Header -->
+            </div>
+            <div class="sidebar-wrapper scrollbar scrollbar-inner">
+                <div class="sidebar-content">
+                    <ul class="nav nav-secondary">
+                         <li class="nav-item active">
+                            <a href="seniorindex2.php">
+                                <i class="fas fa-home"></i>
+                                <p>หน้าหลัก</p>
+                            </a>
+                        </li>
+
+                        <li class="nav-section">
+                            <span class="sidebar-mini-icon">
+                                <i class="fa fa-ellipsis-h"></i>
+                            </span>
+                            <h4 class="text-section">Components</h4>
+                        </li>
+
+                        <!-- <li class="nav-item ">
+              <a href="create2.php">
+                <i class="fas fa-plus-circle"></i>
+                <p>ประวัติการอนุมัติ</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li> -->
+
+
+
+                        <!-- <li class="nav-item">
+              <a href="../profile.php">
+                <i class="fas fa-user"></i>
+                <p>โปรไฟล์</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li> -->
+
+                        <li class="nav-item">
+                            <a href="../logout.php">
+                                <i class="fas fa-sign-out-alt"></i>
+                                <p>Logout</p>
+                                <span class="badge badge-success"></span>
+                            </a>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <!-- End Sidebar -->
+
+        <div class="main-panel">
+            <div class="main-header">
+                <div class="main-header-logo">
+                    <!-- Logo Header -->
+                    <div class="logo-header" data-background-color="dark">
+                        <a href="index2.php" class="logo">
+                            <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="20" />
+                        </a>
+                        <div class="nav-toggle">
+                            <button class="btn btn-toggle toggle-sidebar">
+                                <i class="gg-menu-right"></i>
+                            </button>
+                            <button class="btn btn-toggle sidenav-toggler">
+                                <i class="gg-menu-left"></i>
+                            </button>
+                        </div>
+                        <button class="topbar-toggler more">
+                            <i class="gg-more-vertical-alt"></i>
+                        </button>
+                    </div>
+                    <!-- End Logo Header -->
+                </div>
+
+                <!-- Navbar Header -->
+                <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+                    <div class="container-fluid">
+                        <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+
+                            <!-- โปรไฟล์ -->
+                            <li class="nav-item topbar-user dropdown hidden-caret">
+                                <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+                                    <div class="avatar-sm">
+                                        <img src="<?= htmlspecialchars($picture_url) ?>" alt="..." class="avatar-img rounded-circle" />
+                                    </div>
+                                    <span class="profile-username">
+                                        <span class="op-7">ผู้จัดการทั่วไปอาวุโสคุณ:</span>
+                                        <span class="fw-bold"><?= htmlspecialchars($_SESSION['name']) ?></span>
+                                    </span>
+                                </a>
+
+                                <!-- <ul class="dropdown-menu dropdown-user animated fadeIn">
+                  <div class="dropdown-user-scroll scrollbar-outer">
+                    <li>
+                      <div class="user-box">
+                        <div class="avatar-lg">
+                          <img src="../assets/img/profile.jpg" alt="image profile" class="avatar-img rounded" />
+                        </div>
+                        <div class="u-text">
+                          <h4>Hizrian</h4>
+                          <p class="text-muted">hello@example.com</p>
+                          <a href="profile.html" class="btn btn-xs btn-secondary btn-sm">View Profile</a>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider"></div>
+                      <a class="dropdown-item" href="#">My Profile</a>
+                    
+                      <div class="dropdown-divider"></div>
+                      <a class="dropdown-item" href="#">Logout</a>
+                    </li>
+                  </div>
+                </ul> -->
+                            </li>
+
+
+                        </ul>
+                    </div>
+                </nav>
+                <!-- End Navbar -->
+            </div>
+
+
+
+
+            <div class="container">
+
+
+                <div class="page-inner">
+                  <!-- Header -->
 
         <div class="glass-card p-4">
             <?php if (!empty($error)): ?>
@@ -782,33 +959,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </button>
             </form>
         </div>
+                </div>
+            </div>
+
+            <!-- <footer class="footer">
+        <div class="container-fluid d-flex justify-content-between">
+          <nav class="pull-left">
+
+          </nav>
+          <div class="copyright">
+            © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
+            <i class="fa fa-heart heart text-danger"></i>
+
+          </div>
+          <div>
+
+          </div>
+        </div>
+      </footer> -->
+        </div>
     </div>
 
+
+
+
+    </div>
+    <!--   Core JS Files   -->
+    <script src="../assets/js/core/jquery-3.7.1.min.js"></script>
+    <script src="../assets/js/core/popper.min.js"></script>
+    <script src="../assets/js/core/bootstrap.min.js"></script>
+    <!-- Chart JS -->
+    <script src="../assets/js/plugin/chart.js/chart.min.js"></script>
+    <!-- jQuery Scrollbar -->
+    <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+    <!-- Kaiadmin JS -->
+    <script src="../assets/js/kaiadmin.min.js"></script>
+    <!-- Kaiadmin DEMO methods, don't include it in your project! -->
+    <script src="../assets/js/setting-demo2.js"></script>
+
+
+
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
     <script>
+        // แสดง/ซ่อน textarea เหตุผลตามการเลือก
         document.querySelectorAll('input[name="status"]').forEach(radio => {
             radio.addEventListener('change', function() {
-                const reasonTextarea = document.getElementById('reason');
-                const finalNotesTextarea = document.getElementById('final_notes');
+                const form = this.closest('form');
+                const textarea = form.querySelector('textarea');
+                const label = form.querySelector('label[for^="reason"]');
 
                 if (this.value === 'rejected') {
-                    reasonTextarea.required = true;
-                    reasonTextarea.placeholder = 'กรุณาระบุเหตุผลการไม่อนุมัติ';
-                    finalNotesTextarea.disabled = true;
-                    finalNotesTextarea.value = '';
+                    textarea.required = true;
+                    label.innerHTML = 'เหตุผลการไม่อนุมัติ: <span style="color: red;">*</span>';
+                    textarea.placeholder = 'กรุณาระบุเหตุผลการไม่อนุมัติ';
                 } else {
-                    reasonTextarea.required = false;
-                    reasonTextarea.placeholder = 'ระบุเหตุผลหรือข้อเสนอแนะ (ไม่บังคับ)';
-                    finalNotesTextarea.disabled = false;
+                    textarea.required = false;
+                    label.innerHTML = 'เหตุผล/ข้อเสนอแนะ:';
+                    textarea.placeholder = 'ระบุเหตุผลหรือข้อเสนอแนะ (ไม่บังคับ)';
                 }
             });
         });
-
-        function disableSubmitBtn() {
-            document.getElementById('submitBtn').disabled = true;
-        }
     </script>
-
 </body>
 
 </html>

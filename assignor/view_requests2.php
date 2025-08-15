@@ -395,23 +395,11 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
       <div class="sidebar-wrapper scrollbar scrollbar-inner">
         <div class="sidebar-content">
           <ul class="nav nav-secondary">
-            <li class="nav-item  ">
-              <a data-bs-toggle="collapse" href="#dashboard" class="collapsed" aria-expanded="false">
+            <li class="nav-item active">
+              <a href="index2.php">
                 <i class="fas fa-home"></i>
                 <p>หน้าหลัก</p>
-                <span class="caret"></span>
               </a>
-              <div class="collapse" id="dashboard">
-                <ul class="nav nav-collapse">
-                  <li>
-                    <a href="index2.php">
-                      <span class="sub-item">หน้าหลัก</span>
-                    </a>
-                  </li>
-
-                </ul>
-              </div>
-
             </li>
             <li class="nav-section">
               <span class="sidebar-mini-icon">
@@ -548,7 +536,7 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 
-
+  <div class="page-inner">
 
 
 
@@ -771,7 +759,7 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
 
         <div class="col-md-6">
             <label for="budget_approved_<?= $req['id'] ?>" class="form-label fw-semibold">
-                <i class="fas fa-coins me-2"></i>งบประมาณที่อนุมัติ (บาท):
+                <i class="fas fa-coins me-2"></i>กำหนดงบประมาณ (ถ้ามี):
             </label>
             <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-coins"></i></span>
@@ -785,6 +773,7 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
             </label>
             <input type="number" name="estimated_days" id="estimated_days_<?= $req['id'] ?>" class="form-control" min="1" max="365" placeholder="จำนวนวันที่คาดว่าจะใช้">
         </div>
+        
 
         <div class="col-md-6">
             <label for="deadline_<?= $req['id'] ?>" class="form-label fw-semibold">
@@ -792,10 +781,12 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
             </label>
             <div class="input-group">
                 <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                <input type="datetime-local" name="deadline" id="deadline_<?= $req['id'] ?>" class="form-control">
+                <input type="datetime-local"  name="deadline" id="deadline_<?= $req['id'] ?>" class="form-control">
             </div>
             <div class="form-text text-muted">เลือกวันและเวลาที่ต้องการให้เสร็จงาน</div>
         </div>
+
+
 
         <div class="col-md-6">
             <label class="form-label fw-semibold">การพิจารณา:</label>
