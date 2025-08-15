@@ -1,4 +1,4 @@
-<?php 
+<?php
 session_start();
 require_once __DIR__ . '/../config/database.php';
 
@@ -296,13 +296,28 @@ foreach ($departments as $dept) {
 
 $stmt = $conn->prepare("
     SELECT 
-        t.*, sr.title, sr.description, sr.created_at as request_date,
-        sr.current_step, sr.priority, sr.deadline,
-        requester.name AS requester_name, requester.lastname AS requester_lastname,
-        requester.employee_id, requester.position, requester.department,
-        ur.rating, ur.review_comment, ur.status as review_status, ur.revision_notes,
+        t.*, sr.title, 
+        sr.description, 
+        sr.created_at as request_date,
+        sr.current_step, 
+        sr.priority, 
+        sr.deadline,
+        sr.expected_benefits,
+        sr.function_benefits,
+        requester.name AS requester_name, 
+        requester.lastname AS requester_lastname,
+        requester.employee_id, 
+        requester.position, 
+        requester.department,
+        ur.rating, 
+        ur.review_comment, 
+        ur.status as review_status, 
+        ur.revision_notes,
         ur.reviewed_at as user_reviewed_at,
-        aa.estimated_days,
+
+
+        
+        COALESCE(sr.estimated_days, aa.estimated_days) AS estimated_days,
         s.name as service_name, s.category as service_category,
         dn.document_number AS document_number
     FROM tasks t
@@ -331,7 +346,7 @@ $users_stmt = $conn->prepare("
 $users_stmt->execute();
 $users = $users_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-$tasks_by_status = ['pending'=>[], 'received'=>[], 'in_progress'=>[], 'on_hold'=>[], 'completed'=>[]];
+$tasks_by_status = ['pending' => [], 'received' => [], 'in_progress' => [], 'on_hold' => [], 'completed' => []];
 foreach ($tasks as $task) {
     if (isset($tasks_by_status[$task['task_status']])) {
         $tasks_by_status[$task['task_status']][] = $task;
@@ -353,14 +368,13 @@ foreach ($tasks as $task) {
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <link rel="stylesheet" href="css/tasks_board.css">
     <style>
-
         :root {
             --primary-gradient: linear-gradient(135deg, #ffffff 0%, #341355 100%);
             --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             --glass-bg: rgba(255, 255, 255, 0.95);
             --glass-border: rgba(255, 255, 255, 0.2);
         }
-        
+
         .task-card.priority-urgent {
             border-left: 4px solid #dc2626 !important;
             box-shadow: 0 0 15px rgba(220, 38, 38, 0.3);
@@ -1111,7 +1125,16 @@ foreach ($tasks as $task) {
                                 <div id="detailDescription" class="bg-light p-3 rounded"></div>
                             </section>
 
+                            
                             <!-- ประโยชน์ -->
+                            <section id="FdetailBenefits" class="mt-4" style="display: none;">
+                                <h6 class="text-uppercase text-success fw-bold mb-2">
+                                    <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+                                </h6>
+                                <div id="FdetailBenefitsContent" class="bg-success bg-opacity-10 p-3 rounded border-start border-success border-4"></div>
+                            </section>
+
+                             <!-- ประโยชน์ -->
                             <section id="detailBenefits" class="mt-4" style="display: none;">
                                 <h6 class="text-uppercase text-success fw-bold mb-2">
                                     <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
@@ -1325,18 +1348,18 @@ foreach ($tasks as $task) {
                                     </select>
                                 </div>
 
-                                  <select class="form-select" id="work_category" name="work_category" required>
-                                        <option value="">-- เลือกหัวข้องานคลัง --</option>
-                                        <?php foreach ($dept_by_warehouse as $warehouse => $depts): ?>
-                                            <optgroup label="<?= $warehouse ?>">
-                                                <?php foreach ($depts as $dept): ?>
-                                                    <option value="<?= $dept['warehouse_number'] ?>-<?= $dept['code_name'] ?>">
-                                                        <?= $dept['department_code'] ?> - <?= $dept['code_name'] ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </optgroup>
-                                        <?php endforeach; ?>
-                                    </select>
+                                <select class="form-select" id="work_category" name="work_category" required>
+                                    <option value="">-- เลือกหัวข้องานคลัง --</option>
+                                    <?php foreach ($dept_by_warehouse as $warehouse => $depts): ?>
+                                        <optgroup label="<?= $warehouse ?>">
+                                            <?php foreach ($depts as $dept): ?>
+                                                <option value="<?= $dept['warehouse_number'] ?>-<?= $dept['code_name'] ?>">
+                                                    <?= $dept['department_code'] ?> - <?= $dept['code_name'] ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </optgroup>
+                                    <?php endforeach; ?>
+                                </select>
 
                                 <div class="mb-3">
                                     <label for="estimated_days" class="form-label fw-bold">วัน:</label>
@@ -1487,13 +1510,23 @@ foreach ($tasks as $task) {
             }
 
             // แสดงประโยชน์ที่คาดว่าจะได้รับ (ถ้ามี)
-            if (task.expected_benefits) {
+            if (task.function_benefits) {
+                document.getElementById('FdetailBenefits').style.display = 'block';
+                document.getElementById('FdetailBenefitsContent').innerHTML = task.function_benefits.replace(/\n/g, '<br>');
+            } else {
+                document.getElementById('FdetailBenefits').style.display = 'none';
+            }
+
+
+             if (task.expected_benefits) {
                 document.getElementById('detailBenefits').style.display = 'block';
                 document.getElementById('detailBenefitsContent').innerHTML = task.expected_benefits.replace(/\n/g, '<br>');
             } else {
                 document.getElementById('detailBenefits').style.display = 'none';
             }
 
+
+    
             // โหลดไฟล์แนบ
             loadAttachments(task.service_request_id);
 
@@ -1693,7 +1726,7 @@ foreach ($tasks as $task) {
         }
     </script>
 
-    <script>
+    <!-- <script>
         window.addEventListener('DOMContentLoaded', () => {
             const deadlineInput = document.getElementById('deadline');
             const now = new Date();
@@ -1709,16 +1742,16 @@ foreach ($tasks as $task) {
             const defaultVal = now.toISOString().slice(0, 16);
             deadlineInput.value = defaultVal;
         });
-    </script>
-    
-<script>
-    $(document).ready(function() {
-        $('#user_id').select2({
-            placeholder: "เลือกผู้ใช้บริการ",
-            allowClear: true
+    </script> -->
+
+    <script>
+        $(document).ready(function() {
+            $('#user_id').select2({
+                placeholder: "เลือกผู้ใช้บริการ",
+                allowClear: true
+            });
         });
-    });
-</script>
+    </script>
 
 
     <style>
