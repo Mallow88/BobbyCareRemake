@@ -9,7 +9,9 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'developer') {
 
 $developer_id = $_SESSION['user_id'];
 
-// ดึงงานที่เสร็จแล้วและมีการรีวิว
+$picture_url = $_SESSION['picture_url'] ?? null;
+
+
 $stmt = $conn->prepare("
     SELECT 
         t.*,
@@ -18,29 +20,38 @@ $stmt = $conn->prepare("
         sr.created_at as request_date,
         requester.name AS requester_name,
         requester.lastname AS requester_lastname,
+        dev.name as dev_name,
+        dev.lastname as dev_lastname,
         ur.rating,
         ur.review_comment,
         ur.status as review_status,
         ur.revision_notes,
-        ur.reviewed_at as user_reviewed_at
-    FROM tasks t
+        ur.reviewed_at,
+        gma.budget_approved,
+        dn.document_number,
+        assignor.name as assignor_name
+    FROM user_reviews ur
+    JOIN tasks t ON ur.task_id = t.id
     JOIN service_requests sr ON t.service_request_id = sr.id
     JOIN users requester ON sr.user_id = requester.id
-    JOIN user_reviews ur ON t.id = ur.task_id
-    WHERE t.developer_user_id = ?
-    AND t.task_status IN ('completed', 'accepted', 'revision_requested')
+    JOIN users dev ON t.developer_user_id = dev.id
+    LEFT JOIN gm_approvals gma ON sr.id = gma.service_request_id
+     LEFT JOIN document_numbers dn ON sr.id = dn.service_request_id
+    LEFT JOIN assignor_approvals aa ON sr.id = aa.service_request_id
+    LEFT JOIN users assignor ON aa.assignor_user_id = assignor.id
     ORDER BY ur.reviewed_at DESC
 ");
-$stmt->execute([$developer_id]);
-$reviews = $stmt->fetchAll(PDO::FETCH_ASSOC);
+$stmt->execute();
+$tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 // คำนวณสถิติ
-$total_reviews = count($reviews);
+$total_reviews = count($tasks);
 $total_rating = 0;
 $accepted_count = 0;
 $revision_count = 0;
 
-foreach ($reviews as $review) {
+foreach ($tasks as $review) {
     $total_rating += $review['rating'];
     if ($review['review_status'] === 'accepted') {
         $accepted_count++;
@@ -51,79 +62,53 @@ foreach ($reviews as $review) {
 
 $average_rating = $total_reviews > 0 ? round($total_rating / $total_reviews, 1) : 0;
 $acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews) * 100, 1) : 0;
+
 ?>
-
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>รีวิวงาน - BobbyCareDev</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <title>BobbyCareDev</title>
+    <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
+    <link rel="icon" href="/BobbyCareRemake/img/logo/bobby-icon.png" type="image/x-icon" />
+
+    <!-- Fonts and icons -->
+    <script src="../assets/js/plugin/webfont/webfont.min.js"></script>
+    <script>
+        WebFont.load({
+            google: {
+                families: ["Public Sans:300,400,500,600,700"]
+            },
+            custom: {
+                families: [
+                    "Font Awesome 5 Solid",
+                    "Font Awesome 5 Regular",
+                    "Font Awesome 5 Brands",
+                    "simple-line-icons",
+                ],
+                urls: ["../assets/css/fonts.min.css"],
+            },
+            active: function() {
+                sessionStorage.fonts = true;
+            },
+        });
+    </script>
+
+    <!-- CSS Files -->
+    <link rel="stylesheet" href="../assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="../assets/css/plugins.min.css" />
+    <link rel="stylesheet" href="../assets/css/kaiadmin.min.css" />
+
+    <!-- CSS Just for demo purpose, don't include it in your project -->
+    <link rel="stylesheet" href="../assets/css/demo.css" />
     <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #ffffff 0%, #341355 100%);
-            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            --glass-bg: rgba(255, 255, 255, 0.95);
-            --glass-border: rgba(255, 255, 255, 0.2);
-        }
-
         body {
-            background: var(--primary-gradient);
-            min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8fafc;
+            font-family: "Public Sans", sans-serif;
         }
 
-        .glass-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--glass-border);
-            border-radius: 20px;
-            box-shadow: var(--card-shadow);
-        }
-
-        .header-card {
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
-            backdrop-filter: blur(20px);
-            border-radius: 25px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-
-        .btn-gradient {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            border: none;
-            color: white;
-            font-weight: 600;
-            padding: 12px 24px;
-            border-radius: 12px;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-gradient:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-            color: white;
-        }
-
-        .navbar-custom {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(20px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
-        }
-
-        .page-title {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 800;
-            font-size: 2.5rem;
-        }
-
+        /* ส่วนหัวสถิติ */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -131,61 +116,61 @@ $acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews)
             margin-bottom: 30px;
         }
 
-        .stat-card {
+        .stat-box {
             background: white;
-            padding: 25px;
-            border-radius: 15px;
+            padding: 20px;
+            border-radius: 12px;
             text-align: center;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: 0.3s;
         }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+        .stat-box:hover {
+            transform: translateY(-3px);
         }
 
         .stat-number {
-            font-size: 2.5rem;
+            font-size: 2rem;
             font-weight: 700;
-            margin-bottom: 10px;
         }
 
         .stat-label {
             color: #6b7280;
             font-size: 0.9rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
-        .review-card {
+        /* งานแต่ละรายการ */
+        .task-item {
             background: white;
-            border-radius: 15px;
-            padding: 25px;
+            border-radius: 12px;
+            padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-            transition: all 0.3s ease;
-            border-left: 5px solid #667eea;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
-        .review-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.12);
+        .task-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
         }
 
-        .rating-stars {
-            color: #fbbf24;
-            font-size: 1.5rem;
-            margin-bottom: 10px;
+        .task-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2d3748;
         }
 
-        .review-status {
+        .task-meta {
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .status-badge {
             padding: 6px 12px;
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 600;
-            text-transform: uppercase;
         }
 
         .status-accepted {
@@ -194,290 +179,343 @@ $acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews)
         }
 
         .status-revision {
-            background: #fef5e7;
-            color: #d69e2e;
+            background: #fefcbf;
+            color: #b7791f;
         }
 
-        .revision-notes {
-            background: #fef5e7;
-            border-radius: 8px;
+        /* ส่วนรีวิว */
+        .review-box {
+            margin-top: 10px;
+            background: #f7fafc;
             padding: 15px;
-            margin-top: 15px;
-            border-left: 4px solid #f6ad55;
+            border-radius: 8px;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 80px 20px;
-            color: #6b7280;
+        .rating-stars {
+            color: #f6ad55;
+            font-size: 1.2rem;
         }
 
-        .empty-state i {
-            font-size: 5rem;
-            margin-bottom: 30px;
-            color: #d1d5db;
-            opacity: 0.7;
-        }
-
-        .animate-fade-in {
-            animation: fadeIn 0.6s ease-out;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @media (max-width: 768px) {
-            .page-title {
-                font-size: 2rem;
-            }
-
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
+        .comment-box {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            font-style: italic;
+            margin-top: 10px;
+            border-left: 3px solid #3182ce;
         }
     </style>
 </head>
+
 <body>
-    
-     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
 
-        <div class="container">
-            <!-- โลโก้ + ชื่อระบบ -->
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="dev_index.php">
-                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
-                <span class="page-title">Reviews</span>
-            </a>
-
-
-            <!-- ปุ่ม toggle สำหรับ mobile -->
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarContent">
-                <span class="navbar-toggler-icon"></span>
+  <div class="wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar" data-background-color="dark">
+      <div class="sidebar-logo">
+        <!-- Logo Header -->
+        <div class="logo-header" data-background-color="dark">
+          <a href="tasks_board.php" class="logo">
+            <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="30" />
+          </a>
+          <div class="nav-toggle">
+            <button class="btn btn-toggle toggle-sidebar">
+              <i class="gg-menu-right"></i>
             </button>
-
-            <!-- เมนู -->
-            <div class="collapse navbar-collapse" id="navbarContent">
-                <!-- ซ้าย: เมนูหลัก -->
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <!-- <li class="nav-item">
-                        <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> หน้าหลัก</a>
-                    </li> -->
-                    <li class="nav-item">
-                        <a class="nav-link" href="tasks_board.php">
-                            <i class="fas fa-clipboard-list me-1"></i>
-                            บอร์ดงาน
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="calendar.php"><i class="fas fa-tasks me-1"></i> ปฏิทิน</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="completed_reviews.php"><i class="fas fa-chart-bar me-1"></i> งานที่รีวิว</a>
-                    </li>
-                     <li class="nav-item">
-                        <a class="nav-link" href="export_report.php"><i class="fas fa-chart-bar me-1"></i>Report</a>
-                    </li>
-                </ul>
-
-                <!-- ขวา: ผู้ใช้งาน -->
-                <ul class="navbar-nav mb-2 mb-lg-0">
-                    <li class="nav-item d-flex align-items-center text-dark me-3">
-                        <i class="fas fa-user-circle me-2"></i>
-                        <?= htmlspecialchars($_SESSION['name']) ?>
-                    </li>
-
-                    <li class="nav-item">
-                        <a class="nav-link text-danger" href="../logout.php">
-                            <i class="fas fa-sign-out-alt me-1"></i> ออกจากระบบ
-                        </a>
-                    </li>
-                </ul>
-            </div>
+            <button class="btn btn-toggle sidenav-toggler">
+              <i class="gg-menu-left"></i>
+            </button>
+          </div>
+          <button class="topbar-toggler more">
+            <i class="gg-more-vertical-alt"></i>
+          </button>
         </div>
-    </nav>
+        <!-- End Logo Header -->
+      </div>
+      <div class="sidebar-wrapper scrollbar scrollbar-inner">
+        <div class="sidebar-content">
+          <ul class="nav nav-secondary">
+            <li class="nav-item ">
+              <a href="tasks_board.php">
+                <i class="fas fa-home"></i>
+                <p>หน้าหลัก</p>
+              </a>
+            </li>
+            <li class="nav-section">
+              <span class="sidebar-mini-icon">
+                <i class="fa fa-ellipsis-h"></i>
+              </span>
+              <h4 class="text-section">Components</h4>
+            </li>
 
-    <div class="container mt-5 pt-5">
-        <!-- Header Section -->
-        <div class="header-card p-5 mb-5 animate-fade-in">
-            <div class="row align-items-center">
-                <div class="col-lg-8">
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="bg-primary rounded-circle d-flex align-items-center justify-content-center me-4" style="width: 60px; height: 60px;">
-                            <i class="fas fa-star text-white fs-3"></i>
-                        </div>
-                        <div>
-                            <h1 class="page-title mb-2">รีวิวงานจากผู้ใช้</h1>
-                            <p class="text-muted mb-0 fs-5">ดูความคิดเห็นและคะแนนจากผู้ใช้งาน</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-4 text-lg-end">
-                    <div class="d-flex gap-2 justify-content-lg-end justify-content-start flex-wrap">
-                        <a href="dev_index.php" class="btn btn-gradient">
-                            <i class="fas fa-arrow-left me-2"></i>กลับหน้าหลัก
-                        </a>
-                        <a href="tasks_board.php" class="btn btn-gradient">
-                            <i class="fas fa-tasks me-2"></i>บอร์ดงาน
-                        </a>
-                    </div>
-                </div>
-            </div>
+        
+
+            <li class="nav-item active ">
+              <a href="completed_reviews.php">
+                <i class="fas fa-comments"></i> <!-- รีวิวจากผู้ใช้ -->
+                <p>งานที่รีวิวเเล้ว</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+            <li class="nav-item ">
+              <a href="export_report.php">
+                <i class="fas fa-tachometer-alt"></i> <!-- Dashboard -->
+                <p>Dashboard_DEV</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+            <li class="nav-item ">
+              <a href="calendar2.php">
+                <i class="fas fa-check-circle"></i> <!-- รายการที่อนุมัติ -->
+                <p>ปฏิทิน</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="../logout.php">
+                <i class="fas fa-sign-out-alt"></i> <!-- Logout -->
+                <p>Logout</p>
+                <span class="badge badge-success"></span>
+              </a>
+            </li>
+
+          </ul>
         </div>
-
-        <!-- Statistics -->
-        <div class="stats-grid animate-fade-in">
-            <div class="stat-card">
-                <div class="stat-number text-primary"><?= $total_reviews ?></div>
-                <div class="stat-label">รีวิวทั้งหมด</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number text-warning"><?= $average_rating ?></div>
-                <div class="stat-label">คะแนนเฉลี่ย</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number text-success"><?= $acceptance_rate ?>%</div>
-                <div class="stat-label">อัตราการยอมรับ</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number text-danger"><?= $revision_count ?></div>
-                <div class="stat-label">ขอแก้ไข</div>
-            </div>
-        </div>
-
-        <!-- Reviews List -->
-        <div class="glass-card p-4 animate-fade-in">
-            <div class="d-flex align-items-center mb-4">
-                <i class="fas fa-comments text-primary me-3 fs-3"></i>
-                <h2 class="mb-0 fw-bold">รายการรีวิว</h2>
-            </div>
-
-            <?php if (empty($reviews)): ?>
-                <div class="empty-state">
-                    <i class="fas fa-star"></i>
-                    <h3 class="fw-bold mb-3">ยังไม่มีรีวิว</h3>
-                    <p class="fs-5">เมื่อผู้ใช้รีวิวงานของคุณ จะแสดงที่นี่</p>
-                </div>
-            <?php else: ?>
-                <?php foreach ($reviews as $review): ?>
-                    <div class="review-card">
-                        <div class="row">
-                            <div class="col-md-8">
-                                <h5 class="fw-bold text-primary mb-2"><?= htmlspecialchars($review['title']) ?></h5>
-                                <p class="text-muted mb-3">
-                                    <i class="fas fa-user me-2"></i>
-                                    <?= htmlspecialchars($review['requester_name'] . ' ' . $review['requester_lastname']) ?>
-                                    <span class="ms-3">
-                                        <i class="fas fa-clock me-2"></i>
-                                        รีวิวเมื่อ: <?= date('d/m/Y H:i', strtotime($review['user_reviewed_at'])) ?>
-                                    </span>
-                                    <?php if ($review['assignor_name']): ?>
-                                        <span class="ms-3">
-                                            <i class="fas fa-user-tie me-2"></i>
-                                            มอบหมายโดย: <?= htmlspecialchars($review['assignor_name']) ?>
-                                        </span>
-                                    <?php endif; ?>
-                                </p>
-                                
-                                <?php if ($review['estimated_days']): ?>
-                                <div class="mb-3">
-                                    <span class="badge bg-warning text-dark">
-                                        <i class="fas fa-clock me-1"></i>
-                                        ประมาณการ: <?= $review['estimated_days'] ?> วัน
-                                    </span>
-                                    <?php 
-                                    // คำนวณวันที่ควรเสร็จและวันที่เสร็จจริง
-                                    if ($review['accepted_at'] && $review['completed_at']) {
-                                        $expected_completion = date('Y-m-d', strtotime($review['accepted_at'] . ' + ' . $review['estimated_days'] . ' days'));
-                                        $actual_completion = date('Y-m-d', strtotime($review['completed_at']));
-                                        
-                                        if ($actual_completion <= $expected_completion) {
-                                            echo '<span class="badge bg-success ms-2">';
-                                            echo '<i class="fas fa-check me-1"></i>';
-                                            echo 'เสร็จตามกำหนด';
-                                        } else {
-                                            $days_late = (strtotime($actual_completion) - strtotime($expected_completion)) / (60 * 60 * 24);
-                                            echo '<span class="badge bg-danger ms-2">';
-                                            echo '<i class="fas fa-exclamation me-1"></i>';
-                                            echo 'เสร็จช้า ' . $days_late . ' วัน';
-                                        }
-                                        echo '</span>';
-                                    }
-                                    ?>
-                                </div>
-                                <?php endif; ?>
-
-                                <div class="rating-stars mb-3">
-                                    <?= str_repeat('⭐', $review['rating']) ?>
-                                    <span class="ms-2 text-muted">(<?= $review['rating'] ?>/5)</span>
-                                </div>
-
-                                <?php if ($review['review_comment']): ?>
-                                <div class="bg-light p-3 rounded mb-3">
-                                    <strong>ความเห็น:</strong><br>
-                                    <em>"<?= nl2br(htmlspecialchars($review['review_comment'])) ?>"</em>
-                                </div>
-                                <?php endif; ?>
-
-                                <?php if ($review['revision_notes']): ?>
-                                <div class="revision-notes">
-                                    <strong><i class="fas fa-edit"></i> รายละเอียดที่ต้องแก้ไข:</strong><br>
-                                    <?= nl2br(htmlspecialchars($review['revision_notes'])) ?>
-                                </div>
-                                <?php endif; ?>
-                            </div>
-                            <div class="col-md-4 text-md-end">
-                                <?php if ($review['review_status'] === 'accepted'): ?>
-                                    <span class="review-status status-accepted">
-                                        <i class="fas fa-check me-1"></i>ยอมรับงาน
-                                    </span>
-                                <?php elseif ($review['review_status'] === 'revision_requested'): ?>
-                                    <span class="review-status status-revision">
-                                        <i class="fas fa-redo me-1"></i>ขอแก้ไข
-                                    </span>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
+      </div>
     </div>
+    <!-- End Sidebar -->
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Add smooth animations
-        document.addEventListener('DOMContentLoaded', function() {
-            // Animate cards on scroll
-            const observerOptions = {
-                threshold: 0.1,
-                rootMargin: '0px 0px -50px 0px'
-            };
+    <div class="main-panel">
+      <div class="main-header">
+        <div class="main-header-logo">
+          <!-- Logo Header -->
+          <div class="logo-header" data-background-color="dark">
+            <a href="tasks_board.php" class="logo">
+              <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="20" />
+            </a>
+            <div class="nav-toggle">
+              <button class="btn btn-toggle toggle-sidebar">
+                <i class="gg-menu-right"></i>
+              </button>
+              <button class="btn btn-toggle sidenav-toggler">
+                <i class="gg-menu-left"></i>
+              </button>
+            </div>
+            <button class="topbar-toggler more">
+              <i class="gg-more-vertical-alt"></i>
+            </button>
+          </div>
+          <!-- End Logo Header -->
+        </div>
 
-            const observer = new IntersectionObserver(function(entries) {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.style.opacity = '1';
-                        entry.target.style.transform = 'translateY(0)';
-                    }
+        <!-- Navbar Header -->
+        <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+          <div class="container-fluid">
+            <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
+
+              <!-- โปรไฟล์ -->
+              <li class="nav-item topbar-user dropdown hidden-caret">
+                <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+
+                  <div class="avatar-sm">
+                    <img src="<?= htmlspecialchars($picture_url) ?>" alt="..." class="avatar-img rounded-circle" />
+                  </div>
+
+                  <span class="profile-username">
+                    <span class="op-7">Development :</span>
+                    <span class="fw-bold"><?= htmlspecialchars($_SESSION['name']) ?></span>
+                  </span>
+                </a>
+                <ul class="dropdown-menu dropdown-user animated fadeIn">
+                  <div class="dropdown-user-scroll scrollbar-outer">
+                    <li>
+                      <div class="user-box">
+                        <div class="avatar-lg">
+                          <img src="<?= htmlspecialchars($picture_url) ?>" alt="image profile" class="avatar-img rounded" />
+                        </div>
+                        <div class="u-text">
+                          <h4><?= htmlspecialchars($_SESSION['name']) ?> </h4>
+
+                          <!-- <p class="text-muted"><?= htmlspecialchars($email) ?></p> -->
+                          <a href="" class="btn btn-xs btn-secondary btn-sm">View Profile</a>
+                        </div>
+                      </div>
+                    </li>
+                    <li>
+                      <div class="dropdown-divider"></div>
+                      <a class="dropdown-item" href="#">My Profile</a>
+
+                      <div class="dropdown-divider"></div>
+                      <a class="dropdown-item" href="../logout.php">Logout</a>
+                    </li>
+                  </div>
+                </ul>
+              </li>
+
+
+            </ul>
+          </div>
+        </nav>
+        <!-- End Navbar -->
+            </div>
+
+
+
+
+            <div class="container py-5">
+
+
+                <div class="page-inner">
+
+                    <!-- สรุปสถิติ -->
+                    <div class="stats-grid mb-5">
+                        <div class="stat-box">
+                            <div class="stat-number text-primary"><?= $total_reviews ?></div>
+                            <div class="stat-label">รีวิวทั้งหมด</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number text-warning"><?= $average_rating ?></div>
+                            <div class="stat-label">คะแนนเฉลี่ย</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number text-success"><?= $acceptance_rate ?>%</div>
+                            <div class="stat-label">อัตราการยอมรับ</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number text-danger"><?= $revision_count ?></div>
+                            <div class="stat-label">ขอแก้ไข</div>
+                        </div>
+                    </div>
+
+
+                    <!-- รายการรีวิว -->
+                    <h2 class="mb-4"><i class="fas fa-star text-warning"></i> งานที่ได้รับการรีวิวแล้ว</h2>
+
+                    <?php if (empty($tasks)): ?>
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <h4>ยังไม่มีงานที่เสร็จแล้ว</h4>
+                            <p>งานที่อนุมัติและได้รับการรีวิวจะแสดงที่นี่</p>
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($tasks as $task): ?>
+                            <div class="task-item">
+                                <div class="task-header">
+                                    <div>
+                                        <div class="task-title"><?= htmlspecialchars($task['document_number']) ?>  หัวข้องาน : <?= htmlspecialchars($task['title']) ?></div> <div class="task-meta">
+                                            <i class="fas fa-user"></i> ผู้ขอ: <?= htmlspecialchars($task['requester_name'] . ' ' . $task['requester_lastname']) ?>
+                                            &nbsp; | &nbsp;
+                                            <i class="fas fa-user-cog"></i> ผู้พัฒนา: <?= htmlspecialchars($task['dev_name'] . ' ' . $task['dev_lastname']) ?>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <?php if ($task['review_status'] === 'accepted'): ?>
+                                            <span class="status-badge status-accepted">ยอมรับงาน</span>
+                                        <?php elseif ($task['review_status'] === 'revision_requested'): ?>
+                                            <span class="status-badge status-revision">ขอแก้ไข</span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+
+                                <div class="review-box">
+                                    <div class="rating-stars"><?= str_repeat('⭐', $task['rating']) ?></div>
+                                    <div><strong><?= $task['rating'] ?>/5 ดาว</strong> | รีวิวเมื่อ <?= date('d/m/Y H:i', strtotime($task['reviewed_at'])) ?></div>
+
+                                    <?php if ($task['review_comment']): ?>
+                                        <div class="comment-box"><strong> รีวิวจากผู้ใช้บริการ :</strong>
+                                            “<?= nl2br(htmlspecialchars($task['review_comment'])) ?>” <br>
+                                            <strong>รายละเอียดงาน : </strong><br>
+                                            <?= nl2br(htmlspecialchars($task['description'])) ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if ($task['revision_notes']): ?>
+                                        <div class="comment-box" style="border-left-color:#dd6b20;">
+                                            <strong><i class="fas fa-edit"></i> รายละเอียดที่ต้องแก้ไข:</strong><br>
+                                            <?= nl2br(htmlspecialchars($task['revision_notes'])) ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                     <?php if ($task['developer_notes']): ?>
+                        <div style="background: #e6fffa; border-radius: 8px; padding: 15px; margin: 15px 0; border-left: 3px solid #38b2ac;">
+                            <strong><i class="fas fa-sticky-note"></i> หมายเหตุจากผู้พัฒนา:</strong><br>
+                            <?= nl2br(htmlspecialchars($task['developer_notes'])) ?>
+                        </div>
+                        <?php endif; ?>
+                                </div>
+
+                                <div class="task-meta mt-3">
+                                    <i class="fas fa-check-circle"></i> เสร็จงาน: <?= date('d/m/Y H:i', strtotime($task['completed_at'])) ?>
+                                </div>
+                            </div>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                    <!-- <footer class="footer">
+        <div class="container-fluid d-flex justify-content-between">
+            <nav class="pull-left">
+
+            </nav>
+            <div class="copyright">
+                © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
+                <i class="fa fa-heart heart text-danger"></i>
+
+            </div>
+            <div>
+
+            </div>
+        </div>
+    </footer> -->
+                </div>
+            </div>
+
+
+
+
+        </div>
+        <!--   Core JS Files   -->
+        <script src="../assets/js/core/jquery-3.7.1.min.js"></script>
+        <script src="../assets/js/core/popper.min.js"></script>
+        <script src="../assets/js/core/bootstrap.min.js"></script>
+        <!-- Chart JS -->
+        <script src="../assets/js/plugin/chart.js/chart.min.js"></script>
+        <!-- jQuery Scrollbar -->
+        <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+        <!-- Kaiadmin JS -->
+        <script src="../assets/js/kaiadmin.min.js"></script>
+        <!-- Kaiadmin DEMO methods, don't include it in your project! -->
+        <script src="../assets/js/setting-demo2.js"></script>
+
+        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+        <script>
+            document.addEventListener("DOMContentLoaded", function() {
+                document.querySelectorAll('[data-bs-target^="#gmApprovalSection"]').forEach(button => {
+                    button.addEventListener("click", function() {
+                        const targetId = this.getAttribute("data-bs-target");
+                        const container = document.querySelector(targetId + " .gm-approval-content");
+                        const requestId = container.getAttribute("data-request-id");
+
+                        if (!container.dataset.loaded) {
+                            fetch("gm_approve.php?id=" + requestId)
+                                .then(response => response.text())
+                                .then(html => {
+                                    container.innerHTML = html;
+                                    container.dataset.loaded = "true";
+                                })
+                                .catch(err => {
+                                    container.innerHTML = `<div class="alert alert-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
+                                });
+                        }
+                    });
                 });
-            }, observerOptions);
-
-            // Observe all cards
-            document.querySelectorAll('.review-card').forEach(card => {
-                card.style.opacity = '0';
-                card.style.transform = 'translateY(20px)';
-                card.style.transition = 'all 0.6s ease';
-                observer.observe(card);
             });
-        });
-    </script>
+        </script>
+
+
 </body>
+
 </html>

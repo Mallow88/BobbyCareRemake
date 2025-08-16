@@ -10,7 +10,6 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'assignor') {
 $assignor_id = $_SESSION['user_id'];
 $picture_url = $_SESSION['picture_url'] ?? null;
 
-// ดึงงานที่เสร็จแล้วและมีการรีวิว
 $stmt = $conn->prepare("
     SELECT 
         t.*,
@@ -26,20 +25,42 @@ $stmt = $conn->prepare("
         ur.status as review_status,
         ur.revision_notes,
         ur.reviewed_at,
-        aa.assignor_user_id
-    FROM tasks t
+        gma.budget_approved,
+        dn.document_number,
+        assignor.name as assignor_name
+    FROM user_reviews ur
+    JOIN tasks t ON ur.task_id = t.id
     JOIN service_requests sr ON t.service_request_id = sr.id
     JOIN users requester ON sr.user_id = requester.id
     JOIN users dev ON t.developer_user_id = dev.id
-    JOIN assignor_approvals aa ON sr.id = aa.service_request_id
-    LEFT JOIN user_reviews ur ON t.id = ur.task_id
-    WHERE aa.assignor_user_id = ? 
-    AND t.task_status IN ('completed', 'accepted', 'revision_requested')
-    AND ur.id IS NOT NULL
+    LEFT JOIN gm_approvals gma ON sr.id = gma.service_request_id
+     LEFT JOIN document_numbers dn ON sr.id = dn.service_request_id
+    LEFT JOIN assignor_approvals aa ON sr.id = aa.service_request_id
+    LEFT JOIN users assignor ON aa.assignor_user_id = assignor.id
     ORDER BY ur.reviewed_at DESC
 ");
-$stmt->execute([$assignor_id]);
+$stmt->execute();
 $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+// คำนวณสถิติ
+$total_reviews = count($tasks);
+$total_rating = 0;
+$accepted_count = 0;
+$revision_count = 0;
+
+foreach ($tasks as $review) {
+    $total_rating += $review['rating'];
+    if ($review['review_status'] === 'accepted') {
+        $accepted_count++;
+    } elseif ($review['review_status'] === 'revision_requested') {
+        $revision_count++;
+    }
+}
+
+$average_rating = $total_reviews > 0 ? round($total_rating / $total_reviews, 1) : 0;
+$acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews) * 100, 1) : 0;
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -80,125 +101,67 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
   <!-- CSS Just for demo purpose, don't include it in your project -->
   <link rel="stylesheet" href="../assets/css/demo.css" />
   <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        body {
+            background: #f8fafc;
+            font-family: "Public Sans", sans-serif;
         }
 
-       
-        .container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-
-        .header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
+        /* ส่วนหัวสถิติ */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
             margin-bottom: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            text-align: center;
         }
 
-        .header h1 {
-            color: #4a5568;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+        .stat-box {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: 0.3s;
+        }
+
+        .stat-box:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-number {
+            font-size: 2rem;
             font-weight: 700;
         }
 
-        .nav-buttons {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            margin: 20px 0;
-            flex-wrap: wrap;
+        .stat-label {
+            color: #6b7280;
+            font-size: 0.9rem;
         }
 
-        .nav-btn {
-            background: linear-gradient(135deg, #4299e1, #3182ce);
-            color: white;
-            padding: 12px 24px;
-            border: none;
-            border-radius: 12px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);
-        }
-
-        .nav-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(66, 153, 225, 0.4);
-        }
-
-        .nav-btn.secondary {
-            background: linear-gradient(135deg, #48bb78, #38a169);
-            box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
-        }
-
-        .content-card {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-
-        .task-card {
+        /* งานแต่ละรายการ */
+        .task-item {
             background: white;
-            border-radius: 15px;
-            padding: 25px;
+            border-radius: 12px;
+            padding: 20px;
             margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            border-left: 5px solid #48bb78;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
         .task-header {
             display: flex;
             justify-content: space-between;
-            align-items: flex-start;
+            align-items: center;
             margin-bottom: 15px;
-            flex-wrap: wrap;
-            gap: 15px;
         }
 
         .task-title {
-            font-size: 1.3rem;
-            font-weight: 700;
+            font-size: 1.2rem;
+            font-weight: 600;
             color: #2d3748;
-            margin-bottom: 5px;
         }
 
         .task-meta {
-            color: #718096;
             font-size: 0.9rem;
-        }
-
-        .review-section {
-            background: #f0fff4;
-            border-radius: 12px;
-            padding: 20px;
-            margin: 15px 0;
-            border-left: 4px solid #48bb78;
-        }
-
-        .rating-display {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .stars {
-            color: #f6ad55;
-            font-size: 1.2rem;
+            color: #4a5568;
         }
 
         .status-badge {
@@ -206,7 +169,6 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
             border-radius: 20px;
             font-size: 0.8rem;
             font-weight: 600;
-            text-transform: uppercase;
         }
 
         .status-accepted {
@@ -215,52 +177,30 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .status-revision {
-            background: #fef5e7;
-            color: #d69e2e;
+            background: #fefcbf;
+            color: #b7791f;
         }
 
-        .status-pending {
-            background: #e2e8f0;
-            color: #4a5568;
-        }
-
-        .revision-notes {
-            background: #fef5e7;
-            border-radius: 8px;
-            padding: 15px;
+        /* ส่วนรีวิว */
+        .review-box {
             margin-top: 10px;
-            border-left: 3px solid #f6ad55;
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
         }
 
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #718096;
+        .rating-stars {
+            color: #f6ad55;
+            font-size: 1.2rem;
         }
 
-        .empty-state i {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            color: #cbd5e0;
-        }
-
-          @media (max-width: 768px) {
-    .page-title {
-        font-size: 2rem;
-        text-align: center;
-    }
-    .container {
-        padding: 1rem;
-    }
-
-            .header h1 {
-                font-size: 2rem;
-            }
-
-            .task-header {
-                flex-direction: column;
-                align-items: flex-start;
-            }
+        .comment-box {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            font-style: italic;
+            margin-top: 10px;
+            border-left: 3px solid #3182ce;
         }
     </style>
 </head>
@@ -428,135 +368,118 @@ $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 
+            <div class="container py-5">
 
-      <div class="container">
 
-  <div class="page-inner">
+                <div class="page-inner">
 
-      <div class="content-card">
-            <h2><i class="fas fa-star"></i> งานที่ได้รับการรีวิวแล้ว</h2>
+                    <!-- สรุปสถิติ -->
+                    <div class="stats-grid mb-5">
+                        <div class="stat-box">
+                            <div class="stat-number text-primary"><?= $total_reviews ?></div>
+                            <div class="stat-label">รีวิวทั้งหมด</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number text-warning"><?= $average_rating ?></div>
+                            <div class="stat-label">คะแนนเฉลี่ย</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number text-success"><?= $acceptance_rate ?>%</div>
+                            <div class="stat-label">อัตราการยอมรับ</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-number text-danger"><?= $revision_count ?></div>
+                            <div class="stat-label">ขอแก้ไข</div>
+                        </div>
+                    </div>
 
-            <?php if (empty($tasks)): ?>
-                <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
-                    <h3>ยังไม่มีงานที่เสร็จแล้ว</h3>
-                    <p>งานที่มอบหมายและได้รับการรีวิวจะแสดงที่นี่</p>
-                </div>
-            <?php else: ?>
-                <?php foreach ($tasks as $task): ?>
-                    <div class="task-card">
-                        <div class="task-header">
-                            <div>
-                                <div class="task-title"><?= htmlspecialchars($task['title']) ?></div>
-                                <div class="task-meta">
-                                    <i class="fas fa-user"></i>
-                                    ผู้ขอ: <?= htmlspecialchars($task['requester_name'] . ' ' . $task['requester_lastname']) ?>
-                                    <span style="margin-left: 20px;">
-                                        <i class="fas fa-user-cog"></i>
-                                        ผู้พัฒนา: <?= htmlspecialchars($task['dev_name'] . ' ' . $task['dev_lastname']) ?>
-                                    </span>
+
+                    <!-- รายการรีวิว -->
+                    <h2 class="mb-4"><i class="fas fa-star text-warning"></i> งานที่ได้รับการรีวิวแล้ว</h2>
+
+                    <?php if (empty($tasks)): ?>
+                        <div class="text-center text-muted py-5">
+                            <i class="fas fa-inbox fa-3x mb-3"></i>
+                            <h4>ยังไม่มีงานที่เสร็จแล้ว</h4>
+                            <p>งานที่อนุมัติและได้รับการรีวิวจะแสดงที่นี่</p>
+                        </div>
+                    <?php else: ?>
+                        <?php foreach ($tasks as $task): ?>
+                            <div class="task-item">
+                                <div class="task-header">
+                                    <div>
+                                        <div class="task-title"><?= htmlspecialchars($task['document_number']) ?>  หัวข้องาน : <?= htmlspecialchars($task['title']) ?></div>
+                                        <div class="task-meta">
+                                            <i class="fas fa-user"></i> ผู้ขอ: <?= htmlspecialchars($task['requester_name'] . ' ' . $task['requester_lastname']) ?>
+                                            &nbsp; | &nbsp;
+                                            <i class="fas fa-user-cog"></i> ผู้พัฒนา: <?= htmlspecialchars($task['dev_name'] . ' ' . $task['dev_lastname']) ?>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <?php if ($task['review_status'] === 'accepted'): ?>
+                                            <span class="status-badge status-accepted">ยอมรับงาน</span>
+                                        <?php elseif ($task['review_status'] === 'revision_requested'): ?>
+                                            <span class="status-badge status-revision">ขอแก้ไข</span>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
-                            </div>
-                            <div>
-                                <?php if ($task['review_status'] === 'accepted'): ?>
-                                    <span class="status-badge status-accepted">ยอมรับงาน</span>
-                                <?php elseif ($task['review_status'] === 'revision_requested'): ?>
-                                    <span class="status-badge status-revision">ขอแก้ไข</span>
-                                <?php else: ?>
-                                    <span class="status-badge status-pending">รอรีวิว</span>
-                                <?php endif; ?>
-                            </div>
-                        </div>
 
-                        <div style="background: #f7fafc; border-radius: 8px; padding: 15px; margin: 15px 0;">
-                            <strong>รายละเอียดงาน:</strong><br>
-                            <?= nl2br(htmlspecialchars($task['description'])) ?>
-                        </div>
+                                <div class="review-box">
+                                    <div class="rating-stars"><?= str_repeat('⭐', $task['rating']) ?></div>
+                                    <div><strong><?= $task['rating'] ?>/5 ดาว</strong> | รีวิวเมื่อ <?= date('d/m/Y H:i', strtotime($task['reviewed_at'])) ?></div>
 
-                        <?php if ($task['developer_notes']): ?>
+                                    <?php if ($task['review_comment']): ?>
+                                        <div class="comment-box"><strong> รีวิวจากผู้ใช้บริการ :</strong>
+                                            “<?= nl2br(htmlspecialchars($task['review_comment'])) ?>” <br>
+                                            <strong>รายละเอียดงาน : </strong><br>
+                                            <?= nl2br(htmlspecialchars($task['description'])) ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <?php if ($task['revision_notes']): ?>
+                                        <div class="comment-box" style="border-left-color:#dd6b20;">
+                                            <strong><i class="fas fa-edit"></i> รายละเอียดที่ต้องแก้ไข:</strong><br>
+                                            <?= nl2br(htmlspecialchars($task['revision_notes'])) ?>
+                                        </div>
+                                    <?php endif; ?>
+
+                                     <?php if ($task['developer_notes']): ?>
                         <div style="background: #e6fffa; border-radius: 8px; padding: 15px; margin: 15px 0; border-left: 3px solid #38b2ac;">
                             <strong><i class="fas fa-sticky-note"></i> หมายเหตุจากผู้พัฒนา:</strong><br>
                             <?= nl2br(htmlspecialchars($task['developer_notes'])) ?>
                         </div>
                         <?php endif; ?>
+                                </div>
 
-                        <div class="review-section">
-                            <h4 style="margin-bottom: 15px; color: #2d3748;">
-                                <i class="fas fa-star"></i> รีวิวจากผู้ใช้
-                            </h4>
-
-                            <div class="rating-display">
-                                <span class="stars"><?= str_repeat('⭐', $task['rating']) ?></span>
-                                <span style="font-weight: 600;"><?= $task['rating'] ?>/5 ดาว</span>
-                                <span style="color: #718096; font-size: 0.9rem;">
-                                    รีวิวเมื่อ: <?= date('d/m/Y H:i', strtotime($task['reviewed_at'])) ?>
-                                </span>
-                            </div>
-
-                            <?php if ($task['review_comment']): ?>
-                            <div style="margin: 10px 0;">
-                                <strong>ความเห็น:</strong><br>
-                                <div style="background: white; padding: 12px; border-radius: 6px; margin-top: 5px; font-style: italic;">
-                                    "<?= nl2br(htmlspecialchars($task['review_comment'])) ?>"
+                                <div class="task-meta mt-3">
+                                    <i class="fas fa-check-circle"></i> เสร็จงาน: <?= date('d/m/Y H:i', strtotime($task['completed_at'])) ?>
                                 </div>
                             </div>
-                            <?php endif; ?>
-
-                            <?php if ($task['revision_notes']): ?>
-                            <div class="revision-notes">
-                                <strong><i class="fas fa-edit"></i> รายละเอียดที่ต้องแก้ไข:</strong><br>
-                                <?= nl2br(htmlspecialchars($task['revision_notes'])) ?>
-                            </div>
-                            <?php endif; ?>
-                        </div>
-
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; font-size: 0.9rem; color: #718096;">
-                            <div>
-                                <i class="fas fa-calendar"></i>
-                                เริ่มงาน: <?= $task['started_at'] ? date('d/m/Y H:i', strtotime($task['started_at'])) : 'ไม่ระบุ' ?>
-                            </div>
-                            <div>
-                                <i class="fas fa-check-circle"></i>
-                                เสร็จงาน: <?= date('d/m/Y H:i', strtotime($task['completed_at'])) ?>
-                            </div>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        </div>
-    </div>
-
-
-
-
-
-          </div>
-        </div>
-      </div>
-
-      <!-- <footer class="footer">
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                    <!-- <footer class="footer">
         <div class="container-fluid d-flex justify-content-between">
-          <nav class="pull-left">
+            <nav class="pull-left">
 
-          </nav>
-          <div class="copyright">
-            © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
-            <i class="fa fa-heart heart text-danger"></i>
+            </nav>
+            <div class="copyright">
+                © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
+                <i class="fa fa-heart heart text-danger"></i>
 
-          </div>
-          <div>
+            </div>
+            <div>
 
-          </div>
+            </div>
         </div>
-      </footer> -->
-    </div>
-  </div>
+    </footer> -->
+                </div>
+            </div>
 
 
 
 
-  </div>
-  <!--   Core JS Files   -->
+        </div>
+        <!--   Core JS Files   -->
   <script src="../assets/js/core/jquery-3.7.1.min.js"></script>
   <script src="../assets/js/core/popper.min.js"></script>
   <script src="../assets/js/core/bootstrap.min.js"></script>

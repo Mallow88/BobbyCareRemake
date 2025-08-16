@@ -257,23 +257,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $task_id = $_POST['task_id'];
         try {
             $conn->beginTransaction();
+
+            // หา service_request ที่เกี่ยวข้อง
             $check_stmt = $conn->prepare("
-                SELECT sr.current_step, sr.id as sr_id FROM tasks t
-                JOIN service_requests sr ON t.service_request_id = sr.id
-                WHERE t.id = ? AND t.developer_user_id = ?
-            ");
+            SELECT sr.current_step, sr.id as sr_id 
+            FROM tasks t
+            JOIN service_requests sr ON t.service_request_id = sr.id
+            WHERE t.id = ? AND t.developer_user_id = ?
+        ");
             $check_stmt->execute([$task_id, $developer_id]);
             $task_data = $check_stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($task_data && $task_data['current_step'] === 'developer_self_created') {
+                $sr_id = $task_data['sr_id'];
+
+                // 1) ลบ attachments ทั้ง DB และไฟล์
+                $file_stmt = $conn->prepare("SELECT stored_filename FROM request_attachments WHERE service_request_id = ?");
+                $file_stmt->execute([$sr_id]);
+                $files = $file_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                foreach ($files as $file) {
+                    $file_path = __DIR__ . '/../uploads/' . $file['stored_filename'];
+                    if (file_exists($file_path)) {
+                        unlink($file_path); // ลบไฟล์จริง
+                    }
+                }
+
+                $del_files = $conn->prepare("DELETE FROM request_attachments WHERE service_request_id = ?");
+                $del_files->execute([$sr_id]);
+
+                // 2) ลบ document_numbers
+                $del_doc = $conn->prepare("DELETE FROM document_numbers WHERE service_request_id = ?");
+                $del_doc->execute([$sr_id]);
+
+                // 3) ลบ task
                 $stmt = $conn->prepare("DELETE FROM tasks WHERE id = ? AND developer_user_id = ?");
                 $stmt->execute([$task_id, $developer_id]);
 
+                // 4) ลบ service_request
                 $stmt = $conn->prepare("DELETE FROM service_requests WHERE id = ?");
-                $stmt->execute([$task_data['sr_id']]);
+                $stmt->execute([$sr_id]);
             } else {
                 $error = "ไม่สามารถลบงานที่ได้รับมอบหมายได้";
             }
+
             $conn->commit();
         } catch (Exception $e) {
             $conn->rollBack();
@@ -314,9 +341,6 @@ $stmt = $conn->prepare("
         ur.status as review_status, 
         ur.revision_notes,
         ur.reviewed_at as user_reviewed_at,
-
-
-        
         COALESCE(sr.estimated_days, aa.estimated_days) AS estimated_days,
         s.name as service_name, s.category as service_category,
         dn.document_number AS document_number
@@ -338,13 +362,14 @@ $services_stmt->execute();
 $services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 $users_stmt = $conn->prepare("
-    SELECT id, name, lastname 
+    SELECT id, name, lastname, employee_id
     FROM users 
-    WHERE role IN ('userservice', 'user') 
-    ORDER BY name
+    WHERE role IN ('userservice', 'user') AND is_active = 1
+    ORDER BY employee_id
 ");
 $users_stmt->execute();
 $users = $users_stmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 $tasks_by_status = ['pending' => [], 'received' => [], 'in_progress' => [], 'on_hold' => [], 'completed' => []];
 foreach ($tasks as $task) {
@@ -367,6 +392,9 @@ foreach ($tasks as $task) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
     <link rel="stylesheet" href="css/tasks_board.css">
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
     <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #ffffff 0%, #341355 100%);
@@ -439,11 +467,6 @@ foreach ($tasks as $task) {
     <nav class="navbar navbar-expand-lg navbar-light bg-light fixed-top">
 
         <div class="container">
-            <!-- โลโก้ + ชื่อระบบ -->
-            <a class="navbar-brand fw-bold d-flex align-items-center" href="dev_index.php">
-                <img src="../img/logo/bobby-full.png" alt="Logo" height="32" class="me-2">
-                <span class="page-title">Tasks-Board</span>
-            </a>
 
 
             <!-- ปุ่ม toggle สำหรับ mobile -->
@@ -454,34 +477,30 @@ foreach ($tasks as $task) {
             <!-- เมนู -->
             <div class="collapse navbar-collapse" id="navbarContent">
                 <!-- ซ้าย: เมนูหลัก -->
-                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-                    <!-- <li class="nav-item">
-                        <a class="nav-link active" href="#"><i class="fas fa-home me-1"></i> หน้าหลัก</a>
-                    </li> -->
+                <ul class="navbar-nav mx-auto mb-2 mb-lg-0 d-flex justify-content-center gap-2">
                     <li class="nav-item">
-
+                        <a class="btn btn-gradient nav-link text-white" href="calendar2.php">
+                            <i class="fas fa-tasks me-1"></i> ปฏิทิน
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="calendar.php"><i class="fas fa-tasks me-1"></i> ปฏิทิน</a>
+                        <a class="btn btn-gradient nav-link text-white" href="completed_reviews.php">
+                            <i class="fas fa-chart-bar me-1"></i> งานที่รีวิว
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="completed_reviews.php"><i class="fas fa-chart-bar me-1"></i> งานที่รีวิว</a>
+                        <a class="btn btn-gradient nav-link text-white" href="export_report.php">
+                            <i class="fas fa-chart-bar me-1"></i> Dashboard
+                        </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="export_report.php"><i class="fas fa-chart-bar me-1"></i>Report</a>
+                        <button class="btn btn-gradient nav-link text-white" data-bs-toggle="modal" data-bs-target="#createTaskModal">
+                            <i class="fas fa-plus me-2"></i> สร้างงานใหม่
+                        </button>
                     </li>
                 </ul>
-
                 <!-- ขวา: ผู้ใช้งาน -->
                 <ul class="navbar-nav mb-2 mb-lg-0">
-                    <!-- <li class="nav-item d-flex align-items-center text-dark me-3">
-                        <i class="fas fa-user-circle me-2"></i>
-                        <?= htmlspecialchars($_SESSION['name']) ?>
-                    </li>
-                     -->
-                    <button class="btn btn-gradient" data-bs-toggle="modal" data-bs-target="#createTaskModal">
-                        <i class="fas fa-plus me-2"></i>สร้างงานใหม่
-                    </button>
 
                     <li class="nav-item">
                         <a class="nav-link text-danger" href="../logout.php">
@@ -1125,7 +1144,7 @@ foreach ($tasks as $task) {
                                 <div id="detailDescription" class="bg-light p-3 rounded"></div>
                             </section>
 
-                            
+
                             <!-- ประโยชน์ -->
                             <section id="FdetailBenefits" class="mt-4" style="display: none;">
                                 <h6 class="text-uppercase text-success fw-bold mb-2">
@@ -1134,7 +1153,7 @@ foreach ($tasks as $task) {
                                 <div id="FdetailBenefitsContent" class="bg-success bg-opacity-10 p-3 rounded border-start border-success border-4"></div>
                             </section>
 
-                             <!-- ประโยชน์ -->
+                            <!-- ประโยชน์ -->
                             <section id="detailBenefits" class="mt-4" style="display: none;">
                                 <h6 class="text-uppercase text-success fw-bold mb-2">
                                     <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
@@ -1279,6 +1298,8 @@ foreach ($tasks as $task) {
         </div>
     </div>
 
+
+
     <!-- Modal สร้างงานใหม่ -->
     <div class="modal fade" id="createTaskModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -1306,16 +1327,18 @@ foreach ($tasks as $task) {
                                 </div>
 
                                 <div class="mb-3">
-                                    <label for="user_id" class="form-label fw-bold">เลือก USER :</label>
-                                    <select class="form-select" id="user_id" name="user_id" required>
-                                        <option value="">-- เลือกผู้ใช้บริการ --</option>
-                                        <?php foreach ($users as $user): ?>
-                                            <option value="<?= htmlspecialchars($user['id']) ?>">
-                                                <?= htmlspecialchars($user['name'] . ' ' . $user['lastname']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                    </select>
-                                </div>
+    <label for="user_id" class="form-label fw-bold">เลือก USER :</label>
+    <select class="form-select" id="user_id" name="user_id" required style="width:100%">
+        <option value="">-- เลือกผู้ใช้บริการ --</option>
+        <?php foreach ($users as $user): ?>
+           <option value="<?= htmlspecialchars($user['id']) ?>">
+    <?= htmlspecialchars($user['employee_id'] . " - " . $user['name'] . " " . $user['lastname']) ?>
+</option>
+
+        <?php endforeach; ?>
+    </select>
+</div>
+
 
 
                                 <div class="mb-3">
@@ -1496,18 +1519,73 @@ foreach ($tasks as $task) {
             progressBar.textContent = progress + '%';
             document.getElementById('detailProgressText').textContent = 'อัปเดตล่าสุด: ' + new Date(task.updated_at).toLocaleDateString('th-TH');
 
+
+
             // วันที่
             document.getElementById('detailAcceptedAt').textContent = task.accepted_at ?
                 new Date(task.accepted_at).toLocaleDateString('th-TH') : 'ยังไม่รับงาน';
 
-            // คำนวณวันที่ควรเสร็จ
-            if (task.accepted_at && task.estimated_days) {
+            // คำนวณวันที่ควรเสร็จ 
+            // if (task.accepted_at && task.estimated_days) {
+            //     const acceptedDate = new Date(task.accepted_at);
+            //     const expectedDate = new Date(acceptedDate.getTime() + (task.estimated_days * 24 * 60 * 60 * 1000));
+            //     document.getElementById('detailExpectedCompletion').textContent = expectedDate.toLocaleDateString('th-TH');
+            // } else {
+            //     document.getElementById('detailExpectedCompletion').textContent = 'ไม่สามารถคำนวณได้';
+            // }
+
+            if (task.accepted_at) {
                 const acceptedDate = new Date(task.accepted_at);
-                const expectedDate = new Date(acceptedDate.getTime() + (task.estimated_days * 24 * 60 * 60 * 1000));
-                document.getElementById('detailExpectedCompletion').textContent = expectedDate.toLocaleDateString('th-TH');
+
+
+
+
+                // อันที่ 1→ เน้นใช้ deadline เป็นหลั ก
+                // ถ้ากำหนด deadline ตอนสร้างงาน→ จะแสดงตรงนั้นเลย
+                // fallback เป็นสูตรคำนวณเฉพาะงานที่ ไม่มี deadline
+                // อันที่ 2→ เน้นใช้ service_category เป็นตัวแยก
+                // ถ้เป็น service→ ใช้ วันเดียวกับรับงาน(แม้ จะเลือก deadline ไว้ก็ไม่ใช้)
+                // ถ้าไม่ใช่ service→ คำนวณจาก estimated_days
+                // ถ้าเป็น service ให้ใช้วันเดียวกัน
+
+                // 1.
+                // if (task.deadline) {
+                //     const deadlineDate = new Date(task.deadline);
+                //     document.getElementById('detailExpectedCompletion').textContent =
+                //         deadlineDate.toLocaleString('th-TH'); // ใช้ deadline โดยตรง
+                // } else if (task.accepted_at && task.estimated_days) {
+                //     const acceptedDate = new Date(task.accepted_at);
+                //     const expectedDate = new Date(
+                //         acceptedDate.getTime() + (task.estimated_days * 24 * 60 * 60 * 1000)
+                //     );
+                //     document.getElementById('detailExpectedCompletion').textContent =
+                //         expectedDate.toLocaleDateString('th-TH');
+                // } else {
+                //     document.getElementById('detailExpectedCompletion').textContent = 'ไม่สามารถคำนวณได้';
+                // }
+
+                // 2.
+                if (task.service_category === 'service') {
+                    document.getElementById('detailExpectedCompletion').textContent =
+                        acceptedDate.toLocaleDateString('th-TH');
+                } else if (task.estimated_days) {
+                    // งานอื่นคำนวณแบบบวกวันตามปกติ
+                    const expectedDate = new Date(
+                        acceptedDate.getTime() + (task.estimated_days * 24 * 60 * 60 * 1000)
+                    );
+                    document.getElementById('detailExpectedCompletion').textContent =
+                        expectedDate.toLocaleDateString('th-TH');
+                } else {
+                    document.getElementById('detailExpectedCompletion').textContent = 'ไม่สามารถคำนวณได้';
+                }
             } else {
-                document.getElementById('detailExpectedCompletion').textContent = 'ไม่สามารถคำนวณได้';
+                document.getElementById('detailExpectedCompletion').textContent = 'ยังไม่รับงาน';
             }
+
+
+
+
+
 
             // แสดงประโยชน์ที่คาดว่าจะได้รับ (ถ้ามี)
             if (task.function_benefits) {
@@ -1518,7 +1596,7 @@ foreach ($tasks as $task) {
             }
 
 
-             if (task.expected_benefits) {
+            if (task.expected_benefits) {
                 document.getElementById('detailBenefits').style.display = 'block';
                 document.getElementById('detailBenefitsContent').innerHTML = task.expected_benefits.replace(/\n/g, '<br>');
             } else {
@@ -1526,7 +1604,7 @@ foreach ($tasks as $task) {
             }
 
 
-    
+
             // โหลดไฟล์แนบ
             loadAttachments(task.service_request_id);
 
@@ -1744,14 +1822,16 @@ foreach ($tasks as $task) {
         });
     </script> -->
 
-    <script>
-        $(document).ready(function() {
-            $('#user_id').select2({
-                placeholder: "เลือกผู้ใช้บริการ",
-                allowClear: true
-            });
-        });
-    </script>
+   <script>
+document.addEventListener("DOMContentLoaded", function() {
+    $('#user_id').select2({
+        placeholder: "ค้นหาด้วยรหัสพนักงานหรือชื่อ",
+        allowClear: true,
+        width: 'resolve'
+    });
+});
+</script>
+
 
 
     <style>

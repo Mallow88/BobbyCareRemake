@@ -99,7 +99,7 @@ switch ($role) {
         header("Location: ../seniorgm/seniorindex2.php");
         break;
     case 'developer': 
-        header("Location: ../developer/dev_index.php");
+        header("Location: ../developer/tasks_board.php");
         break;
     case 'userservice': 
         header("Location: ../userservice/index.php");

@@ -546,6 +546,158 @@ $due_opts = [
   'on_time' => 'ตามกำหนด',
 ];
 $year_now = (int)date('Y');
+
+
+
+// ====== ถ้ามีการเรียกแบบ popup (modal)  ======
+if (isset($_GET['popup'])) {
+  $popup_status = $_GET['status'] ?? null;
+
+  $filtered = $tasks;
+
+  if ($popup_status === 'pending') {
+    $filtered = array_filter($tasks, fn($t) => $t['task_status'] === 'pending');
+  } elseif ($popup_status === 'received') {
+    $filtered = array_filter($tasks, fn($t) => $t['task_status'] === 'received');
+  } elseif ($popup_status === 'in_progress') {
+    $filtered = array_filter($tasks, fn($t) => in_array($t['task_status'], ['in_progress', 'on_hold']));
+  } elseif ($popup_status === 'completed') {
+    $filtered = array_filter($tasks, fn($t) => $t['task_status'] === 'completed');
+  } elseif ($popup_status === 'accepted') {
+    $filtered = array_filter($tasks, fn($t) => $t['task_status'] === 'accepted');
+  } elseif ($popup_status === 'overdue') {
+    $filtered = array_filter($tasks, fn($t) => $t['deadline_status'] === 'overdue');
+  } elseif ($popup_status === 'all') {
+    $filtered = $tasks; // ไม่กรองเลย
+  }
+
+
+
+  $limit = 35; // จำนวนต่อหน้า
+  $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
+  $start = ($page - 1) * $limit;
+
+  // จำนวนข้อมูลทั้งหมด
+  $total_records = count($filtered);
+  $total_pages   = ceil($total_records / $limit);
+
+  // Slice array ให้เหลือเฉพาะหน้า
+  $pagedData = array_slice($filtered, $start, $limit);
+
+  if (empty($pagedData)) {
+    echo "<p class='text-muted text-center py-3'>
+            <i class='fas fa-inbox me-2'></i> ไม่พบงานในสถานะนี้
+          </p>";
+  } else {
+    echo '
+    <div class="card shadow-lg border-0 rounded-4">
+       
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle text-center mb-0" style="min-width: 1100px;">
+                    <thead class="table-primary text-dark">
+                        <tr>
+                            <th scope="col">ลำดับ</th>
+                            <th scope="col">เลขที่เอกสาร</th>
+                            <th scope="col">หัวข้อ</th>
+                            <th scope="col">ผู้พัฒนา</th>
+                            <th scope="col">ประเภทงาน</th>
+                            <th scope="col">ผู้ขอบริการ</th>
+                            <th scope="col">แผนก</th>
+                            <th scope="col">สถานะ</th>
+                            <th scope="col">กำหนดส่ง</th>
+                            <th scope="col">วันที่ขอบริการ</th>
+                        </tr>
+                    </thead>
+                    <tbody>';
+
+    $i = $start + 1;
+    foreach ($pagedData as $t) {
+      // กำหนดสี Badge ของสถานะ
+      $statusClass = 'secondary';
+      if ($t['task_status'] === 'pending') {
+        $statusClass = 'warning';
+      } elseif ($t['task_status'] === 'received') {
+        $statusClass = 'info';
+      } elseif ($t['task_status'] === 'in_progress ') {
+        $statusClass = 'primary';
+      } elseif ($t['task_status'] === 'completed') {
+        $statusClass = 'success';
+      } elseif ($t['task_status'] === 'accepted') {
+        $statusClass = 'success';
+      } elseif ($t['task_status'] === 'overdue ') {
+        $statusClass = 'danger';
+      }
+
+
+      $categoryLabel = '-';
+      $categoryClass = 'secondary';
+      if (!empty($t['service_category'])) {
+        if ($t['service_category'] === 'development') {
+          $categoryLabel = 'งานพัฒนา';
+          $categoryClass = 'success';
+        } elseif ($t['service_category'] === 'service') {
+          $categoryLabel = 'งานบริการ';
+          $categoryClass = 'info';
+        }
+      }
+
+
+
+      echo "
+            <tr>
+                <td>{$i}</td>
+                <td>" . ($t['document_number'] ?? '-') . "</td>
+                <td class='text-start'>" . htmlspecialchars($t['title']) . "</td>
+                <td>{$t['dev_name']} {$t['dev_lastname']}</td>
+                <td><span class='badge bg-{$categoryClass} px-3 py-2'>{$categoryLabel}</span></td>
+    <td>{$t['requester_name']} {$t['requester_lastname']} </td>
+     <td>{$t['requester_department']}</td>
+                <td><span class='badge bg-{$statusClass} px-3 py-2'>{$t['task_status']}</span></td>
+                <td>" . ($t['deadline'] ?? '-') . "</td>
+                  <td>" . ($t['created_at'] ?? '-') . "</td>
+            </tr>";
+      $i++;
+    }
+
+    echo '
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>';
+
+    // --------------------
+    // Pagination UI
+    // --------------------
+    if ($total_pages > 1) {
+      echo '<nav aria-label="Page navigation" class="mt-3">
+                <ul class="pagination justify-content-center">';
+
+      // ปุ่มก่อนหน้า
+      if ($page > 1) {
+        echo '<li class="page-item"><a class="page-link" href="?page=' . ($page - 1) . '">ก่อนหน้า</a></li>';
+      }
+
+      // เลขหน้า
+      for ($p = 1; $p <= $total_pages; $p++) {
+        $active = ($p == $page) ? 'active' : '';
+        echo '<li class="page-item ' . $active . '"><a class="page-link" href="?page=' . $p . '">' . $p . '</a></li>';
+      }
+
+      // ปุ่มถัดไป
+      if ($page < $total_pages) {
+        echo '<li class="page-item"><a class="page-link" href="?page=' . ($page + 1) . '">ถัดไป</a></li>';
+      }
+
+      echo '   </ul>
+              </nav>';
+    }
+  }
+
+  exit;
+}
+
 ?>
 
 <!DOCTYPE html>
@@ -586,6 +738,14 @@ $year_now = (int)date('Y');
 
   <!-- CSS Just for demo purpose, don't include it in your project -->
   <link rel="stylesheet" href="../assets/css/demo.css" />
+
+  
+  <style>
+    .custom-modal {
+      max-width: 70% !important;
+      /* ให้ modal กินพื้นที่ 90% ของจอ */
+    }
+  </style>
 </head>
 
 <body>
@@ -850,9 +1010,9 @@ $year_now = (int)date('Y');
           <div class="row">
 
 
-            <div class="row g-3 text-center">
+             <div class="row g-3 text-center">
               <div class="col-6 col-sm-4 col-md-3 col-lg">
-                <div class="card h-100">
+                <div class="card h-100 monitor-card clickable" data-type="all">
                   <div class="card-body p-3">
                     <div class="text-end text-success">
                       <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
@@ -865,7 +1025,7 @@ $year_now = (int)date('Y');
               </div>
 
               <div class="col-6 col-sm-4 col-md-3 col-lg">
-                <div class="card h-100">
+                <div class="card h-100 monitor-card clickable" data-type="pending">
                   <div class="card-body p-3">
                     <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
                     <div class="h1 m-0"><?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'pending')) ?></div>
@@ -875,7 +1035,7 @@ $year_now = (int)date('Y');
               </div>
 
               <div class="col-6 col-sm-4 col-md-3 col-lg">
-                <div class="card h-100">
+                <div class="card h-100 monitor-card clickable" data-type="received">
                   <div class="card-body p-3">
                     <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
                     <div class="h1 m-0"><?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'received')) ?></div>
@@ -884,18 +1044,25 @@ $year_now = (int)date('Y');
                 </div>
               </div>
 
+
+
               <div class="col-6 col-sm-4 col-md-3 col-lg">
-                <div class="card h-100">
+                <div class="card h-100 monitor-card clickable" data-type="in_progress">
                   <div class="card-body p-3">
                     <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
-                    <div class="h1 m-0"><?= count(array_filter($tasks, fn($t) => in_array($t['task_status'], ['in_progress', 'on_hold']))) ?></div>
+                    <div class="h1 m-0">
+                      <?= count(array_filter($tasks, fn($t) => in_array($t['task_status'], ['in_progress', 'on_hold']))) ?>
+                    </div>
                     <div class="text-muted mb-0">กำลังทำ</div>
                   </div>
                 </div>
               </div>
 
+
+
+
               <div class="col-6 col-sm-4 col-md-3 col-lg">
-                <div class="card h-100">
+                <div class="card h-100 monitor-card clickable" data-type="completed">
                   <div class="card-body p-3">
                     <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
                     <div class="h1 m-0"><?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'completed')) ?></div>
@@ -905,7 +1072,7 @@ $year_now = (int)date('Y');
               </div>
 
               <div class="col-6 col-sm-4 col-md-3 col-lg">
-                <div class="card h-100">
+                <div class="card h-100 monitor-card clickable" data-type="accepted">
                   <div class="card-body p-3">
                     <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
                     <div class="h1 m-0"><?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'accepted')) ?></div>
@@ -915,7 +1082,7 @@ $year_now = (int)date('Y');
               </div>
 
               <div class="col-6 col-sm-4 col-md-3 col-lg">
-                <div class="card h-100">
+                <div class="card h-100 monitor-card clickable" data-type="overdue">
                   <div class="card-body p-3">
                     <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
                     <div class="h1 m-0"><?= count(array_filter($tasks, fn($t) => $t['deadline_status'] === 'overdue')) ?></div>
@@ -1069,10 +1236,27 @@ $year_now = (int)date('Y');
   </div>
   </div>
 
-
-
-
   </div>
+
+
+  
+
+
+  <div class="modal fade" id="taskModal" tabindex="-1">
+    <div class="modal-dialog modal-xl custom-modal">
+
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">รายละเอียดงาน</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div id="taskList">กำลังโหลด...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!--   Core JS Files   -->
   <script src="../assets/js/core/jquery-3.7.1.min.js"></script>
   <script src="../assets/js/core/popper.min.js"></script>
@@ -1088,6 +1272,31 @@ $year_now = (int)date('Y');
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+
+
+  <script>
+    document.querySelectorAll('.monitor-card').forEach(card => {
+      card.addEventListener('click', function() {
+        let type = this.getAttribute('data-type');
+
+        // เปิด modal
+        let modal = new bootstrap.Modal(document.getElementById('taskModal'));
+        modal.show();
+
+        // โหลดงานจากไฟล์ PHP (ส่ง type และ filter ที่เลือกอยู่ไปด้วย)
+        let params = new URLSearchParams(window.location.search);
+        params.set("popup", "1");
+        params.set("status", type);
+
+        fetch("assignor_dashboard2.php?" + params.toString())
+          .then(res => res.text())
+          .then(html => {
+            document.getElementById('taskList').innerHTML = html;
+          });
+      });
+    });
+  </script>
 
 
   <script>
