@@ -127,11 +127,11 @@ $recent_approvals = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="sidebar-content">
           <ul class="nav nav-secondary">
             <li class="nav-item active">
-  <a href="index2.php">
-    <i class="fas fa-home"></i>
-    <p>หน้าหลัก</p>
-  </a>
-</li>
+              <a href="index2.php">
+                <i class="fas fa-home"></i>
+                <p>หน้าหลัก</p>
+              </a>
+            </li>
 
             <li class="nav-section">
               <span class="sidebar-mini-icon">

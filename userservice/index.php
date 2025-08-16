@@ -214,12 +214,8 @@ foreach ($requests as &$request) {
   <link rel="stylesheet" href="../assets/css/demo.css" />
   <link rel="stylesheet" href="css/timeline.css">
   <link rel="stylesheet" href="css/index.css">
-
-
 </head>
-
 <body>
-
   <div class="wrapper">
     <!-- Sidebar -->
     <div class="sidebar" data-background-color="dark">
@@ -261,7 +257,6 @@ foreach ($requests as &$request) {
                   </li>
                 </ul>
               </div>
-
             </li>
             <li class="nav-section">
               <span class="sidebar-mini-icon">
@@ -269,10 +264,6 @@ foreach ($requests as &$request) {
               </span>
               <h4 class="text-section">Components</h4>
             </li>
-
-
-          
-
             <li class="nav-item">
               <a href="../logout.php">
                 <i class="fas fa-sign-out-alt"></i>
@@ -280,7 +271,6 @@ foreach ($requests as &$request) {
                 <span class="badge badge-success"></span>
               </a>
             </li>
-
           </ul>
         </div>
       </div>
@@ -327,29 +317,6 @@ foreach ($requests as &$request) {
                   </span>
                 </a>
 
-                <!-- <ul class="dropdown-menu dropdown-user animated fadeIn">
-                  <div class="dropdown-user-scroll scrollbar-outer">
-                    <li>
-                      <div class="user-box">
-                        <div class="avatar-lg">
-                          <img src="../assets/img/profile.jpg" alt="image profile" class="avatar-img rounded" />
-                        </div>
-                        <div class="u-text">
-                          <h4>Hizrian</h4>
-                          <p class="text-muted">hello@example.com</p>
-                          <a href="profile.html" class="btn btn-xs btn-secondary btn-sm">View Profile</a>
-                        </div>
-                      </div>
-                    </li>
-                    <li>
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="#">My Profile</a>
-                    
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="#">Logout</a>
-                    </li>
-                  </div>
-                </ul> -->
               </li>
 
 
@@ -359,11 +326,7 @@ foreach ($requests as &$request) {
         <!-- End Navbar -->
       </div>
 
-
-
-
       <div class="container">
-
 
 
         <!-- Filter Form -->
@@ -403,21 +366,14 @@ foreach ($requests as &$request) {
                   <div class="request-card">
                     <!-- Document Number -->
                     <?php if (!empty($req['document_number'])): ?>
+                        
                       <div class="document-info">
                         <div class="d-flex justify-content-between align-items-center">
                           <div>
-                            <div class="document-number">
+                           
                               <i class="fas fa-file-alt me-2"></i>
                               เลขที่เอกสาร: <?= htmlspecialchars($req['document_number']) ?>
-                            </div>
-
-                          </div>
-                          <div class="text-end">
-                            <small class="text-muted">
-                              รหัสคลัง: <?= htmlspecialchars($req['warehouse_number'] ?? '') ?> |
-                              ชื่อย่อเเผนก: <?= htmlspecialchars($req['code_name'] ?? '') ?> |
-                              Running: <?= htmlspecialchars($req['running_number'] ?? '') ?>
-                            </small>
+                           
                           </div>
                         </div>
                       </div>
@@ -446,12 +402,7 @@ foreach ($requests as &$request) {
                       <div class="ms-3 text-end">
                         <?php
                         $status_labels = [
-                          'pending' => 'รอดำเนินการ',
-                          'div_mgr_review' => 'รอผู้จัดการฝ่ายพิจารณา',
-                          'assignor_review' => 'รอผู้จัดการแผนกพิจารณา',
-                          'gm_review' => 'รอผู้จัดการทั่วไปพิจารณา',
-                          'senior_gm_review' => 'รอผู้จัดการอาวุโสพิจารณา',
-                          'approved' => 'อนุมัติแล้ว',
+                          'approved' => 'เสร็จเรียบร้อย',
                           'rejected' => 'ไม่อนุมัติ',
                           'in_progress' => 'กำลังดำเนินการ',
                           'completed' => 'เสร็จสิ้น'
@@ -498,39 +449,16 @@ foreach ($requests as &$request) {
                             อัปเดต: <?= date('d/m/Y H:i', strtotime($req['updated_at'])) ?>
                           </span>
                         <?php endif; ?>
-                        <span class="ms-3">
-                          <i class="fa-solid fa-hourglass-start me-1"></i>
-                          จะเสร็จสิ้นภายใน:
-                          <?php if (!empty($req['estimated_days'])): ?>
-                            <?= htmlspecialchars($req['estimated_days']) ?> วัน
-                          <?php else: ?>
-                            -
-                          <?php endif; ?>
-                        </span>
-
 
                       </div>
-
                       <!-- ปุ่มดูสถานะและแก้ไข -->
                       <div class="d-flex gap-2">
                         <button class="btn btn-outline-primary btn-sm" type="button"
                           onclick="toggleStatus('status_<?= $req['id'] ?>')">
-                          <i class="fas fa-eye me-1"></i>ดูสถานะการอนุมัติ
+                          <i class="fas fa-eye me-1"></i>ดูสถานะ
                         </button>
-                        <?php if (in_array($req['status'], ['pending', 'rejected'])): ?>
-                          <a href="edit.php?id=<?= $req['id'] ?>" class="btn btn-outline-warning btn-sm">
-                            <i class="fas fa-edit me-1"></i>แก้ไข
-                          </a>
-                        <?php endif; ?>
                       </div>
                     </div>
-
-
-
-
-
-
-
 
                     <!-- ส่วนแสดงสถานะการอนุมัติ -->
                     <div class="collapse mt-4" id="status_<?= $req['id'] ?>">
@@ -540,195 +468,7 @@ foreach ($requests as &$request) {
                         </h5>
 
                         <div class="approval-timeline">
-                          <div class="timeline-step">
-                            <?php if ($req['service_category'] === 'development'): ?>
-                              <!-- ขั้นตอนที่ 1: ผู้จัดการฝ่าย -->
-                              <div class="step-number">1</div>
-                              <div class="step-content">
-                                <div class="step-title">ผู้จัดการฝ่าย</div>
-                                <div class="step-status">
-                                  <?php if ($req['div_mgr_status'] === 'approved'): ?>
-                                    <i class="fas fa-check-circle text-success"></i> อนุมัติแล้ว
-                                  <?php elseif ($req['div_mgr_status'] === 'rejected'): ?>
-                                    <i class="fas fa-times-circle text-danger"></i> ไม่อนุมัติ
-                                  <?php elseif ($req['div_mgr_status'] === 'pending'): ?>
-                                    <i class="fas fa-clock text-warning"></i> รอพิจารณา
-                                  <?php else: ?>
-                                    <i class="fas fa-hourglass text-muted"></i> ส่งเรื่องเรียบร้อย กำลังดำเนินการ
-                                  <?php endif; ?>
-                                </div>
-                                <?php if ($req['div_mgr_reviewed_at']): ?>
-                                  <div class="step-date">
-                                    <i class="fas fa-calendar-check me-1"></i>
-                                    เวลาอนุมัติ : <?= date('d/m/Y H:i', strtotime($req['div_mgr_reviewed_at'])) ?>
-                                  </div>
-                                <?php endif; ?>
-                                <?php if ($req['div_mgr_name']): ?>
-                                  <div class="step-reviewer">
-                                    <i class="fas fa-user me-1"></i>
-                                    อนุมัติโดยคุณ : <?= htmlspecialchars($req['div_mgr_name'] . ' ' . $req['div_mgr_lastname']) ?>
-                                  </div>
-                                <?php endif; ?>
-                                <?php if ($req['div_mgr_reason']): ?>
-                                  <div class="step-notes">
-                                    <i class="fas fa-sticky-note me-1"></i>
-                                    <?= htmlspecialchars($req['div_mgr_reason']) ?>
-                                  </div>
-                                <?php endif; ?>
-                              </div>
-                          </div>
-
-                          <!-- ขั้นตอนที่ 2: ผู้จัดการแผนก -->
-                          <div class="timeline-step">
-                            <div class="step-number">2</div>
-                            <div class="step-content">
-                              <div class="step-title">ผู้จัดการแผนก</div>
-                              <div class="step-status">
-                                <?php if ($req['assignor_status'] === 'approved'): ?>
-                                  <i class="fas fa-check-circle text-success"></i> อนุมัติแล้ว
-                                <?php elseif ($req['assignor_status'] === 'rejected'): ?>
-                                  <i class="fas fa-times-circle text-danger"></i> ไม่อนุมัติ
-                                <?php elseif ($req['assignor_status'] === 'pending' && $req['div_mgr_status'] === 'approved'): ?>
-                                  <i class="fas fa-clock text-warning"></i> รอพิจารณา
-                                <?php else: ?>
-                                  <i class="fas fa-minus text-muted"></i> ยังไม่ถึงขั้นตอน
-                                <?php endif; ?>
-                              </div>
-                              <?php if ($req['assignor_reviewed_at']): ?>
-                                <div class="step-date">
-                                  <i class="fas fa-calendar-check me-1"></i>
-                                  เวลาอนุมัติ : <?= date('d/m/Y H:i', strtotime($req['assignor_reviewed_at'])) ?>
-                                </div>
-                              <?php endif; ?>
-                              <?php if ($req['assignor_name']): ?>
-                                <div class="step-reviewer">
-                                  <i class="fas fa-user me-1"></i>
-                                  อนุมัติโดยคุณ : <?= htmlspecialchars($req['assignor_name'] . ' ' . $req['assignor_lastname']) ?>
-                                </div>
-                              <?php endif; ?>
-                              <?php if ($req['dev_name']): ?>
-                                <div class="step-developer">
-                                  <i class="fas fa-user-cog me-1"></i>
-                                  ผู้พัฒนาระบบงาน: <?= htmlspecialchars($req['dev_name'] . ' ' . $req['dev_lastname']) ?>
-                                </div>
-                              <?php endif; ?>
-                              <?php if ($req['estimated_days']): ?>
-                                <div class="step-estimate">
-                                  <i class="fas fa-clock me-1"></i>
-                                  ประมาณการ: <?= $req['estimated_days'] ?> วัน
-                                </div>
-                              <?php endif; ?>
-                              <?php if ($req['assignor_reason']): ?>
-                                <div class="step-notes">
-                                  <i class="fas fa-sticky-note me-1"></i>
-                                  <?= htmlspecialchars($req['assignor_reason']) ?>
-                                </div>
-                              <?php endif; ?>
-                            </div>
-                          </div>
-
-                          <!-- ขั้นตอนที่ 3: ผู้จัดการทั่วไป -->
-                          <div class="timeline-step">
-                            <div class="step-number">3</div>
-                            <div class="step-content">
-                              <div class="step-title">ผู้จัดการทั่วไป</div>
-                              <div class="step-status">
-                                <?php if ($req['gm_status'] === 'approved'): ?>
-                                  <i class="fas fa-check-circle text-success"></i> อนุมัติแล้ว
-                                <?php elseif ($req['gm_status'] === 'rejected'): ?>
-                                  <i class="fas fa-times-circle text-danger"></i> ไม่อนุมัติ
-                                <?php elseif ($req['gm_status'] === 'pending' && $req['assignor_status'] === 'approved'): ?>
-                                  <i class="fas fa-clock text-warning"></i> รอพิจารณา
-                                <?php else: ?>
-                                  <i class="fas fa-minus text-muted"></i> ยังไม่ถึงขั้นตอน
-                                <?php endif; ?>
-                              </div>
-                              <?php if ($req['gm_reviewed_at']): ?>
-                                <div class="step-date">
-                                  <i class="fas fa-calendar-check me-1"></i>
-                                  เวลาอนุมัติ : <?= date('d/m/Y H:i', strtotime($req['gm_reviewed_at'])) ?>
-                                </div>
-                              <?php endif; ?>
-                              <?php if ($req['gm_name']): ?>
-                                <div class="step-reviewer">
-                                  <i class="fas fa-user me-1"></i>
-                                  อนุมัติโดยคุณ : <?= htmlspecialchars($req['gm_name'] . ' ' . $req['gm_lastname']) ?>
-                                </div>
-                              <?php endif; ?>
-                              <?php if ($req['dev_name']): ?>
-                                <div class="step-developer">
-                                  <i class="fas fa-user-cog me-1"></i>
-                                  ผู้พัฒนาระบบงาน: <?= htmlspecialchars($req['dev_name'] . ' ' . $req['dev_lastname']) ?>
-                                </div>
-                              <?php endif; ?>
-                              <?php if ($req['budget_approved']): ?>
-                                <div class="step-budget">
-                                  <i class="fas fa-money-bill-wave me-1"></i>
-                                  งบประมาณ: <?= number_format($req['budget_approved'], 2) ?> บาท
-                                </div>
-                              <?php endif; ?>
-                              <?php if ($req['gm_reason']): ?>
-                                <div class="step-notes">
-                                  <i class="fas fa-sticky-note me-1"></i>
-                                  <?= htmlspecialchars($req['gm_reason']) ?>
-                                </div>
-                              <?php endif; ?>
-                            </div>
-                          </div>
-
-                          <!-- ขั้นตอนที่ 4: ผู้จัดการอาวุโส -->
-                          <div class="timeline-step">
-                            <div class="step-number">4</div>
-                            <div class="step-content">
-                              <div class="step-title">ผู้จัดการอาวุโส</div>
-                              <div class="step-status">
-                                <?php if ($req['senior_gm_status'] === 'approved'): ?>
-                                  <i class="fas fa-check-circle text-success"></i> อนุมัติแล้ว
-                                <?php elseif ($req['senior_gm_status'] === 'rejected'): ?>
-                                  <i class="fas fa-times-circle text-danger"></i> ไม่อนุมัติ
-                                <?php elseif ($req['senior_gm_status'] === 'pending' && $req['gm_status'] === 'approved'): ?>
-                                  <i class="fas fa-clock text-warning"></i> รอพิจารณา
-                                <?php else: ?>
-                                  <i class="fas fa-minus text-muted"></i> ยังไม่ถึงขั้นตอน
-                                <?php endif; ?>
-                              </div>
-                              <?php if ($req['senior_gm_reviewed_at']): ?>
-                                <div class="step-date">
-                                  <i class="fas fa-calendar-check me-1"></i>
-                                  เวลาอนุมัติ : <?= date('d/m/Y H:i', strtotime($req['senior_gm_reviewed_at'])) ?>
-                                </div>
-                              <?php endif; ?>
-                              <?php if ($req['senior_gm_name']): ?>
-                                <div class="step-reviewer">
-                                  <i class="fas fa-user me-1"></i>
-                                  อนุมัติโดยคุณ : <?= htmlspecialchars($req['senior_gm_name'] . ' ' . $req['senior_gm_lastname']) ?>
-                                </div>
-                              <?php endif; ?>
-                              <?php if ($req['dev_name']): ?>
-                                <div class="step-developer">
-                                  <i class="fas fa-user-cog me-1"></i>
-                                  ผู้พัฒนาระบบงาน: <?= htmlspecialchars($req['dev_name'] . ' ' . $req['dev_lastname']) ?>
-                                </div>
-                              <?php endif; ?>
-                              <?php if ($req['senior_gm_reason']): ?>
-                                <div class="step-notes">
-                                  <i class="fas fa-sticky-note me-1"></i>
-                                  <?= htmlspecialchars($req['senior_gm_reason']) ?>
-                                </div>
-                              <?php endif; ?>
-                              <?php if ($req['senior_gm_final_notes']): ?>
-                                <div class="step-final-notes">
-                                  <i class="fas fa-comment-dots me-1"></i>
-                                  หมายเหตุสำหรับ Developer: <?= htmlspecialchars($req['senior_gm_final_notes']) ?>
-                                </div>
-                              <?php endif; ?>
-                            </div>
-
-                          <?php endif; ?>
-                          </div>
-
-
-
+                          
                           <!-- ขั้นตอนที่ 5: การพัฒนา -->
                           <?php if ($req['task_status']): ?>
                             <div class="timeline-step <?=
@@ -850,14 +590,7 @@ foreach ($requests as &$request) {
                           <?php endif; ?>
                         </div>
                       </div>
-
-
                     </div>
-
-
-                   
-
-
                   </div>
                 </div>
               <?php endforeach; ?>
@@ -865,45 +598,8 @@ foreach ($requests as &$request) {
           <?php endif; ?>
         </div>
       </div>
-      <!-- Timeline Modal -->
-      <div class="modal fade" id="timelineModal" tabindex="-1" aria-labelledby="timelineModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title" id="timelineModalLabel">ไทม์ไลน์งาน</h5>
-              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="ปิด"></button>
-            </div>
-            <div class="modal-body">
-              <ul id="timelineContent" class="list-group list-group-flush"></ul>
-            </div>
-            <div class="modal-footer">
-              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-
-
-
     </div>
   </div>
-
-  <!-- <footer class="footer">
-        <div class="container-fluid d-flex justify-content-between">
-          <nav class="pull-left">
-
-          </nav>
-          <div class="copyright">
-            © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
-            <i class="fa fa-heart heart text-danger"></i>
-
-          </div>
-          <div>
-
-          </div>
-        </div>
-      </footer> -->
   </div>
   </div>
 
@@ -938,14 +634,7 @@ foreach ($requests as &$request) {
   </script>
 
   <script>
-    // Auto-refresh every 30 seconds
-    // setInterval(function() {
-    //     if (document.visibilityState === 'visible') {
-    //         location.reload();
-    //     }
-    // }, 30000);
-
-    // Smooth scroll to opened status
+  
     document.addEventListener('DOMContentLoaded', function() {
       const collapseElements = document.querySelectorAll('.collapse');
       collapseElements.forEach(function(element) {
