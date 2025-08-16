@@ -392,7 +392,9 @@ foreach ($requests as &$request) {
 
                     <div class="d-flex justify-content-between align-items-start mb-3">
                       <div class="flex-grow-1">
+                        
                         <div class="request-title">หัวข้อ : <?= htmlspecialchars($req['title']) ?></div>
+
                         <div class="request-description"> รายละเอียด :
                           <?= nl2br(htmlspecialchars(substr($req['description'], 0, 2000))) ?>
                           <?= strlen($req['description']) > 2000 ? '...' : '' ?>
