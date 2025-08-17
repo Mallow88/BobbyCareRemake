@@ -56,7 +56,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $review_comment = trim($_POST['review_comment']);
     $action = $_POST['action']; // 'accept' หรือ 'revision'
     $revision_notes = trim($_POST['revision_notes'] ?? '');
-    
+
     if ($rating < 1 || $rating > 5) {
         $error = "กรุณาให้คะแนน 1-5 ดาว";
     } elseif ($action === 'revision' && empty($revision_notes)) {
@@ -64,9 +64,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         try {
             $conn->beginTransaction();
-            
+
             $review_status = $action === 'accept' ? 'accepted' : 'revision_requested';
-            
+
             // บันทึกรีวิว
             if ($task['review_id']) {
                 // อัปเดตรีวิวที่มีอยู่
@@ -84,24 +84,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ");
                 // $stmt->execute([$task['id'], $user_id, $rating, $review_comment, $review_status, $revision_notes]);
                 $stmt->execute([$task['id'], $userservice_id, $rating, $review_comment, $review_status, $revision_notes]);
-
             }
-            
+
             // อัปเดตสถานะงาน
             if ($action === 'accept') {
                 $update_task = $conn->prepare("UPDATE tasks SET task_status = 'accepted' WHERE id = ?");
                 $update_task->execute([$task['id']]);
-                
+
                 $update_sr = $conn->prepare("UPDATE service_requests SET developer_status = 'accepted' WHERE id = ?");
                 $update_sr->execute([$task['service_request_id']]);
             } else {
                 $update_task = $conn->prepare("UPDATE tasks SET task_status = 'revision_requested' WHERE id = ?");
                 $update_task->execute([$task['id']]);
-                
+
                 $update_sr = $conn->prepare("UPDATE service_requests SET developer_status = 'revision_requested' WHERE id = ?");
                 $update_sr->execute([$task['service_request_id']]);
             }
-            
+
             // บันทึก log
             $log_stmt = $conn->prepare("
                 INSERT INTO task_status_logs (task_id, old_status, new_status, changed_by, notes) 
@@ -111,11 +110,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // $log_stmt->execute([$task['id'], $review_status, $user_id, $log_notes]);
             $log_stmt->execute([$task['id'], $review_status, $userservice_id, $log_notes]);
 
-            
+
             $conn->commit();
             header("Location: index.php?success=1");
             exit();
-            
         } catch (Exception $e) {
             $conn->rollBack();
             $error = "เกิดข้อผิดพลาด: " . $e->getMessage();
@@ -126,10 +124,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <!DOCTYPE html>
 <html lang="th">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>รีวิวงาน - BobbyCareDev</title>
+    <title>BobbyCareRemake</title>
+  <link rel="icon" href="../img/logo/bobby-icon.png" type="image/x-icon" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
@@ -234,7 +234,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: #e2e8f0;
             cursor: pointer;
             transition: all 0.3s ease;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
 
         .star:hover,
@@ -305,6 +305,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         .btn-revision {
             background: linear-gradient(135deg, #f6ad55, #ed8936);
+            color: white;
+            box-shadow: 0 4px 15px rgba(246, 173, 85, 0.3);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #60ddff);
             color: white;
             box-shadow: 0 4px 15px rgba(246, 173, 85, 0.3);
         }
@@ -396,6 +401,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -404,9 +410,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="content-card">
-            <a href="index.php" class="back-btn">
-                <i class="fas fa-arrow-left"></i> กลับรายการ
-            </a>
 
             <?php if (!empty($error)): ?>
                 <div class="error-message">
@@ -433,7 +436,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="info-row">
                     <div class="info-label">ผู้พัฒนา:</div>
                     <div class="info-value">
-                        <i class="fas fa-user-cog"></i> 
+                        <i class="fas fa-user-cog"></i>
                         <?= htmlspecialchars($task['dev_name'] . ' ' . $task['dev_lastname']) ?>
                     </div>
                 </div>
@@ -455,14 +458,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <?php if ($task['developer_notes']): ?>
-                <div class="info-row">
-                    <div class="info-label">หมายเหตุจาก Dev:</div>
-                    <div class="info-value">
-                        <div style="background: #e6fffa; padding: 10px; border-radius: 6px; border-left: 3px solid #38b2ac;">
-                            <?= nl2br(htmlspecialchars($task['developer_notes'])) ?>
+                    <div class="info-row">
+                        <div class="info-label">หมายเหตุจาก Dev:</div>
+                        <div class="info-value">
+                            <div style="background: #e6fffa; padding: 10px; border-radius: 6px; border-left: 3px solid #38b2ac;">
+                                <?= nl2br(htmlspecialchars($task['developer_notes'])) ?>
+                            </div>
                         </div>
                     </div>
-                </div>
                 <?php endif; ?>
             </div>
 
@@ -486,24 +489,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="form-group">
                     <label for="review_comment">ความเห็นและข้อเสนอแนะ:</label>
-                    <textarea 
-                        name="review_comment" 
-                        id="review_comment" 
-                        placeholder="แสดงความเห็นเกี่ยวกับงานที่ได้รับ เช่น คุณภาพงาน ความถูกต้อง ความสมบูรณ์ หรือข้อเสนอแนะอื่นๆ..." 
-                        required
-                    ></textarea>
+                    <textarea
+                        name="review_comment"
+                        id="review_comment"
+                        placeholder="แสดงความเห็นเกี่ยวกับงานที่ได้รับ เช่น คุณภาพงาน ความถูกต้อง ความสมบูรณ์ หรือข้อเสนอแนะอื่นๆ..."
+                        required></textarea>
                 </div>
 
                 <div class="revision-section" id="revisionSection">
                     <h4 style="margin-bottom: 15px; color: #d69e2e;">
                         <i class="fas fa-edit"></i> รายละเอียดที่ต้องการแก้ไข
                     </h4>
-                    <textarea 
-                        name="revision_notes" 
-                        id="revision_notes" 
+                    <textarea
+                        name="revision_notes"
+                        id="revision_notes"
                         placeholder="ระบุรายละเอียดที่ต้องการให้แก้ไข เช่น ข้อผิดพลาด ส่วนที่ต้องปรับปรุง หรือความต้องการเพิ่มเติม..."
-                        rows="4"
-                    ></textarea>
+                        rows="4"></textarea>
                 </div>
 
                 <div class="action-section">
@@ -517,6 +518,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button type="button" class="btn btn-revision" onclick="toggleRevision()">
                             <i class="fas fa-redo"></i> ขอแก้ไขงาน
                         </button>
+
+                        <a href="index.php" class="btn btn-primary">
+                            <i class="fas fa-arrow-left"></i> ย้อนกลับ
+                        </a>
+
                     </div>
                 </div>
 
@@ -530,7 +536,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         const stars = document.querySelectorAll('.star');
         const ratingInput = document.getElementById('rating');
         const ratingText = document.getElementById('ratingText');
-        
+
         const ratingTexts = {
             1: '⭐ ต้องปรับปรุง',
             2: '⭐⭐ พอใช้',
@@ -538,13 +544,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             4: '⭐⭐⭐⭐ ดีมาก',
             5: '⭐⭐⭐⭐⭐ ยอดเยี่ยม'
         };
-        
+
         stars.forEach(star => {
             star.addEventListener('click', function() {
                 const rating = this.dataset.rating;
                 ratingInput.value = rating;
                 ratingText.textContent = ratingTexts[rating];
-                
+
                 stars.forEach((s, index) => {
                     if (index < rating) {
                         s.classList.add('active');
@@ -553,7 +559,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 });
             });
-            
+
             star.addEventListener('mouseover', function() {
                 const rating = this.dataset.rating;
                 stars.forEach((s, index) => {
@@ -565,7 +571,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 });
             });
         });
-        
+
         document.querySelector('.star-rating').addEventListener('mouseleave', function() {
             const currentRating = ratingInput.value;
             stars.forEach((s, index) => {
@@ -581,7 +587,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         function toggleRevision() {
             const revisionSection = document.getElementById('revisionSection');
             const revisionNotes = document.getElementById('revision_notes');
-            
+
             if (revisionSection.classList.contains('show')) {
                 // ถ้าแสดงอยู่แล้ว ให้ส่งฟอร์ม
                 submitReview('revision');
@@ -590,7 +596,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 revisionSection.classList.add('show');
                 revisionNotes.required = true;
                 revisionNotes.focus();
-                
+
                 // เปลี่ยนข้อความปุ่ม
                 event.target.innerHTML = '<i class="fas fa-paper-plane"></i> ส่งคำขอแก้ไข';
             }
@@ -600,17 +606,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         function submitReview(action) {
             const rating = ratingInput.value;
             const comment = document.getElementById('review_comment').value.trim();
-            
+
             if (!rating) {
                 alert('กรุณาให้คะแนนงาน');
                 return;
             }
-            
+
             if (!comment) {
                 alert('กรุณาใส่ความเห็นเกี่ยวกับงาน');
                 return;
             }
-            
+
             if (action === 'revision') {
                 const revisionNotes = document.getElementById('revision_notes').value.trim();
                 if (!revisionNotes) {
@@ -618,11 +624,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     return;
                 }
             }
-            
-            const confirmMessage = action === 'accept' 
-                ? 'ยืนยันการยอมรับงานนี้?' 
-                : 'ยืนยันการขอแก้ไขงาน?';
-                
+
+            const confirmMessage = action === 'accept' ?
+                'ยืนยันการยอมรับงานนี้?' :
+                'ยืนยันการขอแก้ไขงาน?';
+
             if (confirm(confirmMessage)) {
                 document.getElementById('action').value = action;
                 document.getElementById('reviewForm').submit();
@@ -630,4 +636,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     </script>
 </body>
+
 </html>
