@@ -14,6 +14,102 @@ if (!$request_id) {
     exit();
 }
 
+
+// ฟังก์ชันส่งข้อความเข้า LINE Official Account
+ function sendLinePushFlexToDev($sr) {
+  $access_token = "hAfRJZ7KyjncT3I2IB6UhHqU/DmP1qPxW2PbeDE7KtUUveyiSKgLvJxrahWyrFUmlrta4MAnw8V3QRr5b7LwoKYh4hv1ATfX8yrJOMFQ+zdQxm3rScAAGNaJTEN1mJxHN93jHbqLoK8dQ080ja5BFAdB04t89/1O/w1cDnyilFU="; // ใส่ Channel access token (long-lived)
+
+    $url = "https://api.line.me/v2/bot/message/push";
+
+   $bubble = [
+        "type" => "bubble",
+        "size" => "mega",
+        "header" => [
+            "type" => "box",
+            "layout" => "vertical",
+            "contents" => [
+                [
+                    "type" => "text",
+                    "text" => "📑 มีงานเข้ามาใหม่แเล้ว!",
+                    "weight" => "bold",
+                    "size" => "lg",
+                    "align" => "center",
+                    "color" => "#ffffffff" 
+                ],
+                [
+                    "type" => "text",
+                    "text" => $sr['document_number'] ?? "-",
+                    "size" => "md",
+                    "align" => "center",
+                    "color" => "#FFFFFF",
+                    "margin" => "md"
+                ]
+            ],
+         "backgroundColor" => "#5677fc", 
+            "paddingAll" => "20px"
+        ],
+        "body" => [
+            "type" => "box",
+            "layout" => "vertical",
+            "spacing" => "md",
+            "contents" => [
+                ["type" => "text", "text" => "📌 เรื่อง: {$sr['title']}", "wrap" => true, "weight" => "bold", "size" => "sm", "color" => "#333333"],
+                ["type" => "text", "text" => "📝 {$sr['description']}", "wrap" => true, "size" => "sm", "color" => "#666666"],
+                ["type" => "text", "text" => "✨ ประโยชน์: {$sr['expected_benefits']}", "wrap" => true, "size" => "sm", "color" => "#32CD32"],
+                ["type" => "separator", "margin" => "md"],
+                ["type" => "text", "text" => "ผู้ขอบริการ : {$sr['name']} {$sr['lastname']}", "size" => "sm", "color" => "#000000"],
+                ["type" => "text", "text" => "🆔 {$sr['employee_id']} | 🏢 {$sr['department']}", "size" => "sm", "color" => "#444444"]
+            ]
+        ],
+        "footer" => [
+            "type" => "box",
+            "layout" => "vertical",
+            "contents" => [
+                [
+                    "type" => "button",
+                    "style" => "primary",
+                    "color" => "#d0d9ff",
+                    "action" => [
+                        "type" => "uri",
+                        "label" => "🔎 ดูรายละเอียด",
+                        "uri" => "http://yourdomain/index2.php?id={$sr['request_id']}"
+                    ]
+                ]
+            ],
+              "backgroundColor" => "#5677fc"
+        ]
+    ];
+
+    $flexMessage = [
+        "type" => "flex",
+        "altText" => "📑 มีคำขอเอกสารใหม่",
+        "contents" => $bubble
+    ];
+
+    $data = [
+    "to" => $sr['dev_line_id'], // ใช้ line_id ของ Developer
+    "messages" => [$flexMessage]
+];
+
+
+    $post = json_encode($data, JSON_UNESCAPED_UNICODE);
+    $headers = [
+        'Content-Type: application/json',
+        'Authorization: Bearer ' . $access_token
+    ];
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    $result = curl_exec($ch);
+    curl_close($ch);
+
+    return $result;
+}
+
+
 // ตรวจสอบว่ามีการพิจารณาแล้ว
 $check = $conn->prepare("SELECT * FROM senior_gm_approvals WHERE service_request_id = ?");
 $check->execute([$request_id]);
@@ -138,6 +234,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->execute([$request_id, $status, $senior_gm_id, $reason . ' ' . $final_notes]);
 
             $conn->commit();
+
+
+
+// ถ้า Senior GM อนุมัติ → แจ้ง Developer อีกครั้ง
+if ($status === 'approved') {
+    $sr_stmt = $conn->prepare("
+        SELECT sr.title, sr.description, sr.expected_benefits, dn.document_number,
+               u.name, u.lastname, u.employee_id, u.department, u.position, u.phone, u.email,
+               dev.line_id AS dev_line_id, dev.name AS dev_name, dev.lastname AS dev_lastname
+        FROM service_requests sr
+        JOIN users u ON sr.user_id = u.id
+        LEFT JOIN document_numbers dn ON sr.id = dn.service_request_id
+        LEFT JOIN assignor_approvals aa ON sr.id = aa.service_request_id
+        LEFT JOIN users dev ON aa.assigned_developer_id = dev.id
+        WHERE sr.id = ?
+    ");
+    $sr_stmt->execute([$request_id]);
+    $sr = $sr_stmt->fetch(PDO::FETCH_ASSOC);
+
+  if ($sr && !empty($sr['dev_line_id'])) {
+    // ส่ง Flex Bubble แทนข้อความปกติ
+    sendLinePushFlexToDev($sr);
+}
+}
+
+
             header("Location: seniorindex2.php");
             exit();
         } catch (Exception $e) {
@@ -1021,6 +1143,95 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
             });
         });
+    </script>
+
+    
+  
+    <style>
+        /* overlay ครอบทั้งหน้าตอนเมนูเปิด */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .25);
+            z-index: 998;
+            /* ให้อยู่ใต้ sidebar นิดเดียว */
+            display: none;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+    </style>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <script>
+        (function() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            // ปุ่มที่ใช้เปิด/ปิดเมนู (ตามโค้ดคุณมีทั้งสองคลาส)
+            const toggleBtns = document.querySelectorAll('.toggle-sidebar, .sidenav-toggler');
+
+            // คลาสที่มักถูกเติมเมื่อ "เมนูเปิด" (เติมเพิ่มได้ถ้าโปรเจ็กต์คุณใช้ชื่ออื่น)
+            const OPEN_CLASSES = ['nav_open', 'toggled', 'show', 'active'];
+
+            // helper: เช็คว่าเมนูถือว่า "เปิด" อยู่ไหม
+            function isSidebarOpen() {
+                if (!sidebar) return false;
+                // ถ้าบอดี้หรือไซด์บาร์มีคลาสในรายการนี้ตัวใดตัวหนึ่ง ให้ถือว่าเปิด
+                const openOnBody = OPEN_CLASSES.some(c => document.body.classList.contains(c) || document.documentElement.classList.contains(c));
+                const openOnSidebar = OPEN_CLASSES.some(c => sidebar.classList.contains(c));
+                return openOnBody || openOnSidebar;
+            }
+
+            // helper: สั่งปิดเมนูแบบไม่ผูกกับไส้ในธีมมากนัก
+            function closeSidebar() {
+                // เอาคลาสเปิดออกจาก body/html และ sidebar (กันเหนียว)
+                OPEN_CLASSES.forEach(c => {
+                    document.body.classList.remove(c);
+                    document.documentElement.classList.remove(c);
+                    sidebar && sidebar.classList.remove(c);
+                });
+                overlay?.classList.remove('show');
+            }
+
+            // เมื่อกดปุ่ม toggle: ถ้าเปิดแล้วให้โชว์ overlay / ถ้าปิดก็ซ่อน
+            toggleBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // หน่วงนิดให้ธีมสลับคลาสเสร็จก่อน
+                    setTimeout(() => {
+                        if (isSidebarOpen()) {
+                            overlay?.classList.add('show');
+                        } else {
+                            overlay?.classList.remove('show');
+                        }
+                    }, 10);
+                });
+            });
+
+            // คลิกที่ overlay = ปิดเมนู
+            overlay?.addEventListener('click', () => {
+                closeSidebar();
+            });
+
+            // คลิกที่ใดก็ได้บนหน้า: ถ้านอก sidebar + นอกปุ่ม toggle และขณะ mobile → ปิดเมนู
+            document.addEventListener('click', (e) => {
+                // จำกัดเฉพาะจอเล็ก (คุณจะปรับ breakpoint เองก็ได้)
+                if (window.innerWidth > 991) return;
+
+                const clickedInsideSidebar = e.target.closest('.sidebar');
+                const clickedToggle = e.target.closest('.toggle-sidebar, .sidenav-toggler');
+
+                if (!clickedInsideSidebar && !clickedToggle && isSidebarOpen()) {
+                    closeSidebar();
+                }
+            });
+
+            // ปิดเมนูอัตโนมัติเมื่อ resize จากจอเล็กไปจอใหญ่ (กันค้าง)
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 991) closeSidebar();
+            });
+        })();
     </script>
 </body>
 

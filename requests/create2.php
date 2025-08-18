@@ -85,6 +85,153 @@ function generateDocumentNumber($conn, $warehouse_number, $code_name)
     }
 }
 
+
+
+
+
+// ฟังก์ชันส่งข้อความเข้า LINE Official Account
+function sendLinePushCarousel($toUserId, $requests) {
+       $access_token = "hAfRJZ7KyjncT3I2IB6UhHqU/DmP1qPxW2PbeDE7KtUUveyiSKgLvJxrahWyrFUmlrta4MAnw8V3QRr5b7LwoKYh4hv1ATfX8yrJOMFQ+zdQxm3rScAAGNaJTEN1mJxHN93jHbqLoK8dQ080ja5BFAdB04t89/1O/w1cDnyilFU="; // ใส่ Channel access token (long-lived)
+
+
+    $url = "https://api.line.me/v2/bot/message/push";
+
+    $bubbles = [];
+foreach ($requests as $req) {
+    $bubbles[] = [
+        "type" => "bubble",
+        "size" => "mega",
+        "header" => [
+            "type" => "box",
+            "layout" => "vertical",
+            "contents" => [
+                [
+                    "type" => "text",
+                    "text" => "📑 เอกสารใหม่",
+                    "weight" => "bold",
+                    "size" => "lg",
+                    "align" => "center",
+                   "color" => "#ffffffff" 
+                ],
+                [
+                    "type" => "text",
+                    "text" => $req['document_number'],
+                    "size" => "md",
+                    "align" => "center",
+                    "color" => "#FFFFFF",
+                    "margin" => "md"
+                ]
+            ],
+            "backgroundColor" => "#5677fc", // ดำหรู
+            "paddingAll" => "20px"
+        ],
+        "body" => [
+            "type" => "box",
+            "layout" => "vertical",
+            "spacing" => "md",
+            "contents" => [
+                [
+                    "type" => "text",
+                    "text" => "📌 เรื่อง: {$req['title']}",
+                    "wrap" => true,
+                    "weight" => "bold",
+                    "size" => "sm",
+                    "color" => "#333333"
+                ],
+                [
+                    "type" => "text",
+                    "text" => "📝 {$req['description']}",
+                    "wrap" => true,
+                    "size" => "sm",
+                    "color" => "#666666"
+                ],
+                [
+                    "type" => "text",
+                    "text" => "✨ ประโยชน์: {$req['expected_benefits']}",
+                    "wrap" => true,
+                    "size" => "sm",
+                    "color" => "#32CD32"
+                ],
+                ["type" => "separator", "margin" => "md"],
+                [
+                    "type" => "text",
+                    "text" => "ผู้ขอบริการ : {$req['user_name']} {$req['user_lastname']}",
+                    "size" => "sm",
+                    "color" => "#000000"
+                ],
+                [
+                    "type" => "text",
+                    "text" => "🆔 {$req['employee_id']} | 🏢 {$req['department']}",
+                    "size" => "sm",
+                    "color" => "#444444"
+                ]
+            ]
+        ],
+        "footer" => [
+            "type" => "box",
+            "layout" => "vertical",
+            "contents" => [
+                [
+                    "type" => "button",
+                    "style" => "primary",
+                    "color" => "#d0d9ff",
+                    "action" => [
+                        "type" => "uri",
+                        "label" => "🔎 ดูรายละเอียดเพิ่มเติม",
+                        "uri" => "http://yourdomain/index2.php?id={$req['request_id']}"
+                    ]
+                ]
+            ],
+            "backgroundColor" => "#5677fc"
+        ],
+        "styles" => [
+            "header" => ["separator" => true],
+            "body"   => ["separator" => true],
+            "footer" => ["separator" => true]
+        ]
+    ];
+}
+
+
+    $flexMessage = [
+        "type" => "flex",
+        "altText" => "📑 มีคำขอหลายรายการใหม่",
+        "contents" => [
+            "type" => "carousel",
+            "contents" => $bubbles
+        ]
+    ];
+
+    $data = [
+        "to" => $toUserId,
+        "messages" => [$flexMessage]
+    ];
+
+    $post = json_encode($data, JSON_UNESCAPED_UNICODE);
+    $headers = [
+        'Content-Type: application/json',
+        'Authorization: Bearer ' . $access_token
+    ];
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    $result = curl_exec($ch);
+    curl_close($ch);
+
+    return $result;
+}
+
+
+
+
+
+
+
+
+
 // ประมวลผลฟอร์ม
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
@@ -320,8 +467,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $conn->commit();
         // $_SESSION['success'] = "สร้างคำขอบริการสำเร็จ! เลขที่เอกสาร: $document_number";
-        header("Location: index2.php");
-        exit();
+     
+
+// === ส่งแจ้งเตือน LINE Official Account ไปยังผู้จัดการฝ่าย ===
+// ดึง LINE userId ของผู้จัดการฝ่ายจาก DB (คุณควรเก็บ userId ของแต่ละ div manager ไว้ในตาราง users ด้วย)
+// ดึงข้อมูลผู้ใช้ที่สร้างคำขอ
+$user_stmt = $conn->prepare("SELECT name, lastname, employee_id, department FROM users WHERE id = ?");
+$user_stmt->execute([$user_id]);
+$user_info = $user_stmt->fetch(PDO::FETCH_ASSOC);
+$user_name = $user_info['name'] ?? '';
+$user_lastname = $user_info['lastname'] ?? '';
+$employee_id = $user_info['employee_id'] ?? '';
+$department = $user_info['department'] ?? '';
+$divmgr_stmt = $conn->prepare("SELECT line_id FROM users WHERE id = ?");
+$description = $insert_data['description'] ?? '-';
+$expected_benefits = $insert_data['expected_benefits'] ?? '-';
+$divmgr_stmt->execute([$assigned_div_mgr_id]);
+$divmgr = $divmgr_stmt->fetch(PDO::FETCH_ASSOC);
+
+if ($divmgr && !empty($divmgr['line_id'])) {
+    sendLinePushCarousel($divmgr['line_id'], [[
+        'document_number' => $document_number,
+        'title' => $title,
+        'description' => $description,
+        'expected_benefits' => $expected_benefits,
+        'user_name' => $user_name,
+        'user_lastname' => $user_lastname,
+        'employee_id' => $employee_id,
+        'department' => $department,
+        'request_id' => $request_id
+    ]]);
+}
+
+
+header("Location: index2.php");
+exit();
+
     } catch (Exception $e) {
         if ($conn->inTransaction()) {
             $conn->rollBack();
@@ -640,40 +821,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <span class="fw-bold"><?= htmlspecialchars($_SESSION['name']) ?></span>
                                     </span>
                                 </a>
-
-                                <!-- <ul class="dropdown-menu dropdown-user animated fadeIn">
-                  <div class="dropdown-user-scroll scrollbar-outer">
-                    <li>
-                      <div class="user-box">
-                        <div class="avatar-lg">
-                          <img src="../assets/img/profile.jpg" alt="image profile" class="avatar-img rounded" />
-                        </div>
-                        <div class="u-text">
-                          <h4>Hizrian</h4>
-                          <p class="text-muted">hello@example.com</p>
-                          <a href="profile.html" class="btn btn-xs btn-secondary btn-sm">View Profile</a>
-                        </div>
-                      </div>
-                    </li>
-                    <li>
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="#">My Profile</a>
-                    
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="#">Logout</a>
-                    </li>
-                  </div>
-                </ul> -->
                             </li>
-
 
                         </ul>
                     </div>
                 </nav>
                 <!-- End Navbar -->
             </div>
-
-
 
 
             <div class="container">
@@ -1361,6 +1515,93 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         });
     </script>
     
+    
+    <style>
+        /* overlay ครอบทั้งหน้าตอนเมนูเปิด */
+        .sidebar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .25);
+            z-index: 998;
+            /* ให้อยู่ใต้ sidebar นิดเดียว */
+            display: none;
+        }
+
+        .sidebar-overlay.show {
+            display: block;
+        }
+    </style>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <script>
+        (function() {
+            const sidebar = document.querySelector('.sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+
+            // ปุ่มที่ใช้เปิด/ปิดเมนู (ตามโค้ดคุณมีทั้งสองคลาส)
+            const toggleBtns = document.querySelectorAll('.toggle-sidebar, .sidenav-toggler');
+
+            // คลาสที่มักถูกเติมเมื่อ "เมนูเปิด" (เติมเพิ่มได้ถ้าโปรเจ็กต์คุณใช้ชื่ออื่น)
+            const OPEN_CLASSES = ['nav_open', 'toggled', 'show', 'active'];
+
+            // helper: เช็คว่าเมนูถือว่า "เปิด" อยู่ไหม
+            function isSidebarOpen() {
+                if (!sidebar) return false;
+                // ถ้าบอดี้หรือไซด์บาร์มีคลาสในรายการนี้ตัวใดตัวหนึ่ง ให้ถือว่าเปิด
+                const openOnBody = OPEN_CLASSES.some(c => document.body.classList.contains(c) || document.documentElement.classList.contains(c));
+                const openOnSidebar = OPEN_CLASSES.some(c => sidebar.classList.contains(c));
+                return openOnBody || openOnSidebar;
+            }
+
+            // helper: สั่งปิดเมนูแบบไม่ผูกกับไส้ในธีมมากนัก
+            function closeSidebar() {
+                // เอาคลาสเปิดออกจาก body/html และ sidebar (กันเหนียว)
+                OPEN_CLASSES.forEach(c => {
+                    document.body.classList.remove(c);
+                    document.documentElement.classList.remove(c);
+                    sidebar && sidebar.classList.remove(c);
+                });
+                overlay?.classList.remove('show');
+            }
+
+            // เมื่อกดปุ่ม toggle: ถ้าเปิดแล้วให้โชว์ overlay / ถ้าปิดก็ซ่อน
+            toggleBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    // หน่วงนิดให้ธีมสลับคลาสเสร็จก่อน
+                    setTimeout(() => {
+                        if (isSidebarOpen()) {
+                            overlay?.classList.add('show');
+                        } else {
+                            overlay?.classList.remove('show');
+                        }
+                    }, 10);
+                });
+            });
+
+            // คลิกที่ overlay = ปิดเมนู
+            overlay?.addEventListener('click', () => {
+                closeSidebar();
+            });
+
+            // คลิกที่ใดก็ได้บนหน้า: ถ้านอก sidebar + นอกปุ่ม toggle และขณะ mobile → ปิดเมนู
+            document.addEventListener('click', (e) => {
+                // จำกัดเฉพาะจอเล็ก (คุณจะปรับ breakpoint เองก็ได้)
+                if (window.innerWidth > 991) return;
+
+                const clickedInsideSidebar = e.target.closest('.sidebar');
+                const clickedToggle = e.target.closest('.toggle-sidebar, .sidenav-toggler');
+
+                if (!clickedInsideSidebar && !clickedToggle && isSidebarOpen()) {
+                    closeSidebar();
+                }
+            });
+
+            // ปิดเมนูอัตโนมัติเมื่อ resize จากจอเล็กไปจอใหญ่ (กันค้าง)
+            window.addEventListener('resize', () => {
+                if (window.innerWidth > 991) closeSidebar();
+            });
+        })();
+    </script>
 
 </body>
 
