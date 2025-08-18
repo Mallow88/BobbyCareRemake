@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BobbyCareRemake</title>
-  <link rel="icon" href="../img/logo/bobby-icon.png" type="image/x-icon" />
+    <link rel="icon" href="../img/logo/bobby-icon.png" type="image/x-icon" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         * {
@@ -308,6 +308,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             color: white;
             box-shadow: 0 4px 15px rgba(246, 173, 85, 0.3);
         }
+
         .btn-primary {
             background: linear-gradient(135deg, #60ddff);
             color: white;
@@ -459,10 +460,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <?php if ($task['developer_notes']): ?>
                     <div class="info-row">
-                        <div class="info-label">หมายเหตุจาก Dev:</div>
+
                         <div class="info-value">
                             <div style="background: #e6fffa; padding: 10px; border-radius: 6px; border-left: 3px solid #38b2ac;">
-                                <?= nl2br(htmlspecialchars($task['developer_notes'])) ?>
+                                หมายเหตุจากผู้พัฒนา: <?= nl2br(htmlspecialchars($task['developer_notes'])) ?>
                             </div>
                         </div>
                     </div>
@@ -488,7 +489,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
 
                 <div class="form-group">
-                    <label for="review_comment">ความเห็นและข้อเสนอแนะ:</label>
+                    <label for="review_comment">ความเห็นและข้อเสนอแนะ* :</label>
                     <textarea
                         name="review_comment"
                         id="review_comment"
@@ -602,39 +603,70 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // ส่งฟอร์มรีวิว
-        function submitReview(action) {
-            const rating = ratingInput.value;
-            const comment = document.getElementById('review_comment').value.trim();
-
-            if (!rating) {
-                alert('กรุณาให้คะแนนงาน');
-                return;
-            }
-
-            if (!comment) {
-                alert('กรุณาใส่ความเห็นเกี่ยวกับงาน');
-                return;
-            }
-
-            if (action === 'revision') {
-                const revisionNotes = document.getElementById('revision_notes').value.trim();
-                if (!revisionNotes) {
-                    alert('กรุณาระบุรายละเอียดที่ต้องการแก้ไข');
-                    return;
-                }
-            }
-
-            const confirmMessage = action === 'accept' ?
-                'ยืนยันการยอมรับงานนี้?' :
-                'ยืนยันการขอแก้ไขงาน?';
-
-            if (confirm(confirmMessage)) {
-                document.getElementById('action').value = action;
-                document.getElementById('reviewForm').submit();
-            }
-        }
     </script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script>
+// ตรวจสอบและส่งรีวิว
+function submitReview(action) {
+  const rating = document.getElementById("rating").value;
+  const comment = document.getElementById("review_comment").value.trim();
+  const revisionNotes = document.getElementById("revision_notes").value.trim();
+
+  // ตรวจสอบคะแนน
+  if (!rating || rating < 1 || rating > 5) {
+    showAlert('rating');
+    return;
+  }
+
+  // ตรวจสอบความคิดเห็น
+  if (comment === "") {
+    showAlert('comment');
+    return;
+  }
+
+  // ถ้าเลือกแก้ไข แต่ไม่กรอกรายละเอียด
+  if (action === "revision" && revisionNotes === "") {
+    swal("กรุณาระบุรายละเอียดที่ต้องการแก้ไข", {
+      icon: "warning",
+      buttons: {
+        confirm: { className: "btn btn-warning" },
+      },
+    });
+    return;
+  }
+
+  // ถ้าผ่านทั้งหมด → เซ็ตค่า action แล้ว submit
+  document.getElementById("action").value = action;
+
+  showAlert('success');
+  setTimeout(() => {
+    document.getElementById("reviewForm").submit();
+  }, 1500);
+}
+
+// ฟังก์ชัน Alert รวม
+function showAlert(type) {
+  if (type === 'rating') {
+    swal("กรุณาให้คะแนน", "เช็คข้อมูลให้ครบในฟอร์มคะแนนและความเห็น", {
+      icon: "warning",
+      buttons: { confirm: { className: "btn btn-warning" } }
+    });
+  } 
+  else if (type === 'comment') {
+    swal("กรุณาใส่ความคิดเห็น", "เช็คข้อมูลให้ครบในฟอร์มคะแนนและความเห็น", {
+      icon: "warning",
+      buttons: { confirm: { className: "btn btn-warning" } }
+    });
+  } 
+  else if (type === 'success') {
+    swal("Good job!", "ขอบคุณที่ใช้บริการ BobbyCare", {
+      icon: "success",
+      buttons: { confirm: { className: "btn btn-success" } }
+    });
+  }
+}
+</script>
+
 </body>
 
 </html>
