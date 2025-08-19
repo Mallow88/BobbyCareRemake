@@ -623,105 +623,76 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                             <div class="request-card">
 
-                                <!-- Header & Meta -->
-                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                <div class="">
+                                    <!-- บรรทัดแรก: เลขที่เอกสาร + วันที่ -->
+                                    <div class="d-flex justify-content-between text-muted mb-2 flex-wrap">
 
-                                    <div class="flex-grow-1">
-
-                                        <!-- Document Number -->
-                                        <?php if (!empty($req['document_number'])): ?>
-                                            <div class="text-muted mb-2">
-                                                <i class="fas fa-file-alt me-1"></i>
-                                                เลขที่เอกสาร: <?= htmlspecialchars($req['document_number']) ?>
-                                            </div>
-                                            <input type="hidden" name="document_number"
-                                                value="<?= htmlspecialchars($req['document_number']) ?>">
-                                        <?php endif; ?>
-
-                                        <!-- Title -->
-                                        <div class="request-title"><?= htmlspecialchars($req['title']) ?></div>
-
-                                        <!-- Service Badge -->
-                                        <div class="d-flex gap-2 mb-2">
-                                            <?php if ($req['service_name']): ?>
-                                                <span class="service-badge service-<?= $req['service_category'] ?>">
+                                        <div>
+                                            <?php if (!empty($req['service_name'])): ?>
+                                                <div class="text-secondary">
                                                     <?php if ($req['service_category'] === 'development'): ?>
                                                         <i class="fas fa-code me-1"></i>
                                                     <?php else: ?>
                                                         <i class="fas fa-tools me-1"></i>
                                                     <?php endif; ?>
-                                                    <?= htmlspecialchars($req['service_name']) ?>
-                                                </span>
+                                                    <strong>ประเภทคำขอ: <?= htmlspecialchars($req['service_name']) ?></strong>
+                                                </div>
                                             <?php endif; ?>
+
+
+                                            <span class="me-3">
+                                                <i class="fas fa-file-alt me-1"></i>
+                                                เลขที่: <?= htmlspecialchars($req['document_number'] ?? '-') ?>
+                                            </span>
                                         </div>
 
-                                        <!-- Request Date -->
-                                        <div class="request-meta">
-                                            <i class="fas fa-calendar me-1"></i>
-                                            วันที่ขอดำเนินเรื่อง: <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
-                                        </div>
+
                                     </div>
 
-                                    <!-- Priority & Estimate -->
-                                    <div class="text-end">
-                                        <span class="priority-badge priority-<?= $req['priority_level'] ?>">
-                                            <i class="fas fa-exclamation-circle me-1"></i>
-                                            <?php
-                                            $priorities = [
-                                                'low' => 'ต่ำ',
-                                                'medium' => 'ปานกลาง',
-                                                'high' => 'สูง',
-                                                'urgent' => 'เร่งด่วน'
-                                            ];
-                                            echo $priorities[$req['priority_level']] ?? 'ปานกลาง';
-                                            ?>
-                                        </span>
-                                        <?php if ($req['estimated_days']): ?>
-                                            <div class="estimate-info mt-2">
-                                                <i class="fas fa-clock me-1"></i>
-                                                ประมาณ <?= $req['estimated_days'] ?> วัน
-                                            </div>
-                                        <?php endif; ?>
+
+                                </div>
+
+
+                                <h6 class="fw-bold text-info mb-3">
+                                    <i class=""></i>ข้อมูลผู้ขอ
+                                </h6>
+                                <!-- ข้อมูลผู้ขอ -->
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <small class="text-muted">รหัสพนักงาน</small>
+                                        <div class="fw-bold"><?= htmlspecialchars($req['employee_id'] ?? 'ไม่ระบุ') ?></div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">ชื่อ-นามสกุล</small>
+                                        <div class="fw-bold"><?= htmlspecialchars($req['requester_name'] . ' ' . $req['requester_lastname']) ?></div>
+                                    </div>
+
+                                    <div class="col-6">
+                                        <small class="text-muted">ตำแหน่ง</small>
+                                        <div class="fw-bold"><?= htmlspecialchars($req['position'] ?? 'ไม่ระบุ') ?></div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">หน่วยงาน</small>
+                                        <div class="fw-bold"><?= htmlspecialchars($req['department'] ?? 'ไม่ระบุ') ?></div>
+                                    </div>
+
+                                    <div class="col-6">
+                                        <small class="text-muted">เบอร์โทร</small>
+                                        <div class="fw-bold"><?= htmlspecialchars($req['phone'] ?? 'ไม่ระบุ') ?></div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">อีเมล</small>
+                                        <div class="fw-bold"><?= htmlspecialchars($req['email'] ?? 'ไม่ระบุ') ?></div>
                                     </div>
                                 </div>
-
-                                <!-- User Info -->
-                                <div class="user-info-grid">
-                                    <?php
-                                    $userFields = [
-                                        ['employee', 'รหัสพนักงาน', 'employee_id', 'fa-id-card'],
-                                        ['user', 'ชื่อ-นามสกุล', ['requester_name', 'requester_lastname'], 'fa-user'],
-                                        ['position', 'ตำแหน่ง', 'position', 'fa-briefcase'],
-                                        ['department', 'หน่วยงาน', 'department', 'fa-building'],
-                                        ['phone', 'เบอร์โทร', 'phone', 'fa-phone'],
-                                        ['email', 'อีเมล', 'email', 'fa-envelope']
-                                    ];
-
-                                    foreach ($userFields as [$class, $label, $field, $icon]) {
-                                        $value = is_array($field)
-                                            ? htmlspecialchars($req[$field[0]] . ' ' . $req[$field[1]])
-                                            : htmlspecialchars($req[$field] ?? 'ไม่ระบุ');
-                                    ?>
-                                        <div class="info-item">
-                                            <div class="info-icon <?= $class ?>">
-                                                <i class="fas <?= $icon ?>"></i>
-                                            </div>
-                                            <div>
-                                                <small class="text-muted"><?= $label ?></small>
-                                                <div class="fw-bold"><?= $value ?></div>
-                                            </div>
-                                        </div>
-                                    <?php
-                                    }
-                                    ?>
-                                </div>
+                                <br>
 
                                 <!-- Development Details -->
                                 <?php if ($req['service_category'] === 'development'): ?>
                                     <div>
-                                        <h6 class="fw-bold text-info mb-3">
-                                            <i class="fas fa-code me-2"></i>ข้อมูล Development
-                                        </h6>
+                                        <h5 class="fw-bold text-dark mb-2">
+                                            หัวข้อ: <?= htmlspecialchars($req['title'] ?? '-') ?>
+                                        </h5>
                                         <div class="row">
                                             <?php
                                             $fields = [
@@ -769,58 +740,101 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                                 <!-- Expected Benefits -->
                                 <?php if ($req['expected_benefits']): ?>
-                                    <div>
-                                        <h6 class="fw-bold text-success mb-2">
-                                            <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
-                                        </h6>
+                                    <h6 class="fw-bold text-success mb-2">
+                                        <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
                                         <p class="mb-0"><?= nl2br(htmlspecialchars($req['expected_benefits'])) ?></p>
-                                    </div>
+                                    </h6>
                                 <?php endif; ?>
 
+
+                                <!-- Priority & Estimate -->
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <!-- Priority (ซ้าย) -->
+                                    <div>
+                                        <span class="priority-badge priority-<?= $req['priority_level'] ?>">
+                                            <i class="fas fa-exclamation-circle me-1"></i>
+                                            <?php
+                                            $priorities = [
+                                                'low' => 'ต่ำ',
+                                                'medium' => 'ปานกลาง',
+                                                'high' => 'สูง',
+                                                'urgent' => 'เร่งด่วน'
+                                            ];
+                                            echo $priorities[$req['priority_level']] ?? 'ปานกลาง';
+                                            ?>
+                                        </span>
+                                    </div>
+
+                                    <!-- Estimate Days (ขวา) -->
+                                    <?php if ($req['estimated_days']): ?>
+                                        <div class="estimate-info text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            ประมาณ <?= $req['estimated_days'] ?> วัน
+                                        </div>
+                                    <?php endif; ?>
+                                </div>
+
+
+                                <div>
+                                    <i class="fas fa-calendar me-1"></i>
+                                    วันที่ขอดำเนินเรื่อง: <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
+                                </div>
                                 <!-- Attachments -->
                                 <?php
                                 require_once __DIR__ . '/../includes/attachment_display.php';
                                 displayAttachments($req['id']);
                                 ?>
+                                <br>
+
+
+                                <div class="text-center mb-3">
+                                    <button class="btn btn-outline-primary" type="button"
+                                        data-bs-toggle="collapse" data-bs-target="#approvalTimeline"
+                                        aria-expanded="false" aria-controls="approvalTimeline">
+                                        <i class="fas fa-route me-2"></i> รายละเอียดขั้นตอนการอนุมัติ
+                                    </button>
+                                </div>
 
                                 <!-- Approval Timeline -->
-                                <div class="approval-timeline">
-                                    <h5 class="fw-bold mb-3">
-                                        <i class="fas fa-route me-2"></i>ขั้นตอนการอนุมัติที่ผ่านมา
-                                    </h5>
+                                <div class="collapse" id="approvalTimeline">
+                                    <div class="approval-timeline">
+                                        <h5 class="fw-bold mb-3">
+                                            <i class="fas fa-route me-2"></i>ขั้นตอนการอนุมัติที่ผ่านมา
+                                        </h5>
 
-                                    <!-- Manager Approval -->
-                                    <div class="timeline-step">
-                                        <div class="step-icon">
-                                            <i class="fas fa-check"></i>
-                                        </div>
-                                        <div class="step-content">
-                                            <div class="step-title">1. ผู้จัดการฝ่าย - อนุมัติแล้ว</div>
-                                            <div class="step-details">
-                                                <strong>โดย:</strong> <?= htmlspecialchars($req['div_mgr_name']) ?>
-                                                <?php if ($req['div_mgr_reason']): ?>
-                                                    <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($req['div_mgr_reason']) ?>
-                                                <?php endif; ?>
+                                        <!-- Manager Approval -->
+                                        <div class="timeline-step">
+                                            <div class="step-icon">
+                                                <i class="fas fa-check"></i>
+                                            </div>
+                                            <div class="step-content">
+                                                <div class="step-title">1. ผู้จัดการฝ่าย - อนุมัติแล้ว</div>
+                                                <div class="step-details">
+                                                    <strong>โดย:</strong> <?= htmlspecialchars($req['div_mgr_name']) ?>
+                                                    <?php if ($req['div_mgr_reason']): ?>
+                                                        <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($req['div_mgr_reason']) ?>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <!-- Department Approval -->
-                                    <div class="timeline-step">
-                                        <div class="step-icon">
-                                            <i class="fas fa-check"></i>
-                                        </div>
-                                        <div class="step-content">
-                                            <div class="step-title">2. ผู้จัดการแผนก - อนุมัติแล้ว</div>
-                                            <div class="step-details">
-                                                <strong>โดย:</strong> <?= htmlspecialchars($req['assignor_name']) ?>
-                                                <br><strong>มอบหมายให้ผู้พัฒนา:</strong> <?= htmlspecialchars($req['dev_name'] . ' ' . $req['dev_lastname']) ?>
-                                                <?php if (!empty($req['budget_approved'])): ?>
-                                                    <br><strong>งบประมาณที่ขอ:</strong> <?= htmlspecialchars($req['budget_approved']) ?>
-                                                <?php endif; ?>
-                                                <?php if ($req['assignor_reason']): ?>
-                                                    <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($req['assignor_reason']) ?>
-                                                <?php endif; ?>
+                                        <!-- Department Approval -->
+                                        <div class="timeline-step">
+                                            <div class="step-icon">
+                                                <i class="fas fa-check"></i>
+                                            </div>
+                                            <div class="step-content">
+                                                <div class="step-title">2. ผู้จัดการแผนก - อนุมัติแล้ว</div>
+                                                <div class="step-details">
+                                                    <strong>โดย:</strong> <?= htmlspecialchars($req['assignor_name']) ?>
+                                                    <br><strong>มอบหมายให้ผู้พัฒนา:</strong> <?= htmlspecialchars($req['dev_name'] . ' ' . $req['dev_lastname']) ?>
+                                                    <?php if (!empty($req['budget_approved'])): ?>
+                                                        <br><strong>งบประมาณที่ขอ:</strong> <?= htmlspecialchars($req['budget_approved']) ?>
+                                                    <?php endif; ?>
+                                                    <?php if ($req['assignor_reason']): ?>
+                                                        <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($req['assignor_reason']) ?>
+                                                    <?php endif; ?>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -839,7 +853,7 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </div>
 
                                 <div class="collapse mt-3" id="gmApprovalSection<?= $req['id'] ?>">
-                                    <div class="card card-body">
+                                    <div class="">
                                         <div class="gm-approval-content" data-request-id="<?= $req['id'] ?>">
                                             <div class="text-center text-muted py-3">
                                                 <i class="fas fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...
@@ -847,6 +861,8 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         </div>
                                     </div>
                                 </div>
+
+                                
 
 
                             </div>
@@ -861,21 +877,7 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 
-    <!-- <footer class="footer">
-        <div class="container-fluid d-flex justify-content-between">
-            <nav class="pull-left">
 
-            </nav>
-            <div class="copyright">
-                © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
-                <i class="fa fa-heart heart text-danger"></i>
-
-            </div>
-            <div>
-
-            </div>
-        </div>
-    </footer> -->
     </div>
     </div>
 
@@ -923,7 +925,7 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
         });
     </script>
 
-    
+
     <style>
         /* overlay ครอบทั้งหน้าตอนเมนูเปิด */
         .sidebar-overlay {

@@ -616,7 +616,7 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div class="container">
 
 
-                <div class="page-inner">
+                <div class="container">
                     <!-- Content -->
                     <div class="glass-card p-4">
                         <div class="d-flex align-items-center mb-4">
@@ -633,119 +633,98 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <?php else: ?>
                             <?php foreach ($requests as $req): ?>
                                 <div class="request-card">
-                                    <div class="d-flex justify-content-between align-items-start mb-3">
-                                        <div class="flex-grow-1">
-                                            <div class="request-title"><?= htmlspecialchars($req['title']) ?></div>
+                                    <div class="">
+                                        <!-- บรรทัดแรก: เลขที่เอกสาร + วันที่ -->
+                                        <div class="d-flex justify-content-between text-muted mb-2 flex-wrap">
 
-                                            <div class="d-flex gap-2 mb-2">
-
-                                                <?php if ($req['service_name']): ?>
-                                                    <span class="service-badge service-<?= $req['service_category'] ?>">
+                                            <div>
+                                                <?php if (!empty($req['service_name'])): ?>
+                                                    <div class="text-secondary">
                                                         <?php if ($req['service_category'] === 'development'): ?>
                                                             <i class="fas fa-code me-1"></i>
                                                         <?php else: ?>
                                                             <i class="fas fa-tools me-1"></i>
                                                         <?php endif; ?>
-                                                        <?= htmlspecialchars($req['service_name']) ?>
-                                                    </span>
+                                                        <strong>ประเภทคำขอ: <?= htmlspecialchars($req['service_name']) ?></strong>
+                                                    </div>
                                                 <?php endif; ?>
 
-
-
-                                            </div>
-                                            <div class="request-meta">
-                                                <i class="fas fa-calendar me-1"></i>
-                                                วันที่ส่ง: <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
-                                            </div>
-                                        </div>
-
-                                        <div class="text-end">
-                                            <span class="priority-badge priority-<?= $req['priority_level'] ?>">
-                                                <i class="fas fa-exclamation-circle me-1"></i>
-                                                <?php
-                                                $priorities = [
-                                                    'low' => 'ต่ำ',
-                                                    'medium' => 'ปานกลาง',
-                                                    'high' => 'สูง',
-                                                    'urgent' => 'เร่งด่วน'
-                                                ];
-                                                echo $priorities[$req['priority_level']] ?? 'ปานกลาง';
-                                                ?>
-                                            </span>
-
-                                            <?php if ($req['estimated_days']): ?>
-                                                <div class="estimate-info mt-2">
-                                                    <i class="fas fa-clock me-1"></i>
-                                                    ประมาณ <?= $req['estimated_days'] ?> วัน
+                                                <div>
+                                                    <i class="fas fa-calendar me-1"></i>
+                                                    วันที่ขอดำเนินเรื่อง: <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
                                                 </div>
-                                            <?php endif; ?>
+                                            </div>
 
+                                            
                                         </div>
+
+ <!-- Priority & Estimate -->
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <!-- Priority (ซ้าย) -->
+                                    <div>
+                                        <span class="priority-badge priority-<?= $req['priority_level'] ?>">
+                                            <i class="fas fa-exclamation-circle me-1"></i>
+                                            <?php
+                                            $priorities = [
+                                                'low' => 'ต่ำ',
+                                                'medium' => 'ปานกลาง',
+                                                'high' => 'สูง',
+                                                'urgent' => 'เร่งด่วน'
+                                            ];
+                                            echo $priorities[$req['priority_level']] ?? 'ปานกลาง';
+                                            ?>
+                                        </span>
                                     </div>
 
-                                    <!-- ข้อมูลผู้ขอ -->
-                                    <div class="user-info-grid">
-                                        <div class="info-item">
-                                            <div class="info-icon employee">
-                                                <i class="fas fa-id-card"></i>
-                                            </div>
-                                            <div>
-                                                <small class="text-muted">รหัสพนักงาน</small>
-                                                <div class="fw-bold"><?= htmlspecialchars($req['employee_id'] ?? 'ไม่ระบุ') ?></div>
-                                            </div>
+                                    <!-- Estimate Days (ขวา) -->
+                                    <?php if ($req['estimated_days']): ?>
+                                        <div class="estimate-info text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            ประมาณ <?= $req['estimated_days'] ?> วัน
                                         </div>
-                                        <div class="info-item">
-                                            <div class="info-icon user">
-                                                <i class="fas fa-user"></i>
-                                            </div>
-                                            <div>
-                                                <small class="text-muted">ชื่อ-นามสกุล</small>
-                                                <div class="fw-bold"><?= htmlspecialchars($req['requester_name'] . ' ' . $req['requester_lastname']) ?></div>
-                                            </div>
-                                        </div>
-                                        <div class="info-item">
-                                            <div class="info-icon position">
-                                                <i class="fas fa-briefcase"></i>
-                                            </div>
-                                            <div>
-                                                <small class="text-muted">ตำแหน่ง</small>
-                                                <div class="fw-bold"><?= htmlspecialchars($req['position'] ?? 'ไม่ระบุ') ?></div>
-                                            </div>
-                                        </div>
-                                        <div class="info-item">
-                                            <div class="info-icon department">
-                                                <i class="fas fa-building"></i>
-                                            </div>
-                                            <div>
-                                                <small class="text-muted">หน่วยงาน</small>
-                                                <div class="fw-bold"><?= htmlspecialchars($req['department'] ?? 'ไม่ระบุ') ?></div>
-                                            </div>
-                                        </div>
-                                        <div class="info-item">
-                                            <div class="info-icon phone">
-                                                <i class="fas fa-phone"></i>
-                                            </div>
-                                            <div>
-                                                <small class="text-muted">เบอร์โทร</small>
-                                                <div class="fw-bold"><?= htmlspecialchars($req['phone'] ?? 'ไม่ระบุ') ?></div>
-                                            </div>
-                                        </div>
-                                        <div class="info-item">
-                                            <div class="info-icon email">
-                                                <i class="fas fa-envelope"></i>
-                                            </div>
-                                            <div>
-                                                <small class="text-muted">อีเมล</small>
-                                                <div class="fw-bold"><?= htmlspecialchars($req['email'] ?? 'ไม่ระบุ') ?></div>
-                                            </div>
-                                        </div>
+                                    <?php endif; ?>
+                                </div>
                                     </div>
+
+                                     <h6 class="fw-bold text-info mb-3">
+                                    <i class=""></i>ข้อมูลผู้ขอ
+                                </h6>
+                                <!-- ข้อมูลผู้ขอ -->
+                                <div class="row g-3">
+                                    <div class="col-6">
+                                        <small class="text-muted">รหัสพนักงาน</small>
+                                        <div class="fw-bold"><?= htmlspecialchars($req['employee_id'] ?? 'ไม่ระบุ') ?></div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">ชื่อ-นามสกุล</small>
+                                        <div class="fw-bold"><?= htmlspecialchars($req['requester_name'] . ' ' . $req['requester_lastname']) ?></div>
+                                    </div>
+
+                                    <div class="col-6">
+                                        <small class="text-muted">ตำแหน่ง</small>
+                                        <div class="fw-bold"><?= htmlspecialchars($req['position'] ?? 'ไม่ระบุ') ?></div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">หน่วยงาน</small>
+                                        <div class="fw-bold"><?= htmlspecialchars($req['department'] ?? 'ไม่ระบุ') ?></div>
+                                    </div>
+
+                                    <div class="col-6">
+                                        <small class="text-muted">เบอร์โทร</small>
+                                        <div class="fw-bold"><?= htmlspecialchars($req['phone'] ?? 'ไม่ระบุ') ?></div>
+                                    </div>
+                                    <div class="col-6">
+                                        <small class="text-muted">อีเมล</small>
+                                        <div class="fw-bold"><?= htmlspecialchars($req['email'] ?? 'ไม่ระบุ') ?></div>
+                                    </div>
+                                </div>
+                                <br>
 
 
                                     <div class="action-buttons">
                                         <a href="senior_approve2.php?id=<?= $req['id'] ?>" class="btn-approve">
                                             <i class="fas fa-gavel"></i>
-                                            รายละเอียดเพิ่มเติม
+                                            กดเพื่อดูรายละเอียดเพิ่มเติม
                                         </a>
                                     </div>
                                 </div>
@@ -818,8 +797,8 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
         });
     </script>
 
-    
-  
+
+
     <style>
         /* overlay ครอบทั้งหน้าตอนเมนูเปิด */
         .sidebar-overlay {

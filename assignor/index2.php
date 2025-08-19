@@ -308,9 +308,9 @@ $recent_approvals = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
                   <div class="card-body">
                     <div class="row align-items-center">
                       <div class="col-icon">
-                        <div class="icon-big text-center icon-info bubble-shadow-small">
+                        <a href="view_requests2.php" class="icon-big text-center icon-info bubble-shadow-small d-block">
                           <i class="fas fa-hourglass-half"></i>
-                        </div>
+                        </a>
                       </div>
                       <div class="col col-stats ms-3 ms-sm-0">
                         <div class="numbers">
@@ -324,6 +324,7 @@ $recent_approvals = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
                   </div>
                 </div>
               </div>
+
 
               <div class="col-sm-6 col-md-3">
                 <div class="card card-stats card-round">
@@ -479,93 +480,93 @@ $recent_approvals = $recent_stmt->fetchAll(PDO::FETCH_ASSOC);
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
 
-  
-    <style>
-        /* overlay ครอบทั้งหน้าตอนเมนูเปิด */
-        .sidebar-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, .25);
-            z-index: 998;
-            /* ให้อยู่ใต้ sidebar นิดเดียว */
-            display: none;
-        }
 
-        .sidebar-overlay.show {
-            display: block;
-        }
-    </style>
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+  <style>
+    /* overlay ครอบทั้งหน้าตอนเมนูเปิด */
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .25);
+      z-index: 998;
+      /* ให้อยู่ใต้ sidebar นิดเดียว */
+      display: none;
+    }
 
-    <script>
-        (function() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
+    .sidebar-overlay.show {
+      display: block;
+    }
+  </style>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-            // ปุ่มที่ใช้เปิด/ปิดเมนู (ตามโค้ดคุณมีทั้งสองคลาส)
-            const toggleBtns = document.querySelectorAll('.toggle-sidebar, .sidenav-toggler');
+  <script>
+    (function() {
+      const sidebar = document.querySelector('.sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
 
-            // คลาสที่มักถูกเติมเมื่อ "เมนูเปิด" (เติมเพิ่มได้ถ้าโปรเจ็กต์คุณใช้ชื่ออื่น)
-            const OPEN_CLASSES = ['nav_open', 'toggled', 'show', 'active'];
+      // ปุ่มที่ใช้เปิด/ปิดเมนู (ตามโค้ดคุณมีทั้งสองคลาส)
+      const toggleBtns = document.querySelectorAll('.toggle-sidebar, .sidenav-toggler');
 
-            // helper: เช็คว่าเมนูถือว่า "เปิด" อยู่ไหม
-            function isSidebarOpen() {
-                if (!sidebar) return false;
-                // ถ้าบอดี้หรือไซด์บาร์มีคลาสในรายการนี้ตัวใดตัวหนึ่ง ให้ถือว่าเปิด
-                const openOnBody = OPEN_CLASSES.some(c => document.body.classList.contains(c) || document.documentElement.classList.contains(c));
-                const openOnSidebar = OPEN_CLASSES.some(c => sidebar.classList.contains(c));
-                return openOnBody || openOnSidebar;
+      // คลาสที่มักถูกเติมเมื่อ "เมนูเปิด" (เติมเพิ่มได้ถ้าโปรเจ็กต์คุณใช้ชื่ออื่น)
+      const OPEN_CLASSES = ['nav_open', 'toggled', 'show', 'active'];
+
+      // helper: เช็คว่าเมนูถือว่า "เปิด" อยู่ไหม
+      function isSidebarOpen() {
+        if (!sidebar) return false;
+        // ถ้าบอดี้หรือไซด์บาร์มีคลาสในรายการนี้ตัวใดตัวหนึ่ง ให้ถือว่าเปิด
+        const openOnBody = OPEN_CLASSES.some(c => document.body.classList.contains(c) || document.documentElement.classList.contains(c));
+        const openOnSidebar = OPEN_CLASSES.some(c => sidebar.classList.contains(c));
+        return openOnBody || openOnSidebar;
+      }
+
+      // helper: สั่งปิดเมนูแบบไม่ผูกกับไส้ในธีมมากนัก
+      function closeSidebar() {
+        // เอาคลาสเปิดออกจาก body/html และ sidebar (กันเหนียว)
+        OPEN_CLASSES.forEach(c => {
+          document.body.classList.remove(c);
+          document.documentElement.classList.remove(c);
+          sidebar && sidebar.classList.remove(c);
+        });
+        overlay?.classList.remove('show');
+      }
+
+      // เมื่อกดปุ่ม toggle: ถ้าเปิดแล้วให้โชว์ overlay / ถ้าปิดก็ซ่อน
+      toggleBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          // หน่วงนิดให้ธีมสลับคลาสเสร็จก่อน
+          setTimeout(() => {
+            if (isSidebarOpen()) {
+              overlay?.classList.add('show');
+            } else {
+              overlay?.classList.remove('show');
             }
+          }, 10);
+        });
+      });
 
-            // helper: สั่งปิดเมนูแบบไม่ผูกกับไส้ในธีมมากนัก
-            function closeSidebar() {
-                // เอาคลาสเปิดออกจาก body/html และ sidebar (กันเหนียว)
-                OPEN_CLASSES.forEach(c => {
-                    document.body.classList.remove(c);
-                    document.documentElement.classList.remove(c);
-                    sidebar && sidebar.classList.remove(c);
-                });
-                overlay?.classList.remove('show');
-            }
+      // คลิกที่ overlay = ปิดเมนู
+      overlay?.addEventListener('click', () => {
+        closeSidebar();
+      });
 
-            // เมื่อกดปุ่ม toggle: ถ้าเปิดแล้วให้โชว์ overlay / ถ้าปิดก็ซ่อน
-            toggleBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // หน่วงนิดให้ธีมสลับคลาสเสร็จก่อน
-                    setTimeout(() => {
-                        if (isSidebarOpen()) {
-                            overlay?.classList.add('show');
-                        } else {
-                            overlay?.classList.remove('show');
-                        }
-                    }, 10);
-                });
-            });
+      // คลิกที่ใดก็ได้บนหน้า: ถ้านอก sidebar + นอกปุ่ม toggle และขณะ mobile → ปิดเมนู
+      document.addEventListener('click', (e) => {
+        // จำกัดเฉพาะจอเล็ก (คุณจะปรับ breakpoint เองก็ได้)
+        if (window.innerWidth > 991) return;
 
-            // คลิกที่ overlay = ปิดเมนู
-            overlay?.addEventListener('click', () => {
-                closeSidebar();
-            });
+        const clickedInsideSidebar = e.target.closest('.sidebar');
+        const clickedToggle = e.target.closest('.toggle-sidebar, .sidenav-toggler');
 
-            // คลิกที่ใดก็ได้บนหน้า: ถ้านอก sidebar + นอกปุ่ม toggle และขณะ mobile → ปิดเมนู
-            document.addEventListener('click', (e) => {
-                // จำกัดเฉพาะจอเล็ก (คุณจะปรับ breakpoint เองก็ได้)
-                if (window.innerWidth > 991) return;
+        if (!clickedInsideSidebar && !clickedToggle && isSidebarOpen()) {
+          closeSidebar();
+        }
+      });
 
-                const clickedInsideSidebar = e.target.closest('.sidebar');
-                const clickedToggle = e.target.closest('.toggle-sidebar, .sidenav-toggler');
-
-                if (!clickedInsideSidebar && !clickedToggle && isSidebarOpen()) {
-                    closeSidebar();
-                }
-            });
-
-            // ปิดเมนูอัตโนมัติเมื่อ resize จากจอเล็กไปจอใหญ่ (กันค้าง)
-            window.addEventListener('resize', () => {
-                if (window.innerWidth > 991) closeSidebar();
-            });
-        })();
-    </script>
+      // ปิดเมนูอัตโนมัติเมื่อ resize จากจอเล็กไปจอใหญ่ (กันค้าง)
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 991) closeSidebar();
+      });
+    })();
+  </script>
 </body>
 
 </html>

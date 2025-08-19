@@ -244,83 +244,84 @@ if ($status === 'approved') {
     <div class="container py-4">
 
         <div class="card shadow-sm">
-            <div class="card-header bg-primary text-white">
-                <h4 class="mb-0"><i class="fas fa-clipboard-check me-2"></i> อนุมัติคำขอ</h4>
-            </div>
-            <div class="card-body">
-                <?php if (!empty($error)): ?>
-                    <div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-1"></i> <?= htmlspecialchars($error) ?></div>
-                <?php endif; ?>
-                <div class="row g-3">
-                    <input type="hidden" name="requester_name" value="<?= htmlspecialchars($data['requester_name']) ?>">
-                    <input type="hidden" name="requester_lastname" value="<?= htmlspecialchars($data['requester_lastname']) ?>">
-                    <input type="hidden" name="employee_id" value="<?= htmlspecialchars($data['employee_id'] ?? '-') ?>">
-                    <input type="hidden" name="position" value="<?= htmlspecialchars($data['position'] ?? '-') ?>">
-                    <input type="hidden" name="department" value="<?= htmlspecialchars($data['department'] ?? '-') ?>">
-                    <input type="hidden" name="phone" value="<?= htmlspecialchars($data['phone'] ?? '-') ?>">
-                    <input type="hidden" name="title" value="<?= htmlspecialchars($data['title']) ?>">
-                    <input type="hidden" name="description" value="<?= htmlspecialchars($data['description']) ?>">
-                    <?php if ($data['expected_benefits']): ?>
-                        <input type="hidden" name="expected_benefits" value="<?= htmlspecialchars($data['expected_benefits']) ?>">
-                    <?php endif; ?>
-                    <input type="hidden" name="dev_name" value="<?= htmlspecialchars($data['dev_name']) ?>">
-                    <input type="hidden" name="dev_lastname" value="<?= htmlspecialchars($data['dev_lastname']) ?>">
-                    <input type="hidden" name="priority_level" value="<?= htmlspecialchars($data['priority_level']) ?>">
-                    <?php if ($data['estimated_days']): ?>
-                        <input type="hidden" name="estimated_days" value="<?= $data['estimated_days'] ?>">
-                    <?php endif; ?>
-                    <input type="hidden" name="created_at" value="<?= htmlspecialchars($data['created_at']) ?>">
+         
+            <div class="card shadow-sm border-0 rounded-3">
+  <div class="card-body">
+    <form method="post" action="gm_approve.php?id=<?= $request_id ?>" class="approval-form">
 
-                </div>
+      <!-- ผลการพิจารณา -->
+      <div class="mb-3">
+      
+        <div class="d-flex gap-4 mt-2">
+          <div class="form-check">
+            <input type="radio" id="approve" name="status" value="approved" class="form-check-input" required>
+            <label for="approve" class="form-check-label text-success fw-bold">
+              <i class="fas fa-check-circle me-1"></i> อนุมัติ
+            </label>
+          </div>
+          <div class="form-check">
+            <input type="radio" id="reject" name="status" value="rejected" class="form-check-input" required>
+            <label for="reject" class="form-check-label text-danger fw-bold">
+              <i class="fas fa-times-circle me-1"></i> ไม่อนุมัติ
+            </label>
+          </div>
+        </div>
+      </div>
 
-                <hr>
-              
-                <form method="post" action="gm_approve.php?id=<?= $request_id ?>" class="approval-form">
+      <!-- เหตุผล -->
+      <div class="mb-3">
+        <label class="form-label fw-bold"><i class="fas fa-comment-dots me-2 text-secondary"></i> เหตุผล/ข้อเสนอแนะ</label>
+        <textarea name="reason" id="reason" class="form-control" rows="3" placeholder="กรอกเหตุผลหรือข้อเสนอแนะ..."></textarea>
+      </div>
 
-                    <div class="col-12">
-                        <label class="form-label">ผลการพิจารณา</label>
-                        <div class="d-flex gap-3">
-                            <div>
-                                <input type="radio" id="approve" name="status" value="approved" required>
-                                <label for="approve" class="text-success fw-bold"><i class="fas fa-check-circle me-1"></i> อนุมัติ</label>
-                            </div>
-                            <div>
-                                <input type="radio" id="reject" name="status" value="rejected" required>
-                                <label for="reject" class="text-danger fw-bold"><i class="fas fa-times-circle me-1"></i> ไม่อนุมัติ</label>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- <div class="col-md-6">
-                        <label class="form-label">งบประมาณที่อนุมัติ (บาท)</label>
-                        <input type="number" name="budget_approved" id="budget_approved" class="form-control" min="0" step="0.01" placeholder="ระบุงบประมาณ (ถ้ามี)">
-                    </div> -->
-                    <div class="col-12">
-                        <label class="form-label">เหตุผล/ข้อเสนอแนะ</label>
-                        <textarea name="reason" id="reason" class="form-control" rows="3"></textarea>
-                    </div>
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane me-1"></i> ส่งผลการพิจารณา</button>
-                    </div>
-                </form>
-            </div>
+      <!-- ปุ่มส่ง -->
+      <div class="d-flex justify-content-center">
+        <button type="submit" class="btn btn-primary btn-lg w-100">
+          <i class="fas fa-paper-plane me-2"></i> ส่งผลการพิจารณา
+        </button>
+      </div>
+
+    </form>
+  </div>
+</div>
+
         </div>
     </div>
-    <script>
-        document.querySelectorAll('input[name="status"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                const reason = document.getElementById('reason');
-                const budget = document.getElementById('budget_approved');
-                if (this.value === 'rejected') {
-                    reason.required = true;
+    
+
+</body>
+<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+   <script>
+    // เช็คสถานะ (อนุมัติ / ไม่อนุมัติ)
+    document.querySelectorAll('input[name="status"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const reason = document.getElementById('reason');
+            const budget = document.getElementById('budget_approved');
+            if (this.value === 'rejected') {
+                reason.required = true;
+                if (budget) {
                     budget.disabled = true;
                     budget.value = '';
-                } else {
-                    reason.required = false;
+                }
+            } else {
+                reason.required = false;
+                if (budget) {
                     budget.disabled = false;
                 }
-            });
+            }
         });
-    </script>
-</body>
+    });
 
+    // SweetAlert (เมื่อกดปุ่มที่มี id="alert_demo_3_3")
+    $("#alert_demo_3_3").click(function(e) {
+        swal("Good job!", "ขอบคุณที่ใช้บริการ BobbyCare ", {
+            icon: "success",
+            buttons: {
+                confirm: {
+                    className: "btn btn-success",
+                },
+            },
+        });
+    });
+</script>
 </html>

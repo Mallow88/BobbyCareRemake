@@ -35,96 +35,97 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // ฟังก์ชันส่งข้อความเข้า LINE Official Account
 
-function sendLinePushFlex($toUserId, $req) {
-     $access_token = "hAfRJZ7KyjncT3I2IB6UhHqU/DmP1qPxW2PbeDE7KtUUveyiSKgLvJxrahWyrFUmlrta4MAnw8V3QRr5b7LwoKYh4hv1ATfX8yrJOMFQ+zdQxm3rScAAGNaJTEN1mJxHN93jHbqLoK8dQ080ja5BFAdB04t89/1O/w1cDnyilFU="; // ใส่ Channel access token (long-lived)
+function sendLinePushFlex($toUserId, $req)
+{
+  $access_token = "hAfRJZ7KyjncT3I2IB6UhHqU/DmP1qPxW2PbeDE7KtUUveyiSKgLvJxrahWyrFUmlrta4MAnw8V3QRr5b7LwoKYh4hv1ATfX8yrJOMFQ+zdQxm3rScAAGNaJTEN1mJxHN93jHbqLoK8dQ080ja5BFAdB04t89/1O/w1cDnyilFU="; // ใส่ Channel access token (long-lived)
 
-    $url = "https://api.line.me/v2/bot/message/push";
+  $url = "https://api.line.me/v2/bot/message/push";
 
-    $bubble = [
-        "type" => "bubble",
-        "size" => "mega",
-        "header" => [
-            "type" => "box",
-            "layout" => "vertical",
-            "contents" => [
-                [
-                    "type" => "text",
-                    "text" => "📑 เอกสารใหม่",
-                    "weight" => "bold",
-                    "size" => "lg",
-                    "align" => "center",
-                    "color" => "#ffffffff" 
-                ],
-                [
-                    "type" => "text",
-                    "text" => $req['document_number'] ?? "-",
-                    "size" => "md",
-                    "align" => "center",
-                    "color" => "#FFFFFF",
-                    "margin" => "md"
-                ]
-            ],
-         "backgroundColor" => "#5677fc", 
-            "paddingAll" => "20px"
+  $bubble = [
+    "type" => "bubble",
+    "size" => "mega",
+    "header" => [
+      "type" => "box",
+      "layout" => "vertical",
+      "contents" => [
+        [
+          "type" => "text",
+          "text" => "📑 เอกสารใหม่",
+          "weight" => "bold",
+          "size" => "lg",
+          "align" => "center",
+          "color" => "#ffffffff"
         ],
-        "body" => [
-            "type" => "box",
-            "layout" => "vertical",
-            "spacing" => "md",
-            "contents" => [
-                ["type" => "text", "text" => "📌 เรื่อง: {$req['title']}", "wrap" => true, "weight" => "bold", "size" => "sm", "color" => "#333333"],
-                ["type" => "text", "text" => "📝 {$req['description']}", "wrap" => true, "size" => "sm", "color" => "#666666"],
-                ["type" => "text", "text" => "✨ ประโยชน์: {$req['expected_benefits']}", "wrap" => true, "size" => "sm", "color" => "#32CD32"],
-                ["type" => "separator", "margin" => "md"],
-                ["type" => "text", "text" => "ผู้ขอบริการ : {$req['name']} {$req['lastname']}", "size" => "sm", "color" => "#000000"],
-                ["type" => "text", "text" => "🆔 {$req['employee_id']} | 🏢 {$req['department']}", "size" => "sm", "color" => "#444444"]
-            ]
-        ],
-        "footer" => [
-            "type" => "box",
-            "layout" => "vertical",
-            "contents" => [
-                [
-                    "type" => "button",
-                    "style" => "primary",
-                    "color" => "#d0d9ff",
-                    "action" => [
-                        "type" => "uri",
-                        "label" => "🔎 ดูรายละเอียด",
-                        "uri" => "http://yourdomain/index2.php?id={$req['request_id']}"
-                    ]
-                ]
-            ],
-              "backgroundColor" => "#5677fc"
+        [
+          "type" => "text",
+          "text" => $req['document_number'] ?? "-",
+          "size" => "md",
+          "align" => "center",
+          "color" => "#FFFFFF",
+          "margin" => "md"
         ]
-    ];
+      ],
+      "backgroundColor" => "#5677fc",
+      "paddingAll" => "20px"
+    ],
+    "body" => [
+      "type" => "box",
+      "layout" => "vertical",
+      "spacing" => "md",
+      "contents" => [
+        ["type" => "text", "text" => "📌 เรื่อง: {$req['title']}", "wrap" => true, "weight" => "bold", "size" => "sm", "color" => "#333333"],
+        ["type" => "text", "text" => "📝 {$req['description']}", "wrap" => true, "size" => "sm", "color" => "#666666"],
+        ["type" => "text", "text" => "✨ ประโยชน์: {$req['expected_benefits']}", "wrap" => true, "size" => "sm", "color" => "#32CD32"],
+        ["type" => "separator", "margin" => "md"],
+        ["type" => "text", "text" => "ผู้ขอบริการ : {$req['name']} {$req['lastname']}", "size" => "sm", "color" => "#000000"],
+        ["type" => "text", "text" => "🆔 {$req['employee_id']} | 🏢 {$req['department']}", "size" => "sm", "color" => "#444444"]
+      ]
+    ],
+    "footer" => [
+      "type" => "box",
+      "layout" => "vertical",
+      "contents" => [
+        [
+          "type" => "button",
+          "style" => "primary",
+          "color" => "#d0d9ff",
+          "action" => [
+            "type" => "uri",
+            "label" => "🔎 ดูรายละเอียด",
+            "uri" => "http://yourdomain/index2.php?id={$req['request_id']}"
+          ]
+        ]
+      ],
+      "backgroundColor" => "#5677fc"
+    ]
+  ];
 
-    $flexMessage = [
-        "type" => "flex",
-        "altText" => "📑 มีคำขอเอกสารใหม่",
-        "contents" => $bubble
-    ];
+  $flexMessage = [
+    "type" => "flex",
+    "altText" => "📑 มีคำขอเอกสารใหม่",
+    "contents" => $bubble
+  ];
 
-    $data = [
-        "to" => $toUserId,
-        "messages" => [$flexMessage]
-    ];
+  $data = [
+    "to" => $toUserId,
+    "messages" => [$flexMessage]
+  ];
 
-    $post = json_encode($data, JSON_UNESCAPED_UNICODE);
-    $headers = [
-        'Content-Type: application/json',
-        'Authorization: Bearer ' . $access_token
-    ];
+  $post = json_encode($data, JSON_UNESCAPED_UNICODE);
+  $headers = [
+    'Content-Type: application/json',
+    'Authorization: Bearer ' . $access_token
+  ];
 
-    $ch = curl_init($url);
-    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    $result = curl_exec($ch);
-    curl_close($ch);
+  $ch = curl_init($url);
+  curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+  curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+  $result = curl_exec($ch);
+  curl_close($ch);
 
-    return $result;
+  return $result;
 }
 
 
@@ -170,10 +171,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       $conn->commit();
 
 
- // === ส่งแจ้งเตือน LINE Official Account ไปยัง Assignor + Developer ===
+      // === ส่งแจ้งเตือน LINE Official Account ไปยัง Assignor + Developer ===
 
-// ดึงข้อมูล service request + user ที่สร้าง
-$req_stmt = $conn->prepare("
+      // ดึงข้อมูล service request + user ที่สร้าง
+      $req_stmt = $conn->prepare("
     SELECT sr.title, sr.description, sr.expected_benefits, dn.document_number,
            u.name, u.lastname, u.employee_id, u.department
     FROM service_requests sr
@@ -181,59 +182,56 @@ $req_stmt = $conn->prepare("
     LEFT JOIN document_numbers dn ON sr.id = dn.service_request_id
     WHERE sr.id = ?
 ");
-$req_stmt->execute([$request_id]);
-$req = $req_stmt->fetch(PDO::FETCH_ASSOC);
+      $req_stmt->execute([$request_id]);
+      $req = $req_stmt->fetch(PDO::FETCH_ASSOC);
 
-if ($req) {
-    $title = $req['title'] ?? '-';
-    $description = $req['description'] ?? '-';
-    $expected_benefits = $req['expected_benefits'] ?? '-';
-    $document_number = $req['document_number'] ?? '-';
-    $user_name = $req['name'] ?? '';
-    $user_lastname = $req['lastname'] ?? '';
-    $employee_id = $req['employee_id'] ?? '';
-    $department = $req['department'] ?? '';
+      if ($req) {
+        $title = $req['title'] ?? '-';
+        $description = $req['description'] ?? '-';
+        $expected_benefits = $req['expected_benefits'] ?? '-';
+        $document_number = $req['document_number'] ?? '-';
+        $user_name = $req['name'] ?? '';
+        $user_lastname = $req['lastname'] ?? '';
+        $employee_id = $req['employee_id'] ?? '';
+        $department = $req['department'] ?? '';
 
-    $payload = [
-        'document_number'   => $document_number,
-        'title'             => $title,
-        'description'       => $description,
-        'expected_benefits' => $expected_benefits,
-        'name'              => $user_name,
-        'lastname'          => $user_lastname,
-        'employee_id'       => $employee_id,
-        'department'        => $department,
-        'request_id'        => $request_id
-    ];
+        $payload = [
+          'document_number'   => $document_number,
+          'title'             => $title,
+          'description'       => $description,
+          'expected_benefits' => $expected_benefits,
+          'name'              => $user_name,
+          'lastname'          => $user_lastname,
+          'employee_id'       => $employee_id,
+          'department'        => $department,
+          'request_id'        => $request_id
+        ];
 
-    // --- ส่งหา Assignor ---
-    $assignor_stmt = $conn->prepare("SELECT line_id FROM users WHERE role = 'assignor' AND is_active = 1");
-    $assignor_stmt->execute();
-    $assignors = $assignor_stmt->fetchAll(PDO::FETCH_ASSOC);
+        // --- ส่งหา Assignor ---
+        $assignor_stmt = $conn->prepare("SELECT line_id FROM users WHERE role = 'assignor' AND is_active = 1");
+        $assignor_stmt->execute();
+        $assignors = $assignor_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    foreach ($assignors as $assignor) {
-        if (!empty($assignor['line_id'])) {
+        foreach ($assignors as $assignor) {
+          if (!empty($assignor['line_id'])) {
             sendLinePushFlex($assignor['line_id'], $payload);
+          }
         }
-    }
 
-    // --- ส่งหา Developer ---
-    $dev_stmt = $conn->prepare("SELECT line_id FROM users WHERE role = 'developer' AND is_active = 1");
-    $dev_stmt->execute();
-    $developers = $dev_stmt->fetchAll(PDO::FETCH_ASSOC);
+        // --- ส่งหา Developer ---
+        $dev_stmt = $conn->prepare("SELECT line_id FROM users WHERE role = 'developer' AND is_active = 1");
+        $dev_stmt->execute();
+        $developers = $dev_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    foreach ($developers as $dev) {
-        if (!empty($dev['line_id'])) {
+        foreach ($developers as $dev) {
+          if (!empty($dev['line_id'])) {
             sendLinePushFlex($dev['line_id'], $payload);
+          }
         }
-    }
-}
+      }
 
-header("Location: index2.php");
-exit();
-
-
-
+      header("Location: index2.php");
+      exit();
     } catch (Exception $e) {
       $conn->rollBack();
       $error = "เกิดข้อผิดพลาด: " . $e->getMessage();
@@ -594,23 +592,7 @@ exit();
               <h4 class="text-section">Components</h4>
             </li>
 
-            <!-- <li class="nav-item ">
-              <a href="create2.php">
-                <i class="fas fa-plus-circle"></i>
-                <p>ประวัติการอนุมัติ</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li> -->
 
-
-
-            <!-- <li class="nav-item">
-              <a href="../profile.php">
-                <i class="fas fa-user"></i>
-                <p>โปรไฟล์</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li> -->
 
             <li class="nav-item">
               <a href="../logout.php">
@@ -665,30 +647,6 @@ exit();
                     <span class="fw-bold"><?= htmlspecialchars($_SESSION['name']) ?></span>
                   </span>
                 </a>
-
-                <!-- <ul class="dropdown-menu dropdown-user animated fadeIn">
-                  <div class="dropdown-user-scroll scrollbar-outer">
-                    <li>
-                      <div class="user-box">
-                        <div class="avatar-lg">
-                          <img src="../assets/img/profile.jpg" alt="image profile" class="avatar-img rounded" />
-                        </div>
-                        <div class="u-text">
-                          <h4>Hizrian</h4>
-                          <p class="text-muted">hello@example.com</p>
-                          <a href="profile.html" class="btn btn-xs btn-secondary btn-sm">View Profile</a>
-                        </div>
-                      </div>
-                    </li>
-                    <li>
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="#">My Profile</a>
-                    
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="#">Logout</a>
-                    </li>
-                  </div>
-                </ul> -->
               </li>
 
 
@@ -734,110 +692,85 @@ exit();
             <?php else: ?>
               <?php foreach ($requests as $req): ?>
                 <div class="request-card">
-                  <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="flex-grow-1">
+                  <div class="">
+                    <!-- บรรทัดแรก: เลขที่เอกสาร + วันที่ -->
+                    <div class="d-flex justify-content-between text-muted mb-2 flex-wrap">
 
-                      <!-- ข้อมูลเลขที่เอกสาร -->
-                      <?php if (!empty($req['document_number'])): ?>
-                        <div class="text-muted mb-2">
-                          <i class="fas fa-file-alt me-1"></i> เลขที่เอกสาร: <?= htmlspecialchars($req['document_number']) ?>
-                        </div>
-                        <!-- ส่งค่า document_number ไปใน form ด้วย -->
-                        <input type="hidden" name="document_number" value="<?= htmlspecialchars($req['document_number']) ?>">
-                      <?php endif; ?>
-
-
-                      <!-- หัวข้อ -->
-                      <div class="request-title">หัวข้อ : <?= htmlspecialchars($req['title']) ?></div>
-
-                      <!-- ประเภทบริการ -->
-                      <div class="d-flex gap-2 mb-2">
-                        <?php if ($req['service_name']): ?>
-                          <span class="service-badge service-<?= $req['service_category'] ?>">
+                      <div>
+                        <?php if (!empty($req['service_name'])): ?>
+                          <div class="text-secondary">
                             <?php if ($req['service_category'] === 'development'): ?>
                               <i class="fas fa-code me-1"></i>
                             <?php else: ?>
                               <i class="fas fa-tools me-1"></i>
                             <?php endif; ?>
-                            ประเภทคำขอ : <?= htmlspecialchars($req['service_name']) ?>
-                          </span>
+                            <strong>ประเภทคำขอ: <?= htmlspecialchars($req['service_name']) ?></strong>
+                          </div>
                         <?php endif; ?>
+
+
+                        <span class="me-3">
+                          <i class="fas fa-file-alt me-1"></i>
+                          เลขที่: <?= htmlspecialchars($req['document_number'] ?? '-') ?>
+                        </span>
                       </div>
 
 
                     </div>
-                    <!-- เอกสารสร้างเมื่อ -->
-                     <div class="text-muted">
-                                <i class="fas fa-calendar me-1"></i>
-                                วันที่ขอดำเนินเรื่อง: <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
-                            </div>
+
+
+
+
                   </div>
 
+
+                  <h6 class="fw-bold text-info mb-3">
+                    <i class=""></i>ข้อมูลผู้ขอ
+                  </h6>
                   <!-- ข้อมูลผู้ขอ -->
-                  <div class="user-info-grid">
-                    <div class="info-item">
-                      <div class="info-icon employee">
-                        <i class="fas fa-id-card"></i>
-                      </div>
-                      <div>
-                        <small class="text-muted">รหัสพนักงาน</small>
-                        <div class="fw-bold"><?= htmlspecialchars($req['employee_id'] ?? 'ไม่ระบุ') ?></div>
-                      </div>
+                  <div class="row g-3">
+                    <div class="col-6">
+                      <small class="text-muted">รหัสพนักงาน</small>
+                      <div class="fw-bold"><?= htmlspecialchars($req['employee_id'] ?? 'ไม่ระบุ') ?></div>
                     </div>
-                    <div class="info-item">
-                      <div class="info-icon user">
-                        <i class="fas fa-user"></i>
-                      </div>
-                      <div>
-                        <small class="text-muted">ชื่อ-นามสกุล</small>
-                        <div class="fw-bold"><?= htmlspecialchars($req['name'] . ' ' . $req['lastname']) ?></div>
-                      </div>
+                    <div class="col-6">
+                      <small class="text-muted">ชื่อ-นามสกุล</small>
+                      <div class="fw-bold"><?= htmlspecialchars($req['name'] . ' ' . $req['lastname']) ?></div>
                     </div>
-                    <div class="info-item">
-                      <div class="info-icon position">
-                        <i class="fas fa-briefcase"></i>
-                      </div>
-                      <div>
-                        <small class="text-muted">ตำแหน่ง</small>
-                        <div class="fw-bold"><?= htmlspecialchars($req['position'] ?? 'ไม่ระบุ') ?></div>
-                      </div>
+
+                    <div class="col-6">
+                      <small class="text-muted">ตำแหน่ง</small>
+                      <div class="fw-bold"><?= htmlspecialchars($req['position'] ?? 'ไม่ระบุ') ?></div>
                     </div>
-                    <div class="info-item">
-                      <div class="info-icon department">
-                        <i class="fas fa-building"></i>
-                      </div>
-                      <div>
-                        <small class="text-muted">หน่วยงาน</small>
-                        <div class="fw-bold"><?= htmlspecialchars($req['department'] ?? 'ไม่ระบุ') ?></div>
-                      </div>
+                    <div class="col-6">
+                      <small class="text-muted">หน่วยงาน</small>
+                      <div class="fw-bold"><?= htmlspecialchars($req['department'] ?? 'ไม่ระบุ') ?></div>
                     </div>
-                    <div class="info-item">
-                      <div class="info-icon phone">
-                        <i class="fas fa-phone"></i>
-                      </div>
-                      <div>
-                        <small class="text-muted">เบอร์โทร</small>
-                        <div class="fw-bold"><?= htmlspecialchars($req['phone'] ?? 'ไม่ระบุ') ?></div>
-                      </div>
+
+                    <div class="col-6">
+                      <small class="text-muted">เบอร์โทร</small>
+                      <div class="fw-bold"><?= htmlspecialchars($req['phone'] ?? 'ไม่ระบุ') ?></div>
                     </div>
-                    <div class="info-item">
-                      <div class="info-icon email">
-                        <i class="fas fa-envelope"></i>
-                      </div>
-                      <div>
-                        <small class="text-muted">อีเมล</small>
-                        <div class="fw-bold"><?= htmlspecialchars($req['email'] ?? 'ไม่ระบุ') ?></div>
-                      </div>
+                    <div class="col-6">
+                      <small class="text-muted">อีเมล</small>
+                      <div class="fw-bold"><?= htmlspecialchars($req['email'] ?? 'ไม่ระบุ') ?></div>
                     </div>
                   </div>
+                  <br>
 
 
                   <?php if ($req['service_category'] === 'development'): ?>
 
 
-                    <h6 class="fw-bold text-info mb-3">
+                    <!-- <h6 class="fw-bold text-info mb-3">
                       <i class="fas fa-code me-2"></i>ข้อมูล Development
-                    </h6>
+                    </h6> -->
+
+                    <h5 class="fw-bold text-dark mb-2">
+                      หัวข้อ: <?= htmlspecialchars($req['title'] ?? '-') ?>
+                    </h5>
+
+
                     <div class="row">
                       <?php
                       $fields = [
@@ -882,17 +815,20 @@ exit();
 
                     </div>
                   <?php endif; ?>
-                  
+
                   <?php if ($req['expected_benefits']): ?>
 
                     <h6 class="fw-bold text-success mb-2">
                       <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+                       <p class="mb-0"><?= nl2br(htmlspecialchars($req['expected_benefits'])) ?></p>
                     </h6>
-                    <p class="mb-0"><?= nl2br(htmlspecialchars($req['expected_benefits'])) ?></p>
 
                   <?php endif; ?>
 
-
+                  <div>
+                    <i class="fas fa-calendar me-1"></i>
+                    วันที่ขอดำเนินเรื่อง: <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
+                  </div>
 
                   <?php if ($req['attachment_count'] > 0): ?>
                     <div class="mt-3">
@@ -916,7 +852,7 @@ exit();
 
                     <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
 
-                    
+
                     <h5 class="fw-bold mb-3">
                       <i class="fas fa-gavel me-2"></i>การพิจารณา
                     </h5>
@@ -1023,94 +959,119 @@ exit();
     });
   </script>
 
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
+<script>
+  document.querySelectorAll(".approval-form").forEach(form => {
+    form.addEventListener("submit", function(e) {
+      e.preventDefault(); // กันไม่ให้ฟอร์ม submit ทันที
 
-    <style>
-        /* overlay ครอบทั้งหน้าตอนเมนูเปิด */
-        .sidebar-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, .25);
-            z-index: 998;
-            /* ให้อยู่ใต้ sidebar นิดเดียว */
-            display: none;
+      swal("Good job!", "ขอบคุณที่ใช้บริการ BobbyCare", {
+        icon: "success",
+        buttons: {
+          confirm: {
+            text: "ตกลง",
+            className: "btn btn-success",
+          },
+        },
+      }).then((willSubmit) => {
+        if (willSubmit) {
+          form.submit(); // ส่งฟอร์มจริงเมื่อกด ตกลง
         }
+      });
+    });
+  });
+</script>
 
-        .sidebar-overlay.show {
-            display: block;
+
+
+
+  <style>
+    /* overlay ครอบทั้งหน้าตอนเมนูเปิด */
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .25);
+      z-index: 998;
+      /* ให้อยู่ใต้ sidebar นิดเดียว */
+      display: none;
+    }
+
+    .sidebar-overlay.show {
+      display: block;
+    }
+  </style>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <script>
+    (function() {
+      const sidebar = document.querySelector('.sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+
+      // ปุ่มที่ใช้เปิด/ปิดเมนู (ตามโค้ดคุณมีทั้งสองคลาส)
+      const toggleBtns = document.querySelectorAll('.toggle-sidebar, .sidenav-toggler');
+
+      // คลาสที่มักถูกเติมเมื่อ "เมนูเปิด" (เติมเพิ่มได้ถ้าโปรเจ็กต์คุณใช้ชื่ออื่น)
+      const OPEN_CLASSES = ['nav_open', 'toggled', 'show', 'active'];
+
+      // helper: เช็คว่าเมนูถือว่า "เปิด" อยู่ไหม
+      function isSidebarOpen() {
+        if (!sidebar) return false;
+        // ถ้าบอดี้หรือไซด์บาร์มีคลาสในรายการนี้ตัวใดตัวหนึ่ง ให้ถือว่าเปิด
+        const openOnBody = OPEN_CLASSES.some(c => document.body.classList.contains(c) || document.documentElement.classList.contains(c));
+        const openOnSidebar = OPEN_CLASSES.some(c => sidebar.classList.contains(c));
+        return openOnBody || openOnSidebar;
+      }
+
+      // helper: สั่งปิดเมนูแบบไม่ผูกกับไส้ในธีมมากนัก
+      function closeSidebar() {
+        // เอาคลาสเปิดออกจาก body/html และ sidebar (กันเหนียว)
+        OPEN_CLASSES.forEach(c => {
+          document.body.classList.remove(c);
+          document.documentElement.classList.remove(c);
+          sidebar && sidebar.classList.remove(c);
+        });
+        overlay?.classList.remove('show');
+      }
+
+      // เมื่อกดปุ่ม toggle: ถ้าเปิดแล้วให้โชว์ overlay / ถ้าปิดก็ซ่อน
+      toggleBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          // หน่วงนิดให้ธีมสลับคลาสเสร็จก่อน
+          setTimeout(() => {
+            if (isSidebarOpen()) {
+              overlay?.classList.add('show');
+            } else {
+              overlay?.classList.remove('show');
+            }
+          }, 10);
+        });
+      });
+
+      // คลิกที่ overlay = ปิดเมนู
+      overlay?.addEventListener('click', () => {
+        closeSidebar();
+      });
+
+      // คลิกที่ใดก็ได้บนหน้า: ถ้านอก sidebar + นอกปุ่ม toggle และขณะ mobile → ปิดเมนู
+      document.addEventListener('click', (e) => {
+        // จำกัดเฉพาะจอเล็ก (คุณจะปรับ breakpoint เองก็ได้)
+        if (window.innerWidth > 991) return;
+
+        const clickedInsideSidebar = e.target.closest('.sidebar');
+        const clickedToggle = e.target.closest('.toggle-sidebar, .sidenav-toggler');
+
+        if (!clickedInsideSidebar && !clickedToggle && isSidebarOpen()) {
+          closeSidebar();
         }
-    </style>
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+      });
 
-    <script>
-        (function() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-
-            // ปุ่มที่ใช้เปิด/ปิดเมนู (ตามโค้ดคุณมีทั้งสองคลาส)
-            const toggleBtns = document.querySelectorAll('.toggle-sidebar, .sidenav-toggler');
-
-            // คลาสที่มักถูกเติมเมื่อ "เมนูเปิด" (เติมเพิ่มได้ถ้าโปรเจ็กต์คุณใช้ชื่ออื่น)
-            const OPEN_CLASSES = ['nav_open', 'toggled', 'show', 'active'];
-
-            // helper: เช็คว่าเมนูถือว่า "เปิด" อยู่ไหม
-            function isSidebarOpen() {
-                if (!sidebar) return false;
-                // ถ้าบอดี้หรือไซด์บาร์มีคลาสในรายการนี้ตัวใดตัวหนึ่ง ให้ถือว่าเปิด
-                const openOnBody = OPEN_CLASSES.some(c => document.body.classList.contains(c) || document.documentElement.classList.contains(c));
-                const openOnSidebar = OPEN_CLASSES.some(c => sidebar.classList.contains(c));
-                return openOnBody || openOnSidebar;
-            }
-
-            // helper: สั่งปิดเมนูแบบไม่ผูกกับไส้ในธีมมากนัก
-            function closeSidebar() {
-                // เอาคลาสเปิดออกจาก body/html และ sidebar (กันเหนียว)
-                OPEN_CLASSES.forEach(c => {
-                    document.body.classList.remove(c);
-                    document.documentElement.classList.remove(c);
-                    sidebar && sidebar.classList.remove(c);
-                });
-                overlay?.classList.remove('show');
-            }
-
-            // เมื่อกดปุ่ม toggle: ถ้าเปิดแล้วให้โชว์ overlay / ถ้าปิดก็ซ่อน
-            toggleBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // หน่วงนิดให้ธีมสลับคลาสเสร็จก่อน
-                    setTimeout(() => {
-                        if (isSidebarOpen()) {
-                            overlay?.classList.add('show');
-                        } else {
-                            overlay?.classList.remove('show');
-                        }
-                    }, 10);
-                });
-            });
-
-            // คลิกที่ overlay = ปิดเมนู
-            overlay?.addEventListener('click', () => {
-                closeSidebar();
-            });
-
-            // คลิกที่ใดก็ได้บนหน้า: ถ้านอก sidebar + นอกปุ่ม toggle และขณะ mobile → ปิดเมนู
-            document.addEventListener('click', (e) => {
-                // จำกัดเฉพาะจอเล็ก (คุณจะปรับ breakpoint เองก็ได้)
-                if (window.innerWidth > 991) return;
-
-                const clickedInsideSidebar = e.target.closest('.sidebar');
-                const clickedToggle = e.target.closest('.toggle-sidebar, .sidenav-toggler');
-
-                if (!clickedInsideSidebar && !clickedToggle && isSidebarOpen()) {
-                    closeSidebar();
-                }
-            });
-
-            // ปิดเมนูอัตโนมัติเมื่อ resize จากจอเล็กไปจอใหญ่ (กันค้าง)
-            window.addEventListener('resize', () => {
-                if (window.innerWidth > 991) closeSidebar();
-            });
-        })();
-    </script>
+      // ปิดเมนูอัตโนมัติเมื่อ resize จากจอเล็กไปจอใหญ่ (กันค้าง)
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 991) closeSidebar();
+      });
+    })();
+  </script>
 </body>
 
 </html>

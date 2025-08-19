@@ -16,12 +16,13 @@ if (!$request_id) {
 
 
 // ฟังก์ชันส่งข้อความเข้า LINE Official Account
- function sendLinePushFlexToDev($sr) {
-  $access_token = "hAfRJZ7KyjncT3I2IB6UhHqU/DmP1qPxW2PbeDE7KtUUveyiSKgLvJxrahWyrFUmlrta4MAnw8V3QRr5b7LwoKYh4hv1ATfX8yrJOMFQ+zdQxm3rScAAGNaJTEN1mJxHN93jHbqLoK8dQ080ja5BFAdB04t89/1O/w1cDnyilFU="; // ใส่ Channel access token (long-lived)
+function sendLinePushFlexToDev($sr)
+{
+    $access_token = "hAfRJZ7KyjncT3I2IB6UhHqU/DmP1qPxW2PbeDE7KtUUveyiSKgLvJxrahWyrFUmlrta4MAnw8V3QRr5b7LwoKYh4hv1ATfX8yrJOMFQ+zdQxm3rScAAGNaJTEN1mJxHN93jHbqLoK8dQ080ja5BFAdB04t89/1O/w1cDnyilFU="; // ใส่ Channel access token (long-lived)
 
     $url = "https://api.line.me/v2/bot/message/push";
 
-   $bubble = [
+    $bubble = [
         "type" => "bubble",
         "size" => "mega",
         "header" => [
@@ -34,7 +35,7 @@ if (!$request_id) {
                     "weight" => "bold",
                     "size" => "lg",
                     "align" => "center",
-                    "color" => "#ffffffff" 
+                    "color" => "#ffffffff"
                 ],
                 [
                     "type" => "text",
@@ -45,7 +46,7 @@ if (!$request_id) {
                     "margin" => "md"
                 ]
             ],
-         "backgroundColor" => "#5677fc", 
+            "backgroundColor" => "#5677fc",
             "paddingAll" => "20px"
         ],
         "body" => [
@@ -76,7 +77,7 @@ if (!$request_id) {
                     ]
                 ]
             ],
-              "backgroundColor" => "#5677fc"
+            "backgroundColor" => "#5677fc"
         ]
     ];
 
@@ -87,9 +88,9 @@ if (!$request_id) {
     ];
 
     $data = [
-    "to" => $sr['dev_line_id'], // ใช้ line_id ของ Developer
-    "messages" => [$flexMessage]
-];
+        "to" => $sr['dev_line_id'], // ใช้ line_id ของ Developer
+        "messages" => [$flexMessage]
+    ];
 
 
     $post = json_encode($data, JSON_UNESCAPED_UNICODE);
@@ -129,6 +130,7 @@ $stmt = $conn->prepare("
         requester.department,
         requester.phone,
         requester.email,
+          dn.document_number,
         
         -- Division Manager Info
         dma.reason as div_mgr_reason,
@@ -161,6 +163,7 @@ $stmt = $conn->prepare("
     JOIN assignor_approvals aa ON sr.id = aa.service_request_id
     JOIN users assignor ON aa.assignor_user_id = assignor.id
     LEFT JOIN users dev ON aa.assigned_developer_id = dev.id
+    LEFT JOIN document_numbers dn ON sr.id = dn.service_request_id
     JOIN gm_approvals gma ON sr.id = gma.service_request_id
     JOIN users gm ON gma.gm_user_id = gm.id
     LEFT JOIN services s ON sr.service_id = s.id
@@ -237,9 +240,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 
-// ถ้า Senior GM อนุมัติ → แจ้ง Developer อีกครั้ง
-if ($status === 'approved') {
-    $sr_stmt = $conn->prepare("
+            // ถ้า Senior GM อนุมัติ → แจ้ง Developer อีกครั้ง
+            if ($status === 'approved') {
+                $sr_stmt = $conn->prepare("
         SELECT sr.title, sr.description, sr.expected_benefits, dn.document_number,
                u.name, u.lastname, u.employee_id, u.department, u.position, u.phone, u.email,
                dev.line_id AS dev_line_id, dev.name AS dev_name, dev.lastname AS dev_lastname
@@ -250,14 +253,14 @@ if ($status === 'approved') {
         LEFT JOIN users dev ON aa.assigned_developer_id = dev.id
         WHERE sr.id = ?
     ");
-    $sr_stmt->execute([$request_id]);
-    $sr = $sr_stmt->fetch(PDO::FETCH_ASSOC);
+                $sr_stmt->execute([$request_id]);
+                $sr = $sr_stmt->fetch(PDO::FETCH_ASSOC);
 
-  if ($sr && !empty($sr['dev_line_id'])) {
-    // ส่ง Flex Bubble แทนข้อความปกติ
-    sendLinePushFlexToDev($sr);
-}
-}
+                if ($sr && !empty($sr['dev_line_id'])) {
+                    // ส่ง Flex Bubble แทนข้อความปกติ
+                    sendLinePushFlexToDev($sr);
+                }
+            }
 
 
             header("Location: seniorindex2.php");
@@ -307,7 +310,7 @@ if ($status === 'approved') {
 
     <!-- CSS Just for demo purpose, don't include it in your project -->
     <link rel="stylesheet" href="../assets/css/demo.css" />
- <style>
+    <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #ffffff 0%, #afafafff 100%);
             --card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
@@ -723,7 +726,7 @@ if ($status === 'approved') {
             <div class="sidebar-wrapper scrollbar scrollbar-inner">
                 <div class="sidebar-content">
                     <ul class="nav nav-secondary">
-                         <li class="nav-item active">
+                        <li class="nav-item active">
                             <a href="seniorindex2.php">
                                 <i class="fas fa-home"></i>
                                 <p>หน้าหลัก</p>
@@ -736,24 +739,6 @@ if ($status === 'approved') {
                             </span>
                             <h4 class="text-section">Components</h4>
                         </li>
-
-                        <!-- <li class="nav-item ">
-              <a href="create2.php">
-                <i class="fas fa-plus-circle"></i>
-                <p>ประวัติการอนุมัติ</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li> -->
-
-
-
-                        <!-- <li class="nav-item">
-              <a href="../profile.php">
-                <i class="fas fa-user"></i>
-                <p>โปรไฟล์</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li> -->
 
                         <li class="nav-item">
                             <a href="../logout.php">
@@ -809,29 +794,7 @@ if ($status === 'approved') {
                                     </span>
                                 </a>
 
-                                <!-- <ul class="dropdown-menu dropdown-user animated fadeIn">
-                  <div class="dropdown-user-scroll scrollbar-outer">
-                    <li>
-                      <div class="user-box">
-                        <div class="avatar-lg">
-                          <img src="../assets/img/profile.jpg" alt="image profile" class="avatar-img rounded" />
-                        </div>
-                        <div class="u-text">
-                          <h4>Hizrian</h4>
-                          <p class="text-muted">hello@example.com</p>
-                          <a href="profile.html" class="btn btn-xs btn-secondary btn-sm">View Profile</a>
-                        </div>
-                      </div>
-                    </li>
-                    <li>
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="#">My Profile</a>
-                    
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="#">Logout</a>
-                    </li>
-                  </div>
-                </ul> -->
+
                             </li>
 
 
@@ -848,258 +811,285 @@ if ($status === 'approved') {
 
 
                 <div class="page-inner">
-                  <!-- Header -->
+                    <!-- Header -->
 
-        <div class="glass-card p-4">
-            <?php if (!empty($error)): ?>
-                <div class="error-message">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <?= htmlspecialchars($error) ?>
-                </div>
-            <?php endif; ?>
-
-            <!-- ข้อมูลคำขอ -->
-            <div class="glass-card p-4 mb-4">
-                <h3 class="fw-bold mb-3">
-                    <i class="fas fa-info-circle text-primary me-2"></i>ข้อมูลคำขอ
-                </h3>
-
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="flex-grow-1">
-                        <div class="request-title"><?= htmlspecialchars($data['title']) ?></div>
-                        <div class="d-flex gap-2 mb-2">
-                            <?php if ($data['service_name']): ?>
-                                <span class="service-badge service-<?= $data['service_category'] ?>">
-                                    <?php if ($data['service_category'] === 'development'): ?>
-                                        <i class="fas fa-code me-1"></i>
-                                    <?php else: ?>
-                                        <i class="fas fa-tools me-1"></i>
-                                    <?php endif; ?>
-                                    <?= htmlspecialchars($data['service_name']) ?>
-                                </span>
-                            <?php endif; ?>
-                            <?php if ($data['work_category']): ?>
-                                <span class="category-badge category-<?= strtolower($data['work_category']) ?>">
-                                    <i class="fas fa-building me-1"></i>
-                                    <?= htmlspecialchars($data['work_category']) ?>
-                                </span>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                    <div class="text-end">
-                        <span class="priority-badge priority-<?= $data['priority_level'] ?>">
-                            <i class="fas fa-exclamation-circle me-1"></i>
-                            <?php
-                            $priorities = [
-                                'low' => 'ต่ำ',
-                                'medium' => 'ปานกลาง',
-                                'high' => 'สูง',
-                                'urgent' => 'เร่งด่วน'
-                            ];
-                            echo $priorities[$data['priority_level']] ?? 'ปานกลาง';
-                            ?>
-                        </span>
-                        <?php if ($data['estimated_days']): ?>
-                            <div class="estimate-info mt-2">
-                                <i class="fas fa-clock me-1"></i>
-                                ประมาณ <?= $data['estimated_days'] ?> วัน
+                    <div class="glass-card p-4">
+                        <?php if (!empty($error)): ?>
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <?= htmlspecialchars($error) ?>
                             </div>
                         <?php endif; ?>
+
+
+                        <div class="">
+                            <!-- บรรทัดแรก: เลขที่เอกสาร + วันที่ -->
+                            <div class="d-flex justify-content-between text-muted mb-2 flex-wrap">
+
+                                <div>
+                                    <?php if (!empty($data['service_name'])): ?>
+                                        <div class="text-secondary">
+                                            <?php if ($data['service_category'] === 'development'): ?>
+                                                <i class="fas fa-code me-1"></i>
+                                            <?php else: ?>
+                                                <i class="fas fa-tools me-1"></i>
+                                            <?php endif; ?>
+                                            <strong>ประเภทคำขอ: <?= htmlspecialchars($data['service_name']) ?></strong>
+                                        </div>
+                                    <?php endif; ?>
+
+
+                                    <span class="me-3">
+                                        <i class="fas fa-file-alt me-1"></i>
+                                        เลขที่: <?= htmlspecialchars($data['document_number'] ?? '-') ?>
+                                    </span>
+                                </div>
+
+
+                            </div>
+
+
+                        </div>
+
+                        <!-- ข้อมูลผู้ขอ -->
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <small class="text-muted">รหัสพนักงาน</small>
+                                <div class="fw-bold"><?= htmlspecialchars($data['employee_id'] ?? 'ไม่ระบุ') ?></div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">ชื่อ-นามสกุล</small>
+                                <div class="fw-bold"><?= htmlspecialchars($data['requester_name'] . ' ' . $data['requester_lastname']) ?></div>
+                            </div>
+
+                            <div class="col-6">
+                                <small class="text-muted">ตำแหน่ง</small>
+                                <div class="fw-bold"><?= htmlspecialchars($data['position'] ?? 'ไม่ระบุ') ?></div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">หน่วยงาน</small>
+                                <div class="fw-bold"><?= htmlspecialchars($data['department'] ?? 'ไม่ระบุ') ?></div>
+                            </div>
+
+                            <div class="col-6">
+                                <small class="text-muted">เบอร์โทร</small>
+                                <div class="fw-bold"><?= htmlspecialchars($data['phone'] ?? 'ไม่ระบุ') ?></div>
+                            </div>
+                            <div class="col-6">
+                                <small class="text-muted">อีเมล</small>
+                                <div class="fw-bold"><?= htmlspecialchars($data['email'] ?? 'ไม่ระบุ') ?></div>
+                            </div>
+                        </div>
+                        <br>
+
+
+                        <!-- Development Details -->
+                        <?php if ($data['service_category'] === 'development'): ?>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-2">
+                                    หัวข้อ: <?= htmlspecialchars($data['title'] ?? '-') ?>
+                                </h5>
+                                <div class="row">
+                                    <?php
+                                    $fields = [
+                                        'program_purpose' => 'วัตถุประสงค์',
+                                        'target_users' => 'กลุ่มผู้ใช้งาน',
+                                        'main_functions' => 'ฟังก์ชันหลัก',
+                                        'data_requirements' => 'ข้อมูลที่ต้องใช้',
+                                        'current_program_name' => 'โปรแกรมที่มีปัญหา',
+                                        'problem_description' => 'รายละเอียดปัญหา',
+                                        'error_frequency' => 'ความถี่ของปัญหา',
+                                        'steps_to_reproduce' => 'ขั้นตอนการทำให้เกิดปัญหา',
+                                        'program_name_change' => 'โปรแกรมที่ต้องการเปลี่ยนข้อมูล',
+                                        'data_to_change' => 'ข้อมูลที่ต้องการเปลี่ยน',
+                                        'new_data_value' => 'ข้อมูลใหม่ที่ต้องการ',
+                                        'change_reason' => 'เหตุผลในการเปลี่ยนแปลง',
+                                        'program_name_function' => 'โปรแกรมที่ต้องการเพิ่มฟังก์ชั่น',
+                                        'new_functions' => 'ฟังก์ชั่นใหม่ที่ต้องการ',
+                                        'function_benefits' => 'ประโยชน์ของฟังก์ชั่นใหม่',
+                                        'integration_requirements' => 'ความต้องการเชื่อมต่อ',
+                                        'program_name_decorate' => 'โปรแกรมที่ต้องการตกแต่ง',
+                                        'decoration_type' => 'ประเภทการตกแต่ง',
+                                        'reference_examples' => 'ตัวอย่างอ้างอิง',
+                                        'current_workflow' => 'ขั้นตอนการทำงานเดิม',
+                                        'approach_ideas' => 'แนวทาง/ไอเดีย',
+                                        'related_programs' => 'โปรแกรมที่คาดว่าจะเกี่ยวข้อง',
+                                        'current_tools' => 'ปกติใช้โปรแกรมอะไรทำงานอยู่',
+                                        'system_impact' => 'ผลกระทบต่อระบบ',
+                                        'related_documents' => 'เอกสารการทำงานที่เกี่ยวข้อง',
+                                    ];
+
+                                    foreach ($fields as $key => $label):
+                                        if (!empty($data[$key])):
+                                    ?>
+                                            <div class="col-md-6 mb-3">
+                                                <strong><?= $label ?>:</strong><br>
+                                                <?= nl2br(htmlspecialchars($data[$key])) ?>
+                                            </div>
+                                    <?php
+                                        endif;
+                                    endforeach;
+                                    ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <!-- ประโยชน์ที่คาดว่าจะได้รับ -->
+                        <?php if ($data['expected_benefits']): ?>
+                            <h6 class="fw-bold text-success mb-2">
+                                <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+                                <p class="mb-0"><?= nl2br(htmlspecialchars($data['expected_benefits'])) ?></p>
+                            </h6>
+                        <?php endif; ?>
+
+
+                        <!-- Priority & Estimate -->
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <!-- Priority (ซ้าย) -->
+                            <div>
+                                <span class="priority-badge priority-<?= $data['priority_level'] ?>">
+                                    <i class="fas fa-exclamation-circle me-1"></i>
+                                    <?php
+                                    $priorities = [
+                                        'low' => 'ต่ำ',
+                                        'medium' => 'ปานกลาง',
+                                        'high' => 'สูง',
+                                        'urgent' => 'เร่งด่วน'
+                                    ];
+                                    echo $priorities[$data['priority_level']] ?? 'ปานกลาง';
+                                    ?>
+                                </span>
+                            </div>
+
+                            <!-- Estimate Days (ขวา) -->
+                            <?php if ($data['estimated_days']): ?>
+                                <div class="estimate-info text-muted">
+                                    <i class="fas fa-clock me-1"></i>
+                                    ประมาณ <?= $data['estimated_days'] ?> วัน
+                                </div>
+                            <?php endif; ?>
+                        </div>
+
+                        <?php
+                        // แสดงไฟล์แนบ
+                        require_once __DIR__ . '/../includes/attachment_display.php';
+                        displayAttachments($request_id);
+                        ?>
+
+                        <h3 class="fw-bold mb-3">
+                            <i class="fas fa-route text-primary me-2"></i>สรุปการอนุมัติที่ผ่านมา
+                        </h3>
+
+                        <div class="approval-step">
+                            <div class="step-number">1</div>
+                            <div class="step-content">
+                                <div class="step-title">ผู้จัดการฝ่าย - อนุมัติแล้ว</div>
+                                <div class="step-details">
+                                    <strong>โดย:</strong> <?= htmlspecialchars($data['div_mgr_name']) ?>
+                                    <?php if ($data['div_mgr_reason']): ?>
+                                        <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($data['div_mgr_reason']) ?>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="approval-step">
+                            <div class="step-number">2</div>
+                            <div class="step-content">
+                                <div class="step-title">2. ผู้จัดการแผนก - อนุมัติแล้ว</div>
+                                <div class="step-details">
+                                    <strong>โดย:</strong> <?= htmlspecialchars($data['assignor_name']) ?>
+                                    <br><strong>มอบหมายให้ผู้พัฒนา:</strong> <?= htmlspecialchars($data['dev_name'] . ' ' . $data['dev_lastname']) ?>
+                                    <?php if (!empty($data['assignor_budget_approved'])): ?>
+                                        <br><strong>งบประมาณที่ขอ :</strong> <?= htmlspecialchars($data['assignor_budget_approved']) ?>
+                                    <?php endif; ?>
+                                    <?php if ($data['assignor_reason']): ?>
+                                        <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($data['assignor_reason']) ?>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="approval-step">
+                            <div class="step-number">3</div>
+                            <div class="step-content">
+                                <div class="step-title">ผู้จัดการทั่วไป - อนุมัติแล้ว</div>
+                                <div class="step-details">
+                                    <strong>โดย:</strong> <?= htmlspecialchars($data['gm_name']) ?>
+                                    <br><strong>วันที่อนุมัติ:</strong> <?= date('d/m/Y H:i', strtotime($data['gm_reviewed_at'])) ?>
+                                    <?php if ($data['gm_reason']): ?>
+                                        <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($data['gm_reason']) ?>
+                                    <?php endif; ?>
+                                    <?php if (!empty($data['gm_budget_approved'])): ?>
+                                        <br><strong>งบประมาณที่อนุมัติ (GM):</strong> <?= htmlspecialchars($data['gm_budget_approved']) ?>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <form method="post" onsubmit="disableSubmitBtn()">
+
+
+                            <div class="form-group">
+                                <label>ผลการพิจารณา:</label>
+                                <div class="radio-group">
+                                    <label class="radio-option approve-option">
+                                        <input type="radio" name="status" value="approved" required>
+                                        <i class="fas fa-check-circle me-2"></i>
+                                        อนุมัติขั้นสุดท้าย
+                                    </label>
+                                    <label class="radio-option reject-option">
+                                        <input type="radio" name="status" value="rejected" required>
+                                        <i class="fas fa-times-circle me-2"></i>
+                                        ไม่อนุมัติ
+                                    </label>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="reason">เหตุผล/ข้อเสนอแนะ:</label>
+                                    <textarea name="reason" id="reason" class="form-control" rows="3" placeholder="ระบุเหตุผลหรือข้อเสนอแนะ"></textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="final_notes">หมายเหตุสำหรับผู้พัฒนา:</label>
+                                    <textarea name="final_notes" id="final_notes" class="form-control" rows="3" placeholder="ข้อแนะนำหรือคำแนะนำพิเศษสำหรับผู้พัฒนา"></textarea>
+                                </div>
+
+                            </div>
+
+
+                            <button type="submit" id="submitBtn"
+                                style="width:100%;padding:14px 0;font-size:1.1rem;
+           border-radius:10px;font-weight:bold;
+           background:linear-gradient(90deg,#6a11cb,#2575fc);
+           color:#fff;border:none;box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                                <i class="fas fa-stamp me-2"></i>
+                                ยืนยันการอนุมัติ
+                            </button>
+
+
+                        </form> <br>
+                        <button type="button" onclick="window.history.back();"
+                            style="width:100%;padding:14px 0;font-size:1.1rem;
+           border-radius:10px;font-weight:bold;
+           background:linear-gradient(90deg,#ff512f,#dd2476);
+           color:#fff;border:none;box-shadow:0 4px 10px rgba(0,0,0,0.1);">
+                            <i class="fas fa-arrow-left me-2"></i>
+                            ย้อนกลับ
+                        </button>
+
                     </div>
+
                 </div>
 
-                <!-- ข้อมูลผู้ขอ -->
-                <div class="user-info-grid">
-                    <div class="info-item">
-                        <div class="info-icon employee">
-                            <i class="fas fa-id-card"></i>
-                        </div>
-                        <div>
-                            <small class="text-muted">รหัสพนักงาน</small>
-                            <div class="fw-bold"><?= htmlspecialchars($data['employee_id'] ?? 'ไม่ระบุ') ?></div>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-icon user">
-                            <i class="fas fa-user"></i>
-                        </div>
-                        <div>
-                            <small class="text-muted">ชื่อ-นามสกุล</small>
-                            <div class="fw-bold"><?= htmlspecialchars($data['requester_name'] . ' ' . $data['requester_lastname']) ?></div>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-icon position">
-                            <i class="fas fa-briefcase"></i>
-                        </div>
-                        <div>
-                            <small class="text-muted">ตำแหน่ง</small>
-                            <div class="fw-bold"><?= htmlspecialchars($data['position'] ?? 'ไม่ระบุ') ?></div>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-icon department">
-                            <i class="fas fa-building"></i>
-                        </div>
-                        <div>
-                            <small class="text-muted">หน่วยงาน</small>
-                            <div class="fw-bold"><?= htmlspecialchars($data['department'] ?? 'ไม่ระบุ') ?></div>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-icon phone">
-                            <i class="fas fa-phone"></i>
-                        </div>
-                        <div>
-                            <small class="text-muted">เบอร์โทร</small>
-                            <div class="fw-bold"><?= htmlspecialchars($data['phone'] ?? 'ไม่ระบุ') ?></div>
-                        </div>
-                    </div>
-                    <div class="info-item">
-                        <div class="info-icon email">
-                            <i class="fas fa-envelope"></i>
-                        </div>
-                        <div>
-                            <small class="text-muted">อีเมล</small>
-                            <div class="fw-bold"><?= htmlspecialchars($data['email'] ?? 'ไม่ระบุ') ?></div>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- รายละเอียดคำขอ -->
-                <div class="description-box">
-                    <h6 class="fw-bold text-primary mb-2">
-                        <i class="fas fa-align-left me-2"></i>รายละเอียดคำขอ
-                    </h6>
-                    <p class="mb-0"><?= nl2br(htmlspecialchars($data['description'])) ?></p>
-                </div>
 
-                <!-- ประโยชน์ที่คาดว่าจะได้รับ -->
-                <?php if ($data['expected_benefits']): ?>
-                    <div class="benefits-box">
-                        <h6 class="fw-bold text-success mb-2">
-                            <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
-                        </h6>
-                        <p class="mb-0"><?= nl2br(htmlspecialchars($data['expected_benefits'])) ?></p>
-                    </div>
-                <?php endif; ?>
-
-                <?php
-                // แสดงไฟล์แนบ
-                require_once __DIR__ . '/../includes/attachment_display.php';
-                displayAttachments($request_id);
-                ?>
             </div>
-
-            <div class="approval-summary">
-                <h3 class="fw-bold mb-3">
-                    <i class="fas fa-route text-primary me-2"></i>สรุปการอนุมัติที่ผ่านมา
-                </h3>
-
-                <div class="approval-step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <div class="step-title">ผู้จัดการฝ่าย - อนุมัติแล้ว</div>
-                        <div class="step-details">
-                            <strong>โดย:</strong> <?= htmlspecialchars($data['div_mgr_name']) ?>
-                            <?php if ($data['div_mgr_reason']): ?>
-                                <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($data['div_mgr_reason']) ?>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="approval-step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <div class="step-title">2. ผู้จัดการแผนก - อนุมัติแล้ว</div>
-                        <div class="step-details">
-                            <strong>โดย:</strong> <?= htmlspecialchars($data['assignor_name']) ?>
-                            <br><strong>มอบหมายให้ผู้พัฒนา:</strong> <?= htmlspecialchars($data['dev_name'] . ' ' . $data['dev_lastname']) ?>
-                            <?php if (!empty($data['assignor_budget_approved'])): ?>
-                                <br><strong>งบประมาณที่ขอ :</strong> <?= htmlspecialchars($data['assignor_budget_approved']) ?>
-                            <?php endif; ?>
-                            <?php if ($data['assignor_reason']): ?>
-                                <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($data['assignor_reason']) ?>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="approval-step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <div class="step-title">ผู้จัดการทั่วไป - อนุมัติแล้ว</div>
-                        <div class="step-details">
-                            <strong>โดย:</strong> <?= htmlspecialchars($data['gm_name']) ?>
-                            <br><strong>วันที่อนุมัติ:</strong> <?= date('d/m/Y H:i', strtotime($data['gm_reviewed_at'])) ?>
-                            <?php if ($data['gm_reason']): ?>
-                                <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($data['gm_reason']) ?>
-                            <?php endif; ?>
-                            <?php if (!empty($data['gm_budget_approved'])): ?>
-                                <br><strong>งบประมาณที่อนุมัติ (GM):</strong> <?= htmlspecialchars($data['gm_budget_approved']) ?>
-                            <?php endif; ?>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <form method="post" class="approval-form" onsubmit="disableSubmitBtn()">
-                <h3 class="fw-bold mb-3">
-                    <i class="fas fa-crown text-primary me-2"></i>การพิจารณา
-                </h3>
-
-                <div class="form-group">
-                    <label>ผลการพิจารณา:</label>
-                    <div class="radio-group">
-                        <label class="radio-option approve-option">
-                            <input type="radio" name="status" value="approved" required>
-                            <i class="fas fa-check-circle me-2"></i>
-                            อนุมัติขั้นสุดท้าย
-                        </label>
-                        <label class="radio-option reject-option">
-                            <input type="radio" name="status" value="rejected" required>
-                            <i class="fas fa-times-circle me-2"></i>
-                            ไม่อนุมัติ
-                        </label>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="reason">เหตุผล/ข้อเสนอแนะ:</label>
-                    <textarea name="reason" id="reason" class="form-control" rows="3" placeholder="ระบุเหตุผลหรือข้อเสนอแนะ"></textarea>
-                </div>
-
-                <div class="form-group">
-                    <label for="final_notes">หมายเหตุสำหรับผู้พัฒนา:</label>
-                    <textarea name="final_notes" id="final_notes" class="form-control" rows="3" placeholder="ข้อแนะนำหรือคำแนะนำพิเศษสำหรับผู้พัฒนา"></textarea>
-                </div>
-
-                <button type="submit" class="submit-btn" id="submitBtn">
-                    <i class="fas fa-stamp"></i>
-                   ยืนยันการอนุมัติ
-                </button>
-            </form>
         </div>
-                </div>
-            </div>
+    </div>
 
-            <!-- <footer class="footer">
-        <div class="container-fluid d-flex justify-content-between">
-          <nav class="pull-left">
-
-          </nav>
-          <div class="copyright">
-            © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
-            <i class="fa fa-heart heart text-danger"></i>
-
-          </div>
-          <div>
-
-          </div>
-        </div>
-      </footer> -->
-        </div>
+    </div>
     </div>
 
 
@@ -1123,30 +1113,50 @@ if ($status === 'approved') {
 
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+  <script>
+    // ===== แสดง/ซ่อน textarea เหตุผลตามการเลือก =====
+    document.querySelectorAll('input[name="status"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const form = this.closest('form');
+            const textarea = form.querySelector('#reason');
+            const label = form.querySelector('label[for="reason"]');
 
-    <script>
-        // แสดง/ซ่อน textarea เหตุผลตามการเลือก
-        document.querySelectorAll('input[name="status"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                const form = this.closest('form');
-                const textarea = form.querySelector('textarea');
-                const label = form.querySelector('label[for^="reason"]');
-
-                if (this.value === 'rejected') {
-                    textarea.required = true;
-                    label.innerHTML = 'เหตุผลการไม่อนุมัติ: <span style="color: red;">*</span>';
-                    textarea.placeholder = 'กรุณาระบุเหตุผลการไม่อนุมัติ';
-                } else {
-                    textarea.required = false;
-                    label.innerHTML = 'เหตุผล/ข้อเสนอแนะ:';
-                    textarea.placeholder = 'ระบุเหตุผลหรือข้อเสนอแนะ (ไม่บังคับ)';
-                }
-            });
+            if (this.value === 'rejected') {
+                textarea.required = true;
+                label.innerHTML = 'เหตุผลการไม่อนุมัติ: <span style="color: red;">*</span>';
+                textarea.placeholder = 'กรุณาระบุเหตุผลการไม่อนุมัติ';
+            } else {
+                textarea.required = false;
+                label.innerHTML = 'เหตุผล/ข้อเสนอแนะ:';
+                textarea.placeholder = 'ระบุเหตุผลหรือข้อเสนอแนะ (ไม่บังคับ)';
+            }
         });
-    </script>
+    });
 
-    
-  
+    // ===== SweetAlert ตอนกดปุ่มยืนยัน =====
+    document.getElementById("submitBtn").addEventListener("click", function (e) {
+        e.preventDefault(); // กัน submit ก่อน
+
+        const form = this.closest("form"); // เก็บ form ไว้ก่อน
+
+        swal("Good job!", "ขอบคุณที่ใช้บริการ BobbyCare ", {
+            icon: "success",
+            buttons: {
+                confirm: {
+                    className: "btn btn-success",
+                },
+            },
+        }).then(() => {
+            form.submit(); // ส่งฟอร์มจริงหลังจากกด OK
+        });
+    });
+</script>
+
+
+
+
+
     <style>
         /* overlay ครอบทั้งหน้าตอนเมนูเปิด */
         .sidebar-overlay {

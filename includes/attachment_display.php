@@ -10,22 +10,32 @@ function displayAttachments($service_request_id, $show_download = true) {
         return;
     }
     
-    echo '<div class="attachments-section mt-4">';
+    echo '<div class="">';
     echo '<h5 class="fw-bold mb-3"><i class="fas fa-paperclip me-2 text-primary"></i>ไฟล์แนบ (' . count($attachments) . ' ไฟล์)</h5>';
     echo '<div class="row g-3">';
     
     foreach ($attachments as $file) {
         $file_extension = strtolower($file['file_type']);
         $file_size = formatFileSize($file['file_size']);
-        
-        // กำหนดไอคอนและสีตามประเภทไฟล์
-        $icon_info = getFileIcon($file_extension);
+        $file_url = "../uploads/" . htmlspecialchars($file['stored_filename']);
         
         echo '<div class="col-md-6 col-lg-4">';
         echo '<div class="attachment-card h-100">';
-        echo '<div class="attachment-icon ' . $icon_info['class'] . '">';
-        echo '<i class="' . $icon_info['icon'] . '"></i>';
-        echo '</div>';
+
+        if (in_array($file_extension, ['jpg', 'jpeg', 'png', 'gif'])) {
+            // 🖼 แสดงเป็นรูป preview
+            echo '<a href="'.$file_url.'" target="_blank">';
+            echo '<img src="'.$file_url.'" alt="'.htmlspecialchars($file['original_filename']).'" class="img-fluid rounded shadow-sm mb-2" style="max-height:200px; object-fit:cover;">';
+            echo '</a>';
+        } else {
+            // 📄 ไฟล์อื่น แสดง icon
+            $icon_info = getFileIcon($file_extension);
+            echo '<div class="attachment-icon ' . $icon_info['class'] . '">';
+            echo '<i class="' . $icon_info['icon'] . '"></i>';
+            echo '</div>';
+        }
+
+        // 📌 ชื่อไฟล์ + ขนาด
         echo '<div class="attachment-info">';
         echo '<div class="attachment-name" title="' . htmlspecialchars($file['original_filename']) . '">';
         echo htmlspecialchars(truncateFilename($file['original_filename'], 25));
@@ -36,10 +46,9 @@ function displayAttachments($service_request_id, $show_download = true) {
         if ($show_download) {
             echo '<div class="attachment-actions">';
             
-            // ปุ่มดู/เปิดไฟล์
+            // ปุ่มดูไฟล์ (เฉพาะไฟล์ที่เปิดได้)
             if (in_array($file_extension, ['pdf', 'jpg', 'jpeg', 'png', 'gif', 'txt'])) {
-                echo '<a href="../includes/file_viewer.php?id=' . $file['id'] . '" target="_blank" class="btn btn-primary btn-sm me-2" title="เปิดดูไฟล์">';
-                echo '<i class="fas fa-eye"></i>';
+               
                 echo '</a>';
             }
             

@@ -171,6 +171,12 @@ foreach ($requests as &$request) {
     }
 }
 
+$file_stmt = $conn->prepare("SELECT * FROM request_attachments WHERE service_request_id = ?");
+foreach ($requests as &$req) {
+    $file_stmt->execute([$req['id']]);
+    $req['attachments'] = $file_stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 
 ?>
 
@@ -404,14 +410,41 @@ foreach ($requests as &$request) {
                                             </div>
 
 
+
+
+
                                         </div>
 
-                                        <?php if ($req['attachment_count'] > 0): ?>
-                                            <div class="attachment-info">
-                                                <i class="fas fa-paperclip"></i>
-                                                <?= $req['attachment_count'] ?> ไฟล์แนบ
+                                        <!-- ไฟล์แนบ -->
+                                        <?php if (!empty($req['attachments'])): ?>
+                                            <div class="mt-3">
+                                                <div class="d-flex flex-wrap gap-3">
+                                                    <?php foreach ($req['attachments'] as $file): ?>
+                                                        <?php
+                                                        $ext = strtolower(pathinfo($file['original_filename'], PATHINFO_EXTENSION));
+                                                        $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                                                        ?>
+                                                        <div class="border rounded p-2 text-center" style="width:150px">
+                                                            <?php if ($isImage): ?>
+                                                                <a href="../uploads/<?= htmlspecialchars($file['stored_filename']) ?>" target="_blank">
+                                                                    <img src="../uploads/<?= htmlspecialchars($file['stored_filename']) ?>"
+                                                                        alt="<?= htmlspecialchars($file['original_filename']) ?>"
+                                                                        class="img-fluid rounded mb-2" style="max-height:100px; object-fit:cover;">
+                                                                </a>
+                                                            <?php else: ?>
+                                                                <i class="fas fa-file-alt fa-3x text-muted mb-2"></i>
+                                                            <?php endif; ?>
+                                                            <div class="small text-truncate"><?= htmlspecialchars($file['original_filename']) ?></div>
+                                                            <a href="../uploads/<?= htmlspecialchars($file['stored_filename']) ?>"
+                                                                class="btn btn-sm btn-success mt-1" download>
+                                                                <i class="fas fa-download"></i>
+                                                            </a>
+                                                        </div>
+                                                    <?php endforeach; ?>
+                                                </div>
                                             </div>
-                                        <?php endif; ?>
+                                        <?php endif; ?> <br>
+
 
                                         <div class="d-flex justify-content-between align-items-center ms-3">
                                             <!-- ฝั่งซ้าย: ความสำคัญ -->

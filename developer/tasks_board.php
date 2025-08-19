@@ -1136,6 +1136,8 @@ foreach ($tasks as $task) {
                                 <div id="detailTitle" class="bg-light p-3 rounded border-start border-primary border-4 fw-bold"></div>
                             </section>
 
+                            
+
                             <!-- รายละเอียดงาน -->
                             <section class="mt-4">
                                 <h6 class="text-uppercase text-primary fw-bold mb-2">
@@ -1225,7 +1227,7 @@ foreach ($tasks as $task) {
                         <!-- ไฟล์แนบ -->
                         <section class="mt-4">
                             <h6 class="text-uppercase text-primary fw-bold mb-2">
-                                <i class="fas fa-paperclip me-2"></i>ไฟล์แนบ
+                              
                             </h6>
                             <div id="attachmentsList" class="bg-light p-3 rounded">
                                 <div class="text-center">

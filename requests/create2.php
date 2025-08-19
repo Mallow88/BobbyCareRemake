@@ -122,7 +122,7 @@ foreach ($requests as $req) {
                     "margin" => "md"
                 ]
             ],
-            "backgroundColor" => "#5677fc", // ดำหรู
+            "backgroundColor" => "#5677fc", 
             "paddingAll" => "20px"
         ],
         "body" => [
@@ -376,22 +376,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($insert_data['program_purpose']) $description_parts[] = "วัตถุประสงค์: " . $insert_data['program_purpose'];
                     if ($insert_data['target_users']) $description_parts[] = "กลุ่มผู้ใช้: " . $insert_data['target_users'];
                     if ($insert_data['main_functions']) $description_parts[] = "ฟังก์ชันหลัก: " . $insert_data['main_functions'];
+                     if ($insert_data['main_functions']) $description_parts[] = "ข้อมูลที่ต้องใช้: " . $insert_data['data_requirements'];
+                      if ($insert_data['main_functions']) $description_parts[] = "ขั้นตอนการทำงานเดิม: " . $insert_data['current_workflow'];
+                       if ($insert_data['main_functions']) $description_parts[] = "โปรแกรมที่คาดว่าจะเกี่ยวข้อง: " . $insert_data['related_programs'];
                     break;
                 case 'โปรแกรมเดิม (แก้ปัญหา)':
                     if ($insert_data['current_program_name']) $description_parts[] = "โปรแกรม: " . $insert_data['current_program_name'];
-                    if ($insert_data['problem_description']) $description_parts[] = "ปัญหา: " . $insert_data['problem_description'];
+                    if ($insert_data['problem_description']) $description_parts[] = "รายละเอียด: " . $insert_data['problem_description'];
+                    if ($insert_data['problem_description']) $description_parts[] = "ความถี่ในการเกิดขึ้น: " . $insert_data['error_frequency'];
+                    if ($insert_data['problem_description']) $description_parts[] = " ขั้นตอนการทำให้เกิดปัญหา: " . $insert_data['steps_to_reproduce'];
                     break;
                 case 'โปรแกรมเดิม (เปลี่ยนข้อมูล)':
                     if ($insert_data['program_name_change']) $description_parts[] = "โปรแกรม: " . $insert_data['program_name_change'];
                     if ($insert_data['data_to_change']) $description_parts[] = "ข้อมูลที่ต้องเปลี่ยน: " . $insert_data['data_to_change'];
+                    if ($insert_data['data_to_change']) $description_parts[] = "ข้อมูลใหม่: " . $insert_data['new_data_value'];
+                    if ($insert_data['data_to_change']) $description_parts[] = "เหตุผล: " . $insert_data['change_reason'];
                     break;
                 case 'โปรแกรมเดิม (เพิ่มฟังก์ชั่น)':
                     if ($insert_data['program_name_function']) $description_parts[] = "โปรแกรม: " . $insert_data['program_name_function'];
                     if ($insert_data['new_functions']) $description_parts[] = "ฟังก์ชั่นใหม่: " . $insert_data['new_functions'];
+                     if ($insert_data['new_functions']) $description_parts[] = "ระบบที่ใกล้เคียง: " . $insert_data['integration_requirements'];
                     break;
                 case 'โปรแกรมเดิม (ตกแต่ง)':
                     if ($insert_data['program_name_decorate']) $description_parts[] = "โปรแกรม: " . $insert_data['program_name_decorate'];
                     if ($insert_data['decoration_type']) $description_parts[] = "ประเภทการตกแต่ง: " . $insert_data['decoration_type'];
+                        if ($insert_data['decoration_type']) $description_parts[] = "ตัวอย่างอ้างอิง: " . $insert_data['reference_examples'];
                     break;
             }
         }

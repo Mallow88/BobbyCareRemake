@@ -130,7 +130,16 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
       box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
       transition: all 0.3s ease;
       border-left: 5px solid #10b981;
+
+      max-width: 1200px;
+      /* กำหนดความกว้างสูงสุด */
+      margin-left: auto;
+      margin-right: auto;
+      /* จัดให้อยู่ตรงกลาง */
+
     }
+
+
 
     .request-card:hover {
       transform: translateY(-5px);
@@ -533,7 +542,7 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 
-        <div class="page-inner">
+        <div class="container">
 
 
 
@@ -541,7 +550,7 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
           <div class="glass-card p-4">
             <div class="d-flex align-items-center mb-4">
               <i class="fas fa-clipboard-check text-success me-3 fs-3"></i>
-              <h2 class="mb-0 fw-bold">คำขอที่ผ่านการอนุมัติจากผู้จัดการฝ่าย</h2>
+              <h2 class="mb-0 fw-bold">คำขอที่รอการอนุมัติอยู่</h2>
             </div>
 
             <?php if (empty($requests)): ?>
@@ -552,101 +561,81 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
               </div>
             <?php else: ?>
               <?php foreach ($requests as $req): ?>
+
                 <div class="request-card">
-                  <div class="d-flex justify-content-between align-items-start mb-3">
-                    <div class="flex-grow-1">
+                  <div class="">
+                    <!-- บรรทัดแรก: เลขที่เอกสาร + วันที่ -->
+                    <div class="d-flex justify-content-between text-muted mb-2 flex-wrap">
 
-                      <!-- ข้อมูลเลขที่เอกสาร -->
-                      <?php if (!empty($req['document_number'])): ?>
-                        <div class="text-muted mb-2">
-                          <i class="fas fa-file-alt me-1"></i> เลขที่เอกสาร: <?= htmlspecialchars($req['document_number']) ?>
-                        </div>
-                        <!-- ส่งค่า document_number ไปใน form ด้วย -->
-                        <input type="hidden" name="document_number" value="<?= htmlspecialchars($req['document_number']) ?>">
-                      <?php endif; ?>
-                      <!-- หัวข้อ -->
-                      <div class="request-title">หัวข้อ : <?= htmlspecialchars($req['title']) ?></div>
-
-                      <div class="d-flex gap-2 mb-2">
-                        <?php if ($req['service_name']): ?>
-                          <span class="service-badge service-<?= $req['service_category'] ?>">
-                            <i class="fas fa-code me-1"></i>
-                            <?= htmlspecialchars($req['service_name']) ?>
-                          </span>
+                      <div>
+                        <?php if (!empty($req['service_name'])): ?>
+                          <div class="text-secondary">
+                            <?php if ($req['service_category'] === 'development'): ?>
+                              <i class="fas fa-code me-1"></i>
+                            <?php else: ?>
+                              <i class="fas fa-tools me-1"></i>
+                            <?php endif; ?>
+                            <strong>ประเภทคำขอ: <?= htmlspecialchars($req['service_name']) ?></strong>
+                          </div>
                         <?php endif; ?>
+
+
+                        <span class="me-3">
+                          <i class="fas fa-file-alt me-1"></i>
+                          เลขที่: <?= htmlspecialchars($req['document_number'] ?? '-') ?>
+                        </span>
                       </div>
+
+
                     </div>
-                    <div class="text-muted">
-                      <i class="fas fa-calendar me-1"></i>
-                      วันที่ขอดำเนินเรื่อง: <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
-                    </div>
+
+
                   </div>
 
+                  <h6 class="fw-bold text-info mb-3">
+                    <i class=""></i>ข้อมูลผู้ขอ
+                  </h6>
                   <!-- ข้อมูลผู้ขอ -->
-                  <div class="user-info-grid">
-                    <div class="info-item">
-                      <div class="info-icon employee">
-                        <i class="fas fa-id-card"></i>
-                      </div>
-                      <div>
-                        <small class="text-muted">รหัสพนักงาน</small>
-                        <div class="fw-bold"><?= htmlspecialchars($req['employee_id'] ?? 'ไม่ระบุ') ?></div>
-                      </div>
+                  <div class="row g-3">
+                    <div class="col-6">
+                      <small class="text-muted">รหัสพนักงาน</small>
+                      <div class="fw-bold"><?= htmlspecialchars($req['employee_id'] ?? 'ไม่ระบุ') ?></div>
                     </div>
-                    <div class="info-item">
-                      <div class="info-icon user">
-                        <i class="fas fa-user"></i>
-                      </div>
-                      <div>
-                        <small class="text-muted">ชื่อ-นามสกุล</small>
-                        <div class="fw-bold"><?= htmlspecialchars($req['requester_name'] . ' ' . $req['requester_lastname']) ?></div>
-                      </div>
+                    <div class="col-6">
+                      <small class="text-muted">ชื่อ-นามสกุล</small>
+                      <div class="fw-bold"><?= htmlspecialchars($req['requester_name'] . ' ' . $req['requester_lastname']) ?></div>
                     </div>
-                    <div class="info-item">
-                      <div class="info-icon position">
-                        <i class="fas fa-briefcase"></i>
-                      </div>
-                      <div>
-                        <small class="text-muted">ตำแหน่ง</small>
-                        <div class="fw-bold"><?= htmlspecialchars($req['position'] ?? 'ไม่ระบุ') ?></div>
-                      </div>
+
+                    <div class="col-6">
+                      <small class="text-muted">ตำแหน่ง</small>
+                      <div class="fw-bold"><?= htmlspecialchars($req['position'] ?? 'ไม่ระบุ') ?></div>
                     </div>
-                    <div class="info-item">
-                      <div class="info-icon department">
-                        <i class="fas fa-building"></i>
-                      </div>
-                      <div>
-                        <small class="text-muted">หน่วยงาน</small>
-                        <div class="fw-bold"><?= htmlspecialchars($req['department'] ?? 'ไม่ระบุ') ?></div>
-                      </div>
+                    <div class="col-6">
+                      <small class="text-muted">หน่วยงาน</small>
+                      <div class="fw-bold"><?= htmlspecialchars($req['department'] ?? 'ไม่ระบุ') ?></div>
                     </div>
-                    <div class="info-item">
-                      <div class="info-icon phone">
-                        <i class="fas fa-phone"></i>
-                      </div>
-                      <div>
-                        <small class="text-muted">เบอร์โทร</small>
-                        <div class="fw-bold"><?= htmlspecialchars($req['phone'] ?? 'ไม่ระบุ') ?></div>
-                      </div>
+
+                    <div class="col-6">
+                      <small class="text-muted">เบอร์โทร</small>
+                      <div class="fw-bold"><?= htmlspecialchars($req['phone'] ?? 'ไม่ระบุ') ?></div>
                     </div>
-                    <div class="info-item">
-                      <div class="info-icon email">
-                        <i class="fas fa-envelope"></i>
-                      </div>
-                      <div>
-                        <small class="text-muted">อีเมล</small>
-                        <div class="fw-bold"><?= htmlspecialchars($req['email'] ?? 'ไม่ระบุ') ?></div>
-                      </div>
+                    <div class="col-6">
+                      <small class="text-muted">อีเมล</small>
+                      <div class="fw-bold"><?= htmlspecialchars($req['email'] ?? 'ไม่ระบุ') ?></div>
                     </div>
                   </div>
+                  <br>
 
 
 
                   <?php if ($req['service_category'] === 'development'): ?>
                     <div>
+                      <!-- <i class="fas fa-code me-2"></i>ข้อมูล Development
+                      </h6> -->
+                      <h5 class="fw-bold text-dark mb-2">
+                        หัวข้อ: <?= htmlspecialchars($req['title'] ?? '-') ?>
+                      </h5>
 
-                      <i class="fas fa-code me-2"></i>ข้อมูล Development
-                      </h6>
                       <div class="row">
                         <?php
                         $fields = [
@@ -692,14 +681,16 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                   <?php endif; ?>
                   <?php if ($req['expected_benefits']): ?>
-                    <div>
-                      <h6 class="fw-bold text-success mb-2">
-                        <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
-                      </h6>
-                      <p class="mb-0"><?= nl2br(htmlspecialchars($req['expected_benefits'])) ?></p>
-                    </div>
-                  <?php endif; ?>
 
+                    <h6 class="fw-bold text-success mb-2">
+                      <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+                      <p class="mb-0"><?= nl2br(htmlspecialchars($req['expected_benefits'])) ?></p>
+                    </h6>
+                  <?php endif; ?>
+                  <div>
+                    <i class="fas fa-calendar me-1"></i>
+                    วันที่ขอดำเนินเรื่อง: <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
+                  </div>
 
                   <?php
                   // แสดงไฟล์แนบ
@@ -720,19 +711,21 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
                     <?php endif; ?>
                   </div>
 
-                  <form method="post" action="assign_status.php" class="approval-form border rounded p-3 bg-light shadow-sm">
+
+                  <form method="post" action="assign_status.php"
+                    class=" ">
+
                     <input type="hidden" name="request_id" value="<?= $req['id'] ?>">
 
-                    <h5 class="fw-bold mb-4 text-primary">
-                      <i class="fas fa-tasks me-2"></i>มอบหมายงานและพิจารณา
-                    </h5>
 
-                    <div class="row g-3">
+                    <div class="row g-4">
+                      <!-- มอบหมายผู้พัฒนา -->
                       <div class="col-md-6">
                         <label for="developer_<?= $req['id'] ?>" class="form-label fw-semibold">
-                          <i class="fas fa-user-cog me-2"></i>มอบหมายให้ผู้พัฒนา:
+                          <i class="fas fa-user-cog me-2 text-primary"></i>มอบหมายให้ผู้พัฒนา
                         </label>
-                        <select name="assigned_developer_id" id="developer_<?= $req['id'] ?>" class="form-select" required>
+                        <select name="assigned_developer_id" id="developer_<?= $req['id'] ?>"
+                          class="form-select shadow-sm" required>
                           <option value="">-- เลือกผู้พัฒนา --</option>
                           <?php foreach ($developers as $dev): ?>
                             <option value="<?= $dev['id'] ?>">
@@ -742,11 +735,13 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
                         </select>
                       </div>
 
+                      <!-- ระดับความสำคัญ -->
                       <div class="col-md-6">
                         <label for="priority_<?= $req['id'] ?>" class="form-label fw-semibold">
-                          <i class="fas fa-exclamation-circle me-2"></i>ระดับความสำคัญ:
+                          <i class="fas fa-exclamation-circle me-2 text-danger"></i>ระดับความสำคัญ
                         </label>
-                        <select name="priority_level" id="priority_<?= $req['id'] ?>" class="form-select">
+                        <select name="priority_level" id="priority_<?= $req['id'] ?>"
+                          class="form-select shadow-sm">
                           <option value="low">ต่ำ</option>
                           <option value="medium" selected>ปานกลาง</option>
                           <option value="high">สูง</option>
@@ -754,63 +749,80 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
                         </select>
                       </div>
 
+                      <!-- งบประมาณ -->
                       <div class="col-md-6">
                         <label for="budget_approved_<?= $req['id'] ?>" class="form-label fw-semibold">
-                          <i class="fas fa-coins me-2"></i>กำหนดงบประมาณ (ถ้ามี):
+                          <i class="fas fa-coins me-2 text-warning"></i>งบประมาณ (ถ้ามี)
                         </label>
-                        <div class="input-group">
-                          <span class="input-group-text"><i class="fas fa-coins"></i></span>
-                          <input type="number" name="budget_approved" id="budget_approved_<?= $req['id'] ?>" class="form-control" step="0.01" min="0" placeholder="ระบุจำนวนงบประมาณ (ถ้าใช้)">
+                        <div class="input-group shadow-sm">
+                          <span class="input-group-text bg-light"><i class="fas fa-coins text-warning"></i></span>
+                          <input type="number" name="budget_approved"
+                            id="budget_approved_<?= $req['id'] ?>"
+                            class="form-control" step="0.01" min="0"
+                            placeholder="ระบุจำนวนงบประมาณ (ถ้ามี)">
                         </div>
                       </div>
 
+                      <!-- เวลาที่ใช้ -->
                       <div class="col-md-6">
                         <label for="estimated_days_<?= $req['id'] ?>" class="form-label fw-semibold">
-                          <i class="fas fa-calendar-alt me-2"></i>ประมาณการเวลา (วัน):
+                          <i class="fas fa-calendar-alt me-2 text-info"></i>ประมาณการเวลา (วัน)
                         </label>
-                        <input type="number" name="estimated_days" id="estimated_days_<?= $req['id'] ?>" class="form-control" min="1" max="365" placeholder="จำนวนวันที่คาดว่าจะใช้">
+                        <input type="number" name="estimated_days"
+                          id="estimated_days_<?= $req['id'] ?>"
+                          class="form-control shadow-sm" min="1" max="365"
+                          placeholder="จำนวนวันที่คาดว่าจะใช้">
                       </div>
 
-
+                      <!-- กำหนดเสร็จ -->
                       <div class="col-md-6">
                         <label for="deadline_<?= $req['id'] ?>" class="form-label fw-semibold">
-                          <i class="fas fa-clock me-2"></i>กำหนดเสร็จ:
+                          <i class="fas fa-clock me-2 text-primary"></i>กำหนดเสร็จ
                         </label>
-                        <div class="input-group">
-                          <span class="input-group-text"><i class="fas fa-calendar-alt"></i></span>
-                          <input type="datetime-local" name="deadline" id="deadline_<?= $req['id'] ?>" class="form-control">
+                        <div class="input-group shadow-sm">
+                          <span class="input-group-text bg-light"><i class="fas fa-calendar-alt text-primary"></i></span>
+                          <input type="datetime-local" name="deadline"
+                            id="deadline_<?= $req['id'] ?>"
+                            class="form-control">
                         </div>
                         <div class="form-text text-muted">เลือกวันและเวลาที่ต้องการให้เสร็จงาน</div>
                       </div>
 
-
-
+                      <!-- การพิจารณา -->
                       <div class="col-md-6">
                         <label class="form-label fw-semibold">การพิจารณา:</label>
-                        <div class="d-flex gap-3">
-                          <label class="form-check-label">
-                            <input type="radio" name="status" value="approved" class="form-check-input" required>
+                        <div class="d-flex flex-column gap-2">
+                          <label class="form-check-label p-2 border rounded shadow-sm">
+                            <input type="radio" name="status" value="approved" class="form-check-input me-2" required>
                             <i class="fas fa-check-circle text-success me-1"></i> อนุมัติและมอบหมายงาน
                           </label>
-                          <label class="form-check-label">
-                            <input type="radio" name="status" value="rejected" class="form-check-input" required>
+                          <label class="form-check-label p-2 border rounded shadow-sm">
+                            <input type="radio" name="status" value="rejected" class="form-check-input me-2" required>
                             <i class="fas fa-times-circle text-danger me-1"></i> ไม่อนุมัติ
                           </label>
                         </div>
                       </div>
 
+                      <!-- เหตุผล -->
                       <div class="col-12">
-                        <label for="reason_<?= $req['id'] ?>" class="form-label fw-semibold">เหตุผล/ข้อเสนอแนะ:</label>
-                        <textarea name="reason" id="reason_<?= $req['id'] ?>" class="form-control" rows="3" placeholder="ระบุเหตุผลหรือข้อเสนอแนะ"></textarea>
+                        <label for="reason_<?= $req['id'] ?>" class="form-label fw-semibold">
+                          <i class="fas fa-comment-dots me-2 text-secondary"></i>เหตุผล/ข้อเสนอแนะ
+                        </label>
+                        <textarea name="reason" id="reason_<?= $req['id'] ?>"
+                          class="form-control shadow-sm" rows="3"
+                          placeholder="ระบุเหตุผลหรือข้อเสนอแนะ"></textarea>
                       </div>
 
-                      <div class="col-12 text-end">
-                        <button type="submit" class="btn btn-primary px-4">
-                          <i class="fas fa-paper-plane me-2"></i>ส่งผลการพิจารณา
+                      <!-- ปุ่มส่ง -->
+                      <div class="col-12 mt-3">
+                        <button type="submit" class="btn btn-primary w-100 py-2 shadow-sm rounded-pill">
+                          <i class="fas fa-paper-plane me-2"></i> ส่งผลการพิจารณา
                         </button>
                       </div>
+
                     </div>
                   </form>
+
 
                 </div>
               <?php endforeach; ?>
@@ -865,125 +877,156 @@ $development_services = $services_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    // จัดการฟอร์มตามการเลือก
-    document.querySelectorAll('input[name="status"]').forEach(radio => {
-      radio.addEventListener('change', function() {
-        const form = this.closest('form');
-        const developerSelect = form.querySelector('select[name="assigned_developer_id"]');
-        const prioritySelect = form.querySelector('select[name="priority_level"]');
-        const daysInput = form.querySelector('input[name="estimated_days"]');
-        const textarea = form.querySelector('textarea');
+ <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+ 
 
-        if (this.value === 'approved') {
-          form.querySelector('select[name="development_service_id"]').required = true;
-          form.querySelector('select[name="development_service_id"]').disabled = false;
-          developerSelect.required = true;
-          developerSelect.disabled = false;
-          prioritySelect.disabled = false;
-          daysInput.disabled = false;
-          textarea.placeholder = 'ข้อเสนอแนะหรือคำแนะนำสำหรับผู้พัฒนา';
-        } else {
-          form.querySelector('select[name="development_service_id"]').required = false;
-          form.querySelector('select[name="development_service_id"]').disabled = true;
-          developerSelect.required = false;
-          developerSelect.disabled = true;
-          prioritySelect.disabled = true;
-          daysInput.disabled = true;
-          textarea.required = true;
-          textarea.placeholder = 'กรุณาระบุเหตุผลการไม่อนุมัติ';
+<script>
+  // จัดการฟอร์มตามการเลือก approved/rejected
+  document.querySelectorAll('input[name="status"]').forEach(radio => {
+    radio.addEventListener('change', function() {
+      const form = this.closest('form');
+      const developerSelect = form.querySelector('select[name="assigned_developer_id"]');
+      const prioritySelect = form.querySelector('select[name="priority_level"]');
+      const daysInput = form.querySelector('input[name="estimated_days"]');
+      const textarea = form.querySelector('textarea[name="reason"]');
+      const devServiceSelect = form.querySelector('select[name="development_service_id"]');
+
+      if (this.value === 'approved') {
+        if (devServiceSelect) {
+          devServiceSelect.required = true;
+          devServiceSelect.disabled = false;
+        }
+        developerSelect.required = true;
+        developerSelect.disabled = false;
+        prioritySelect.disabled = false;
+        daysInput.disabled = false;
+        textarea.required = false;
+        textarea.placeholder = 'ข้อเสนอแนะหรือคำแนะนำสำหรับผู้พัฒนา';
+      } else { // rejected
+        if (devServiceSelect) {
+          devServiceSelect.required = false;
+          devServiceSelect.disabled = true;
+        }
+        developerSelect.required = false;
+        developerSelect.disabled = true;
+        prioritySelect.disabled = true;
+        daysInput.disabled = true;
+        textarea.required = true;
+        textarea.placeholder = 'กรุณาระบุเหตุผลการไม่อนุมัติ';
+      }
+    });
+  });
+
+  // SweetAlert ก่อน submit ฟอร์ม
+  document.querySelectorAll("form[action='assign_status.php']").forEach(form => {
+    form.addEventListener("submit", function(e) {
+      e.preventDefault(); // กันไม่ให้ submit ทันที
+
+      swal("Good job!", "ขอบคุณที่ใช้บริการ BobbyCare", {
+        icon: "success",
+        buttons: {
+          confirm: {
+            text: "ตกลง",
+            className: "btn btn-success",
+          },
+        },
+      }).then((willSubmit) => {
+        if (willSubmit) {
+          form.submit(); // submit จริงเมื่อกดตกลง
         }
       });
     });
+  });
+</script>
+
+
+
+  <style>
+    /* overlay ครอบทั้งหน้าตอนเมนูเปิด */
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .25);
+      z-index: 998;
+      /* ให้อยู่ใต้ sidebar นิดเดียว */
+      display: none;
+    }
+
+    .sidebar-overlay.show {
+      display: block;
+    }
+  </style>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <script>
+    (function() {
+      const sidebar = document.querySelector('.sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+
+      // ปุ่มที่ใช้เปิด/ปิดเมนู (ตามโค้ดคุณมีทั้งสองคลาส)
+      const toggleBtns = document.querySelectorAll('.toggle-sidebar, .sidenav-toggler');
+
+      // คลาสที่มักถูกเติมเมื่อ "เมนูเปิด" (เติมเพิ่มได้ถ้าโปรเจ็กต์คุณใช้ชื่ออื่น)
+      const OPEN_CLASSES = ['nav_open', 'toggled', 'show', 'active'];
+
+      // helper: เช็คว่าเมนูถือว่า "เปิด" อยู่ไหม
+      function isSidebarOpen() {
+        if (!sidebar) return false;
+        // ถ้าบอดี้หรือไซด์บาร์มีคลาสในรายการนี้ตัวใดตัวหนึ่ง ให้ถือว่าเปิด
+        const openOnBody = OPEN_CLASSES.some(c => document.body.classList.contains(c) || document.documentElement.classList.contains(c));
+        const openOnSidebar = OPEN_CLASSES.some(c => sidebar.classList.contains(c));
+        return openOnBody || openOnSidebar;
+      }
+
+      // helper: สั่งปิดเมนูแบบไม่ผูกกับไส้ในธีมมากนัก
+      function closeSidebar() {
+        // เอาคลาสเปิดออกจาก body/html และ sidebar (กันเหนียว)
+        OPEN_CLASSES.forEach(c => {
+          document.body.classList.remove(c);
+          document.documentElement.classList.remove(c);
+          sidebar && sidebar.classList.remove(c);
+        });
+        overlay?.classList.remove('show');
+      }
+
+      // เมื่อกดปุ่ม toggle: ถ้าเปิดแล้วให้โชว์ overlay / ถ้าปิดก็ซ่อน
+      toggleBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          // หน่วงนิดให้ธีมสลับคลาสเสร็จก่อน
+          setTimeout(() => {
+            if (isSidebarOpen()) {
+              overlay?.classList.add('show');
+            } else {
+              overlay?.classList.remove('show');
+            }
+          }, 10);
+        });
+      });
+
+      // คลิกที่ overlay = ปิดเมนู
+      overlay?.addEventListener('click', () => {
+        closeSidebar();
+      });
+
+      // คลิกที่ใดก็ได้บนหน้า: ถ้านอก sidebar + นอกปุ่ม toggle และขณะ mobile → ปิดเมนู
+      document.addEventListener('click', (e) => {
+        // จำกัดเฉพาะจอเล็ก (คุณจะปรับ breakpoint เองก็ได้)
+        if (window.innerWidth > 991) return;
+
+        const clickedInsideSidebar = e.target.closest('.sidebar');
+        const clickedToggle = e.target.closest('.toggle-sidebar, .sidenav-toggler');
+
+        if (!clickedInsideSidebar && !clickedToggle && isSidebarOpen()) {
+          closeSidebar();
+        }
+      });
+
+      // ปิดเมนูอัตโนมัติเมื่อ resize จากจอเล็กไปจอใหญ่ (กันค้าง)
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 991) closeSidebar();
+      });
+    })();
   </script>
-
-  
-    <style>
-        /* overlay ครอบทั้งหน้าตอนเมนูเปิด */
-        .sidebar-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, .25);
-            z-index: 998;
-            /* ให้อยู่ใต้ sidebar นิดเดียว */
-            display: none;
-        }
-
-        .sidebar-overlay.show {
-            display: block;
-        }
-    </style>
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-    <script>
-        (function() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-
-            // ปุ่มที่ใช้เปิด/ปิดเมนู (ตามโค้ดคุณมีทั้งสองคลาส)
-            const toggleBtns = document.querySelectorAll('.toggle-sidebar, .sidenav-toggler');
-
-            // คลาสที่มักถูกเติมเมื่อ "เมนูเปิด" (เติมเพิ่มได้ถ้าโปรเจ็กต์คุณใช้ชื่ออื่น)
-            const OPEN_CLASSES = ['nav_open', 'toggled', 'show', 'active'];
-
-            // helper: เช็คว่าเมนูถือว่า "เปิด" อยู่ไหม
-            function isSidebarOpen() {
-                if (!sidebar) return false;
-                // ถ้าบอดี้หรือไซด์บาร์มีคลาสในรายการนี้ตัวใดตัวหนึ่ง ให้ถือว่าเปิด
-                const openOnBody = OPEN_CLASSES.some(c => document.body.classList.contains(c) || document.documentElement.classList.contains(c));
-                const openOnSidebar = OPEN_CLASSES.some(c => sidebar.classList.contains(c));
-                return openOnBody || openOnSidebar;
-            }
-
-            // helper: สั่งปิดเมนูแบบไม่ผูกกับไส้ในธีมมากนัก
-            function closeSidebar() {
-                // เอาคลาสเปิดออกจาก body/html และ sidebar (กันเหนียว)
-                OPEN_CLASSES.forEach(c => {
-                    document.body.classList.remove(c);
-                    document.documentElement.classList.remove(c);
-                    sidebar && sidebar.classList.remove(c);
-                });
-                overlay?.classList.remove('show');
-            }
-
-            // เมื่อกดปุ่ม toggle: ถ้าเปิดแล้วให้โชว์ overlay / ถ้าปิดก็ซ่อน
-            toggleBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // หน่วงนิดให้ธีมสลับคลาสเสร็จก่อน
-                    setTimeout(() => {
-                        if (isSidebarOpen()) {
-                            overlay?.classList.add('show');
-                        } else {
-                            overlay?.classList.remove('show');
-                        }
-                    }, 10);
-                });
-            });
-
-            // คลิกที่ overlay = ปิดเมนู
-            overlay?.addEventListener('click', () => {
-                closeSidebar();
-            });
-
-            // คลิกที่ใดก็ได้บนหน้า: ถ้านอก sidebar + นอกปุ่ม toggle และขณะ mobile → ปิดเมนู
-            document.addEventListener('click', (e) => {
-                // จำกัดเฉพาะจอเล็ก (คุณจะปรับ breakpoint เองก็ได้)
-                if (window.innerWidth > 991) return;
-
-                const clickedInsideSidebar = e.target.closest('.sidebar');
-                const clickedToggle = e.target.closest('.toggle-sidebar, .sidenav-toggler');
-
-                if (!clickedInsideSidebar && !clickedToggle && isSidebarOpen()) {
-                    closeSidebar();
-                }
-            });
-
-            // ปิดเมนูอัตโนมัติเมื่อ resize จากจอเล็กไปจอใหญ่ (กันค้าง)
-            window.addEventListener('resize', () => {
-                if (window.innerWidth > 991) closeSidebar();
-            });
-        })();
-    </script>
 
 </body>
 

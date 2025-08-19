@@ -450,36 +450,31 @@ foreach ($requests as &$request) {
                   <div class="request-card">
                     <!-- Document Number -->
                     <?php if (!empty($req['document_number'])): ?>
-                      <div class="document-info">
-                        <div class="d-flex justify-content-between align-items-center">
-                          <div>
-                            <div class="document-number">
-                              <i class="fas fa-file-alt me-2"></i>
-                              เลขที่เอกสาร: <?= htmlspecialchars($req['document_number']) ?>
-                            </div>
 
-                          </div>
-                          <div class="text-end">
-                            <small class="text-muted">
-                              รหัสคลัง: <?= htmlspecialchars($req['warehouse_number'] ?? '') ?> |
-                              ชื่อย่อเเผนก: <?= htmlspecialchars($req['code_name'] ?? '') ?> |
-                              Running: <?= htmlspecialchars($req['running_number'] ?? '') ?>
-                            </small>
-                          </div>
-                        </div>
-                      </div>
-                    <?php endif; ?>
+                                            <div class="document-info">
+                                                <div class="d-flex justify-content-between align-items-center">
+                                                    <div>
 
-                    <!-- Service Info -->
-                    <?php if ($req['service_name']): ?>
-                      <div class="service-info">
-                        <strong>
-                          <i class="fas fa-<?= $req['service_category'] === 'development' ? 'code' : 'tools' ?> me-2"></i>
-                          ประเภทคำขอ : <?= htmlspecialchars($req['service_name']) ?>
-                        </strong>
-                        <span class="badge bg-info ms-2"><?= htmlspecialchars($req['service_category']) ?></span>
-                      </div>
-                    <?php endif; ?>
+                                                        <i class="fas fa-file-alt me-2"></i>
+                                                        เลขที่: <?= htmlspecialchars($req['document_number']) ?>
+                                                        <?php if ($req['service_name']): ?> <br>
+
+                                                            <strong>
+                                                                <i class="fas fa-<?= $req['service_category'] === 'development' ? 'code' : 'tools' ?> me-2"></i>
+                                                                ประเภทคำขอ : <?= htmlspecialchars($req['service_name']) ?>
+                                                            </strong>
+
+
+                                                            <span class="badge bg-info ms-2"><?= htmlspecialchars($req['service_category']) ?></span>
+
+                                                        <?php endif; ?>
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        <?php endif; ?>
+
+                   
 
                     <div class="d-flex justify-content-between align-items-start mb-3">
                       <div class="flex-grow-1">
@@ -490,43 +485,50 @@ foreach ($requests as &$request) {
                         </div>
                       </div>
 
-                      <div class="ms-3 text-end">
-                        <?php
-                        $status_labels = [
-                          'pending' => 'รอดำเนินการ',
-                          'div_mgr_review' => 'รอผู้จัดการฝ่ายพิจารณา',
-                          'assignor_review' => 'รอผู้จัดการแผนกพิจารณา',
-                          'gm_review' => 'รอผู้จัดการทั่วไปพิจารณา',
-                          'senior_gm_review' => 'รอผู้จัดการอาวุโสพิจารณา',
-                          'approved' => 'อนุมัติแล้ว',
-                          'rejected' => 'ไม่อนุมัติ',
-                          'in_progress' => 'กำลังดำเนินการ',
-                          'completed' => 'เสร็จสิ้น'
-                        ];
-                        $status_class = in_array($req['status'], ['approved', 'completed']) ? 'status-approved' : ($req['status'] === 'rejected' ? 'status-rejected' : 'status-pending');
-                        ?>
-                        <span class="status-badge <?= $status_class ?>">
-                          <?= $status_labels[$req['status']] ?? $req['status'] ?>
-                        </span>
-
-                        <?php if ($req['priority']): ?>
-                          <div class="mt-2">
-                            <?php
-                            $priority_labels = [
-                              'low' => 'ต่ำ',
-                              'medium' => 'ปานกลาง',
-                              'high' => 'สูง',
-                              'urgent' => 'เร่งด่วน'
-                            ];
-                            ?>
-                            <span class="priority-badge priority-<?= $req['priority'] ?>">
-                              <i class="fas fa-exclamation-circle me-1"></i>
-                              <?= $priority_labels[$req['priority']] ?? 'ปานกลาง' ?>
-                            </span>
-                          </div>
-                        <?php endif; ?>
-                      </div>
+                     
                     </div>
+<div class="d-flex justify-content-between align-items-center ms-3">
+  <!-- สถานะ (ซ้าย) -->
+  <div>
+    <?php
+    $status_labels = [
+      'pending' => 'รอดำเนินการ',
+      'div_mgr_review' => 'รอผู้จัดการฝ่ายพิจารณา',
+      'assignor_review' => 'รอผู้จัดการแผนกพิจารณา',
+      'gm_review' => 'รอผู้จัดการทั่วไปพิจารณา',
+      'senior_gm_review' => 'รอผู้จัดการอาวุโสพิจารณา',
+      'approved' => 'อนุมัติแล้ว',
+      'rejected' => 'ไม่อนุมัติ',
+      'in_progress' => 'กำลังดำเนินการ',
+      'completed' => 'เสร็จสิ้น'
+    ];
+    $status_class = in_array($req['status'], ['approved', 'completed']) 
+        ? 'status-approved' 
+        : ($req['status'] === 'rejected' ? 'status-rejected' : 'status-pending');
+    ?>
+    <span class="status-badge <?= $status_class ?>">
+      <?= $status_labels[$req['status']] ?? $req['status'] ?>
+    </span>
+  </div>
+
+  <!-- ความสำคัญ (ขวา) -->
+  <div class="text-end">
+    <?php if ($req['priority']): ?>
+      <?php
+      $priority_labels = [
+        'low' => 'ต่ำ',
+        'medium' => 'ปานกลาง',
+        'high' => 'สูง',
+        'urgent' => 'เร่งด่วน'
+      ];
+      ?>
+      <span class="priority-badge priority-<?= $req['priority'] ?>">
+        <i class="fas fa-exclamation-circle me-1"></i>
+        <?= $priority_labels[$req['priority']] ?? 'ปานกลาง' ?>
+      </span>
+    <?php endif; ?>
+  </div>
+</div>
 
                     <?php if ($req['attachment_count'] > 0): ?>
                       <div class="attachment-info">
@@ -831,11 +833,12 @@ foreach ($requests as &$request) {
                                 <div class="step-status">
                                   <i class="fas fa-clock text-warning"></i> รอการรีวิวจากคุณ
                                 </div>
-                                <div class="mt-3">
-                                  <a href="review_task.php?request_id=<?= $req['id'] ?>" class="btn btn-primary btn-sm">
-                                    <i class="fas fa-star me-1"></i>รีวิวงาน
-                                  </a>
-                                </div>
+                               <div class="d-grid mt-3">
+                                                                    <a href="review_service.php?request_id=<?= $req['id'] ?>"
+                                                                        class="btn btn-primary fw-bold py-2 w-100">
+                                                                        <i class="fas fa-star me-2"></i> รีวิวงาน
+                                                                    </a>
+                                                                </div>
                               </div>
                             </div>
                           <?php elseif ($req['review_status']): ?>
