@@ -199,71 +199,54 @@ $barData = [
 
 
 
-
 // function เเสดงกอรงตามวันเดือนปี
 function formatDateFilter($day, $month, $year)
 {
+  $thaiMonths = [
+    1 => 'มกราคม',
+    2 => 'กุมภาพันธ์',
+    3 => 'มีนาคม',
+    4 => 'เมษายน',
+    5 => 'พฤษภาคม',
+    6 => 'มิถุนายน',
+    7 => 'กรกฎาคม',
+    8 => 'สิงหาคม',
+    9 => 'กันยายน',
+    10 => 'ตุลาคม',
+    11 => 'พฤศจิกายน',
+    12 => 'ธันวาคม'
+  ];
+
   if ($year === 'all' && $month === 'all' && $day === 'all') {
     return "ทั้งหมด";
   }
-  // กรณีมีปี กับ เดือนอย่างน้อย
+
+  // ถ้าเลือก ปี+เดือน+วัน
   if ($year !== 'all' && $month !== 'all' && $day !== 'all') {
-    // สร้างวันที่
-    $dateStr = sprintf("%04d-%02d-%02d", $year, $month, $day);
-    $date = DateTime::createFromFormat('Y-m-d', $dateStr);
-    if ($date) {
-      // แสดงวันที่ภาษาไทย (ถ้าต้องการ)
-      setlocale(LC_TIME, 'th_TH.UTF-8'); // หรือใช้ locale ที่เครื่องรองรับ
-      // แสดงวันที่เป็น เช่น "11 สิงหาคม 2025"
-      return strftime('%e %B %Y', $date->getTimestamp());
-    }
-    // fallback ถ้าวันไม่ถูกต้อง
-    return "$day/$month/$year";
+    $thYear = $year + 543;
+    return "$day " . ($thaiMonths[(int)$month] ?? $month) . " $thYear";
   }
 
-  // กรณีเลือกปีกับเดือนอย่างเดียว
+  // ถ้าเลือก ปี+เดือน
   if ($year !== 'all' && $month !== 'all') {
-    $dateStr = sprintf("%04d-%02d-01", $year, $month);
-    $date = DateTime::createFromFormat('Y-m-d', $dateStr);
-    if ($date) {
-      setlocale(LC_TIME, 'th_TH.UTF-8');
-      return strftime('%B %Y', $date->getTimestamp());
-    }
-    return "$month/$year";
+    $thYear = $year + 543;
+    return ($thaiMonths[(int)$month] ?? $month) . " $thYear";
   }
 
-  // กรณีเลือกปีอย่างเดียว
+  // ถ้าเลือกปีอย่างเดียว
   if ($year !== 'all') {
-    return "ปี $year";
+    return "ปี " . ($year + 543);
   }
 
-  // กรณีเลือกเดือนอย่างเดียว
+  // ถ้าเลือกเดือนอย่างเดียว
   if ($month !== 'all') {
-    $months = [
-      1 => 'มกราคม',
-      2 => 'กุมภาพันธ์',
-      3 => 'มีนาคม',
-      4 => 'เมษายน',
-      5 => 'พฤษภาคม',
-      6 => 'มิถุนายน',
-      7 => 'กรกฎาคม',
-      8 => 'สิงหาคม',
-      9 => 'กันยายน',
-      10 => 'ตุลาคม',
-      11 => 'พฤศจิกายน',
-      12 => 'ธันวาคม'
-    ];
-    $m = (int)$month;
-    $monthName = $months[$m] ?? $month;
-    return "เดือน $monthName";
+    return "เดือน " . ($thaiMonths[(int)$month] ?? $month);
   }
 
-  // กรณีเลือกวันอย่างเดียว (น้อยมากที่จะใช้)
   if ($day !== 'all') {
     return "วันที่ $day";
   }
 
-  // ค่าเริ่มต้น
   return "เลือกวันเดือนปี";
 }
 
@@ -448,6 +431,27 @@ $totalServiceRequests = $countSrStmt->fetchColumn();
 $countStmt = $conn->query("SELECT COUNT(*) AS total_documents FROM document_numbers");
 $countResult = $countStmt->fetch(PDO::FETCH_ASSOC);
 $totalDocuments = $countResult['total_documents'] ?? 0;
+
+
+// จำนวนคำขอที่ยังอยู่ในขั้นตอนอนุมัติ (ยังไม่ approved )
+$pendingStmt = $conn->query("
+    SELECT COUNT(*) 
+    FROM service_requests 
+    WHERE status NOT IN ('approved' )
+");
+$totalPendingApprovals = $pendingStmt->fetchColumn();
+
+
+
+// จำนวนคำขอที่ยังอยู่ในขั้นตอนอนุมัติ ( rejected / completed)
+$pendingStmtCom = $conn->query("
+    SELECT COUNT(*) 
+    FROM service_requests 
+    WHERE status NOT IN ('rejected','completed' )
+");
+$totalPendingcompleted = $pendingStmtCom->fetchColumn();
+
+
 
 // แจกแจงตาม code_name
 $codeNameStmt = $conn->query("
@@ -701,6 +705,7 @@ if (isset($_GET['popup'])) {
 
 ?>
 
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -907,6 +912,7 @@ if (isset($_GET['popup'])) {
 
 
 
+
       <div class="container">
 
 
@@ -991,21 +997,45 @@ if (isset($_GET['popup'])) {
                   <label class="form-label fw-bold small">เดือน</label>
                   <select name="month" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="all" <?= $current_month === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
-                    <?php for ($m = 1; $m <= 12; $m++): ?>
-                      <option value="<?= $m ?>" <?= (string)$current_month === (string)$m ? 'selected' : '' ?>><?= $m ?></option>
-                    <?php endfor; ?>
+                    <?php
+                    $months = [
+                      1 => 'มกราคม',
+                      2 => 'กุมภาพันธ์',
+                      3 => 'มีนาคม',
+                      4 => 'เมษายน',
+                      5 => 'พฤษภาคม',
+                      6 => 'มิถุนายน',
+                      7 => 'กรกฎาคม',
+                      8 => 'สิงหาคม',
+                      9 => 'กันยายน',
+                      10 => 'ตุลาคม',
+                      11 => 'พฤศจิกายน',
+                      12 => 'ธันวาคม'
+                    ];
+                    foreach ($months as $num => $name):
+                    ?>
+                      <option value="<?= $num ?>" <?= (string)$current_month === (string)$num ? 'selected' : '' ?>>
+                        <?= $name ?>
+                      </option>
+                    <?php endforeach; ?>
                   </select>
                 </div>
+
 
                 <div class="col-6 col-md-2">
                   <label class="form-label fw-bold small">ปี</label>
                   <select name="year" class="form-select form-select-sm" onchange="this.form.submit()">
                     <option value="all" <?= $current_year === 'all' ? 'selected' : '' ?>>ทั้งหมด</option>
-                    <?php for ($y = $year_now - 2; $y <= $year_now + 1; $y++): ?>
-                      <option value="<?= $y ?>" <?= (string)$current_year === (string)$y ? 'selected' : '' ?>><?= $y ?></option>
+                    <?php for ($y = $year_now - 2; $y <= $year_now + 1; $y++):
+                      $displayYear = $y + 543; // แสดงเป็น พ.ศ.
+                    ?>
+                      <option value="<?= $y ?>" <?= (string)$current_year === (string)$y ? 'selected' : '' ?>>
+                        <?= $displayYear ?>
+                      </option>
                     <?php endfor; ?>
                   </select>
                 </div>
+
 
                 <div class="col-6 col-md-2 d-grid">
                   <button type="submit" class="btn btn-primary btn-sm">
@@ -1030,49 +1060,126 @@ if (isset($_GET['popup'])) {
 
 
             <div class="row g-3 text-center">
+
+
               <div class="col-6 col-sm-4 col-md-3 col-lg">
-                <div class="card h-100 monitor-card clickable" data-type="all">
-                  <div class="card-body p-3">
-                    <div class="text-end text-success">
-                      <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
+                <div class="card h-100 monitor-card clickable shadow-sm border-0" data-type="all">
+                  <div class="card-body p-3 text-center d-flex flex-column justify-content-between">
+                    <!-- จำนวนงาน -->
+                    <div>
+                      <!-- วันที่ -->
+                      <div class="fw-bold fs-5 mt-2 text-dark">
+                        <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
+                      </div>
+                      <!-- สถานะ -->
+                      <div class="badge bg-warning text-dark px-3 py-2 fs-6 mb-2">
+                        งานทั้งหมด
+                      </div>
+
+                      <div class="h1 fw-bold text-primary mb-1">
+                        <?= count($tasks) ?>
+                      </div>
+
                     </div>
-
-                    <div class="h1 m-0"><?= count($tasks) ?></div>
-                    <div class="text-muted mb-0">งานทั้งหมด</div>
                   </div>
                 </div>
               </div>
 
               <div class="col-6 col-sm-4 col-md-3 col-lg">
-                <div class="card h-100 monitor-card clickable" data-type="pending">
-                  <div class="card-body p-3">
-                    <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
-                    <div class="h1 m-0"><?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'pending')) ?></div>
-                    <div class="text-muted mb-0">รอรับงาน</div>
-                  </div>
-                </div>
-              </div>
+                <div class="card h-100 monitor-card clickable shadow-sm border-0" data-type="pending">
+                  <div class="card-body p-3 text-center d-flex flex-column justify-content-between">
+                    <!-- จำนวนงาน -->
+                    <div>
+                      <!-- วันที่ -->
+                      <div class="fw-bold fs-5 mt-2 text-dark">
+                        <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
+                      </div>
+                      <!-- สถานะ -->
+                      <div class="badge bg-warning text-dark px-3 py-2 fs-6 mb-2">
+                        รอรับงาน
+                      </div>
 
-              <div class="col-6 col-sm-4 col-md-3 col-lg">
-                <div class="card h-100 monitor-card clickable" data-type="received">
-                  <div class="card-body p-3">
-                    <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
-                    <div class="h1 m-0"><?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'received')) ?></div>
-                    <div class="text-muted mb-0">รับงาน</div>
-                  </div>
-                </div>
-              </div>
+                      <div class="h1 fw-bold text-primary mb-1">
+                        <?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'pending')) ?>
+                      </div>
 
-
-
-              <div class="col-6 col-sm-4 col-md-3 col-lg">
-                <div class="card h-100 monitor-card clickable" data-type="in_progress">
-                  <div class="card-body p-3">
-                    <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
-                    <div class="h1 m-0">
-                      <?= count(array_filter($tasks, fn($t) => in_array($t['task_status'], ['in_progress', 'on_hold']))) ?>
                     </div>
-                    <div class="text-muted mb-0">กำลังทำ</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-6 col-sm-4 col-md-3 col-lg">
+                <div class="card h-100 monitor-card clickable shadow-sm border-0" data-type="received">
+                  <div class="card-body p-3 text-center d-flex flex-column justify-content-between">
+                    <!-- จำนวนงาน -->
+                    <div>
+                      <!-- วันที่ -->
+                      <div class="fw-bold fs-5 mt-2 text-dark">
+                        <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
+                      </div>
+                      <!-- สถานะ -->
+                      <div class="badge bg-warning text-dark px-3 py-2 fs-6 mb-2">
+                        รับงาน
+                      </div>
+
+                      <div class="h1 fw-bold text-primary mb-1">
+                        <?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'received')) ?>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+
+
+
+
+              <div class="col-6 col-sm-4 col-md-3 col-lg">
+                <div class="card h-100 monitor-card clickable shadow-sm border-0" data-type="in_progress">
+                  <div class="card-body p-3 text-center d-flex flex-column justify-content-between">
+                    <!-- จำนวนงาน -->
+                    <div>
+                      <!-- วันที่ -->
+                      <div class="fw-bold fs-5 mt-2 text-dark">
+                        <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
+                      </div>
+                      <!-- สถานะ -->
+                      <div class="badge bg-warning text-dark px-3 py-2 fs-6 mb-2">
+                        กำลังทำ
+                      </div>
+
+                      <div class="h1 fw-bold text-primary mb-1">
+                        <?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'in_progress')) ?>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+
+
+              <div class="col-6 col-sm-4 col-md-3 col-lg">
+                <div class="card h-100 monitor-card clickable shadow-sm border-0" data-type="completed">
+                  <div class="card-body p-3 text-center d-flex flex-column justify-content-between">
+                    <!-- จำนวนงาน -->
+                    <div>
+                      <!-- วันที่ -->
+                      <div class="fw-bold fs-5 mt-2 text-dark">
+                        <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
+                      </div>
+                      <!-- สถานะ -->
+                      <div class="badge bg-warning text-dark px-3 py-2 fs-6 mb-2">
+                        เสร็จสิ้น
+                      </div>
+
+                      <div class="h1 fw-bold text-primary mb-1">
+                        <?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'completed')) ?>
+                      </div>
+
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1081,39 +1188,57 @@ if (isset($_GET['popup'])) {
 
 
               <div class="col-6 col-sm-4 col-md-3 col-lg">
-                <div class="card h-100 monitor-card clickable" data-type="completed">
-                  <div class="card-body p-3">
-                    <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
-                    <div class="h1 m-0"><?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'completed')) ?></div>
-                    <div class="text-muted mb-0">เสร็จสิ้น</div>
+                <div class="card h-100 monitor-card clickable shadow-sm border-0" data-type="accepted">
+                  <div class="card-body p-3 text-center d-flex flex-column justify-content-between">
+                    <!-- จำนวนงาน -->
+                    <div>
+                      <!-- วันที่ -->
+                      <div class="fw-bold fs-5 mt-2 text-dark">
+                        <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
+                      </div>
+                      <!-- สถานะ -->
+                      <div class="badge bg-warning text-dark px-3 py-2 fs-6 mb-2">
+                        ปิดงาน
+                      </div>
+
+                      <div class="h1 fw-bold text-primary mb-1">
+                        <?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'accepted')) ?>
+                      </div>
+
+                    </div>
                   </div>
                 </div>
               </div>
 
+
+
+
               <div class="col-6 col-sm-4 col-md-3 col-lg">
-                <div class="card h-100 monitor-card clickable" data-type="accepted">
-                  <div class="card-body p-3">
-                    <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
-                    <div class="h1 m-0"><?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'accepted')) ?></div>
-                    <div class="text-muted mb-0">ปิดงาน</div>
+                <div class="card h-100 monitor-card clickable shadow-sm border-0" data-type="overdue">
+                  <div class="card-body p-3 text-center d-flex flex-column justify-content-between">
+                    <!-- จำนวนงาน -->
+                    <div>
+                      <!-- วันที่ -->
+                      <div class="fw-bold fs-5 mt-2 text-dark">
+                        <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
+                      </div>
+                      <!-- สถานะ -->
+                      <div class="badge bg-warning text-dark px-3 py-2 fs-6 mb-2">
+                        เลยกำหนด
+                      </div>
+
+                      <div class="h1 fw-bold text-primary mb-1">
+                        <?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'overdue')) ?>
+                      </div>
+
+                    </div>
                   </div>
                 </div>
               </div>
 
-              <div class="col-6 col-sm-4 col-md-3 col-lg">
-                <div class="card h-100 monitor-card clickable" data-type="overdue">
-                  <div class="card-body p-3">
-                    <?= htmlspecialchars(formatDateFilter($current_day, $current_month, $current_year)) ?>
-                    <div class="h1 m-0"><?= count(array_filter($tasks, fn($t) => $t['deadline_status'] === 'overdue')) ?></div>
-                    <div class="text-muted mb-0">เลยกำหนด</div>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
           <br>
-
-
 
 
           <div class="row">
@@ -1125,9 +1250,10 @@ if (isset($_GET['popup'])) {
                   </span>
                   <div>
                     <h5 class="mb-1">
-                      <b><a href="#"><?= number_format($totalServiceRequests) ?> <small>รายการ</small></a></b>
+
+                      <span class="fw-bold text-dark fs-3"><?= number_format($totalServiceRequests) ?></span>
                     </h5>
-                    <small class="text-muted">รายการเอกสารที่ขอเข้าทั้งหมด</small>
+                    <small class="text-muted"><strong>รายการเอกสารที่ขอเข้าทั้งหมด</strong></small>
                   </div>
                 </div>
               </div>
@@ -1141,9 +1267,10 @@ if (isset($_GET['popup'])) {
                   </span>
                   <div>
                     <h5 class="mb-1">
-                      <b><?= number_format($totalDocuments) ?></b>
+
+                      <span class="fw-bold text-dark fs-3"><?= number_format($totalDocuments) ?></span>
                     </h5>
-                    <small class="text-muted">จำนวนเแผนกทั้งหหมดที่ใช้บริการ</small>
+                    <small class="text-muted"><strong>จำนวนเแผนกทั้งหหมดที่ใช้บริการ</strong></small>
                   </div>
                 </div>
               </div>
@@ -1151,110 +1278,110 @@ if (isset($_GET['popup'])) {
 
 
 
-
-            <!-- 
-            <div class="col-sm-6 col-lg-3">
-              <div class="card p-3">
-                <div class="d-flex align-items-center">
-                  <span class="stamp stamp-md bg-danger me-3">
-                    <i class="fa fa-users"></i>
-                  </span>
-                  <div>
-                    <h5 class="mb-1">
-                      <b><a href="#">1,352 <small>Members</small></a></b>
-                    </h5>
-                    <small class="text-muted">163 registered today</small>
-                  </div>
-                </div>
-              </div>
-            </div>
             <div class="col-sm-6 col-lg-3">
               <div class="card p-3">
                 <div class="d-flex align-items-center">
                   <span class="stamp stamp-md bg-warning me-3">
-                    <i class="fa fa-comment-alt"></i>
+                    <i class="fa fa-hourglass-half"></i>
                   </span>
                   <div>
                     <h5 class="mb-1">
-                      <b><a href="#">132 <small>Comments</small></a></b>
+                      <span class="fw-bold text-dark fs-3"><?= number_format($totalPendingApprovals) ?></span>
                     </h5>
-                    <small class="text-muted">16 waiting</small>
+                    <small class="text-muted"><strong>จำนวนรายการที่ยังอยู่ในขั้นตอนอนุมัติ</strong></small>
                   </div>
                 </div>
               </div>
             </div>
-          </div> -->
 
-
-
-
-
-            <div class="row">
-
-
-              <?php foreach ($devData as $i => $dev): ?>
-                <div class="col-sm-6 col-md-4 col-lg-4 mb-3">
-                  <div class="card h-100">
-                    <div class="card-header">
-                      <div class="card-title mb-0"><?= htmlspecialchars($dev['name']) ?></div>
-                    </div>
-                    <div class="card-body">
-                      <div class="chart-container" style="height:250px; position:relative; overflow:visible;">
-                        <canvas id="devChart<?= $i ?>"></canvas>
-                      </div>
-                      <div class="small text-muted mt-2" id="devEmpty<?= $i ?>" style="display:none">ไม่มีงาน</div>
-                    </div>
+            <div class="col-sm-6 col-lg-3">
+              <div class="card p-3">
+                <div class="d-flex align-items-center">
+                  <span class="stamp stamp-md bg-success me-3">
+                    <i class="fa fa-check-circle"></i>
+                  </span>
+                  <div>
+                    <h5 class="mb-1">
+                      <span class="fw-bold text-success fs-3"><?= count($tasks) ?></span>
+                    </h5>
+                    <small class="text-muted"><strong>จำนวนรายการที่ผ่านขั้นตอนอนุมัติแล้ว</strong></small>
                   </div>
                 </div>
-              <?php endforeach; ?>
+              </div>
+            </div>
+
+          </div>
 
 
-              <div class="col-md-12">
-                <div class="card">
+
+
+
+          <div class="row">
+
+
+            <?php foreach ($devData as $i => $dev): ?>
+              <div class="col-sm-6 col-md-4 col-lg-4 mb-3">
+                <div class="card h-100">
                   <div class="card-header">
-                    <div class="card-title">
-                      รายงานประจำเดือน
-                      <?php if ($current_year !== 'all'): ?>
-                        (ปี <?= htmlspecialchars($current_year) ?>)
-                      <?php else: ?>
-                        (ทุกปี)
-                      <?php endif; ?>
-                    </div>
+                    <div class="card-title mb-0"><?= htmlspecialchars($dev['name']) ?></div>
                   </div>
                   <div class="card-body">
-                    <div class="chart-container">
-                      <canvas id="multipleBarChart"></canvas>
+                    <div class="chart-container" style="height:250px; position:relative; overflow:visible;">
+                      <canvas id="devChart<?= $i ?>"></canvas>
                     </div>
+                    <div class="small text-muted mt-2" id="devEmpty<?= $i ?>" style="display:none">ไม่มีงาน</div>
                   </div>
                 </div>
               </div>
-
-              
-
+            <?php endforeach; ?>
 
 
+
+            <div class="col-md-12">
+              <div class="card">
+                <div class="card-header">
+                  <div class="card-title">
+                    รายงานประจำเดือน
+                    <?php if ($current_year !== 'all'): ?>
+                      (ปี <?= htmlspecialchars($current_year) ?>)
+                    <?php else: ?>
+                      (ทุกปี)
+                    <?php endif; ?>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="chart-container">
+                    <canvas id="multipleBarChart3"></canvas>
+                  </div>
+                </div>
+              </div>
             </div>
 
+
+
+
           </div>
+
         </div>
       </div>
-
-      <footer class="footer">
-        <div class="container-fluid d-flex justify-content-between">
-          <nav class="pull-left">
-
-          </nav>
-          <div class="copyright">
-            © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
-            <i class="fa fa-heart heart text-danger"></i>
-
-          </div>
-          <div>
-
-          </div>
-        </div>
-      </footer>
     </div>
+
+    <footer class="footer">
+      <div class="container-fluid d-flex justify-content-between">
+        <nav class="pull-left">
+
+        </nav>
+        <div class="copyright">
+          © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
+          <i class="fa fa-heart heart text-danger"></i>
+
+        </div>
+        <div>
+
+        </div>
+      </div>
+    </footer>
+  </div>
   </div>
   </div>
 
@@ -1324,10 +1451,9 @@ if (isset($_GET['popup'])) {
   </script>
 
 
-
-  <script>
-    const labels = ['รอรับงาน', 'กำลังทำ', 'เสร็จสิ้น', 'งานบริการ', 'งานพัฒนา'];
-    const backgroundColors = ['#f3545d', '#fbfd8e', '#02ff63', '#177dff', '#77d4ffff'];
+<script> 
+    const labels = ['รอรับงาน', 'กำลังทำ', 'เสร็จสิ้น'];
+    const backgroundColors = ['#f3545d', '#fbfd8e', '#02ff63'];
     const devData = <?= json_encode($devData, JSON_UNESCAPED_UNICODE) ?>;
 
     devData.forEach((dev, i) => {
@@ -1343,7 +1469,7 @@ if (isset($_GET['popup'])) {
         data: {
           labels,
           datasets: [{
-            data: dev.data,
+            data: dev.data.slice(0, 3), 
             backgroundColor: backgroundColors,
             borderColor: '#fff',
             borderWidth: 2
@@ -1354,31 +1480,7 @@ if (isset($_GET['popup'])) {
           maintainAspectRatio: false,
           plugins: {
             legend: {
-              position: 'bottom',
-              labels: {
-                boxWidth: 12,
-                padding: 10,
-                generateLabels: function(chart) {
-                  const data = chart.data;
-                  return data.labels.map((label, index) => {
-                    const value = data.datasets[0].data[index];
-                    return {
-                      text: `${label} (${value})`,
-                      fillStyle: data.datasets[0].backgroundColor[index],
-                      strokeStyle: '#fff',
-                      lineWidth: 2,
-                      hidden: chart.getDataVisibility(index) === false
-                    };
-                  });
-                }
-              },
-              // ✅ เปิดให้คลิก toggle ได้
-              onClick: (e, legendItem, legend) => {
-                const index = legendItem.index;
-                const ci = legend.chart;
-                ci.toggleDataVisibility(index);
-                ci.update();
-              }
+              position: 'bottom'
             },
             datalabels: {
               color: '#000',
@@ -1395,64 +1497,190 @@ if (isset($_GET['popup'])) {
           },
           animation: {
             duration: 300
+          },
+          onClick: (evt, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              const statusMap = ['pending', 'in_progress', 'completed']; // ✅ เหลือ 3 อันตรงกับ labels
+              const status = statusMap[index];
+
+              let modal = new bootstrap.Modal(document.getElementById('taskModal'));
+              modal.show();
+
+              let params = new URLSearchParams(window.location.search);
+              params.set("popup", "1");
+              params.set("status", status);
+              params.set("dev_id", dev.id);
+
+              fetch("export_report.php?" + params.toString())
+                .then(res => res.text())
+                .then(html => {
+                  document.getElementById('taskList').innerHTML = html;
+                });
+            }
           }
         },
         plugins: [ChartDataLabels]
       });
     });
-  </script>
-  
+</script>
+
+
+
+
   <script>
     var barData = <?= json_encode($barData) ?>;
 
-    var myMultipleBarChart = new Chart(document.getElementById('multipleBarChart'), {
-      type: "bar",
+    var myComboChart3 = new Chart(document.getElementById('multipleBarChart3'), {
+      type: "bar", // ชนิดหลัก แต่ datasets สามารถกำหนดต่างได้
       data: {
-        labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+        labels: ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"],
         datasets: [{
             label: "งานทั้งหมด",
-            backgroundColor: "#59d05d",
+            type: "line", // กำหนดเป็นเส้น
             borderColor: "#59d05d",
-            data: barData.all
+            backgroundColor: "rgba(89, 208, 93, 0.2)",
+            data: barData.all,
+            fill: false,
+            tension: 0.3,
+            yAxisID: "y"
           },
           {
             label: "งานพัฒนา Development",
-            backgroundColor: "#77d4ffff",
-            borderColor: "#77d4ffff",
-            data: barData.development
+            type: "bar", // กำหนดเป็นแท่ง
+            backgroundColor: "#77d4ff",
+            borderColor: "#77d4ff",
+            data: barData.development,
+            yAxisID: "y"
           },
           {
             label: "งานบริการ Service",
+            type: "bar",
             backgroundColor: "#177dff",
             borderColor: "#177dff",
-            data: barData.service
+            data: barData.service,
+            yAxisID: "y"
           }
         ]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        legend: {
-          position: "bottom"
+        plugins: {
+          legend: {
+            position: "bottom"
+          },
+          title: {
+            display: true,
+            text: " "
+          }
         },
-        title: {
-          display: true,
-          text: "รายการงานต่อเดือน"
-        },
-        tooltips: {
+        interaction: {
           mode: "index",
           intersect: false
         },
         scales: {
-          xAxes: [{
-            stacked: true
-          }],
-          yAxes: [{
-            stacked: true
-          }]
+          x: {
+            stacked: false
+          },
+          y: {
+            beginAtZero: true,
+            title: {
+              display: true,
+              text: "จำนวนงาน"
+            }
+          }
         }
       }
     });
+  </script>
+
+
+  <style>
+    /* overlay ครอบทั้งหน้าตอนเมนูเปิด */
+    .sidebar-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .25);
+      z-index: 998;
+      /* ให้อยู่ใต้ sidebar นิดเดียว */
+      display: none;
+    }
+
+    .sidebar-overlay.show {
+      display: block;
+    }
+  </style>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <script>
+    (function() {
+      const sidebar = document.querySelector('.sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+
+      // ปุ่มที่ใช้เปิด/ปิดเมนู (ตามโค้ดคุณมีทั้งสองคลาส)
+      const toggleBtns = document.querySelectorAll('.toggle-sidebar, .sidenav-toggler');
+
+      // คลาสที่มักถูกเติมเมื่อ "เมนูเปิด" (เติมเพิ่มได้ถ้าโปรเจ็กต์คุณใช้ชื่ออื่น)
+      const OPEN_CLASSES = ['nav_open', 'toggled', 'show', 'active'];
+
+      // helper: เช็คว่าเมนูถือว่า "เปิด" อยู่ไหม
+      function isSidebarOpen() {
+        if (!sidebar) return false;
+        // ถ้าบอดี้หรือไซด์บาร์มีคลาสในรายการนี้ตัวใดตัวหนึ่ง ให้ถือว่าเปิด
+        const openOnBody = OPEN_CLASSES.some(c => document.body.classList.contains(c) || document.documentElement.classList.contains(c));
+        const openOnSidebar = OPEN_CLASSES.some(c => sidebar.classList.contains(c));
+        return openOnBody || openOnSidebar;
+      }
+
+      // helper: สั่งปิดเมนูแบบไม่ผูกกับไส้ในธีมมากนัก
+      function closeSidebar() {
+        // เอาคลาสเปิดออกจาก body/html และ sidebar (กันเหนียว)
+        OPEN_CLASSES.forEach(c => {
+          document.body.classList.remove(c);
+          document.documentElement.classList.remove(c);
+          sidebar && sidebar.classList.remove(c);
+        });
+        overlay?.classList.remove('show');
+      }
+
+      // เมื่อกดปุ่ม toggle: ถ้าเปิดแล้วให้โชว์ overlay / ถ้าปิดก็ซ่อน
+      toggleBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          // หน่วงนิดให้ธีมสลับคลาสเสร็จก่อน
+          setTimeout(() => {
+            if (isSidebarOpen()) {
+              overlay?.classList.add('show');
+            } else {
+              overlay?.classList.remove('show');
+            }
+          }, 10);
+        });
+      });
+
+      // คลิกที่ overlay = ปิดเมนู
+      overlay?.addEventListener('click', () => {
+        closeSidebar();
+      });
+
+      // คลิกที่ใดก็ได้บนหน้า: ถ้านอก sidebar + นอกปุ่ม toggle และขณะ mobile → ปิดเมนู
+      document.addEventListener('click', (e) => {
+        // จำกัดเฉพาะจอเล็ก (คุณจะปรับ breakpoint เองก็ได้)
+        if (window.innerWidth > 991) return;
+
+        const clickedInsideSidebar = e.target.closest('.sidebar');
+        const clickedToggle = e.target.closest('.toggle-sidebar, .sidenav-toggler');
+
+        if (!clickedInsideSidebar && !clickedToggle && isSidebarOpen()) {
+          closeSidebar();
+        }
+      });
+
+      // ปิดเมนูอัตโนมัติเมื่อ resize จากจอเล็กไปจอใหญ่ (กันค้าง)
+      window.addEventListener('resize', () => {
+        if (window.innerWidth > 991) closeSidebar();
+      });
+    })();
   </script>
 
 </body>

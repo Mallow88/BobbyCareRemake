@@ -11,7 +11,7 @@ $user_id = $_SESSION['user_id'];
 $request_id = $_GET['request_id'] ?? null;
 
 if (!$request_id) {
-    header("Location: track_status.php");
+    header("Location: index2.php");
     exit();
 }
 
@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $log_stmt->execute([$task['id'], $review_status, $user_id, $log_notes]);
             
             $conn->commit();
-            header("Location: track_status.php?success=1");
+            header("Location: index2.php?success=1");
             exit();
             
         } catch (Exception $e) {
@@ -301,6 +301,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             box-shadow: 0 4px 15px rgba(246, 173, 85, 0.3);
         }
 
+         .btn-primary {
+            background: linear-gradient(135deg, #3187e9ff, #3187e9ff);
+            color: white;
+            box-shadow: 0 4px 15px rgba(246, 173, 85, 0.3);
+        }
+
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
@@ -385,7 +391,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             .star {
                 font-size: 2rem;
             }
+            
         }
+
+        
     </style>
 </head>
 <body>
@@ -396,10 +405,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
 
         <div class="content-card">
-            <a href="index2.php" class="back-btn">
-                <i class="fas fa-arrow-left"></i> กลับรายการ
-            </a>
-
+           
             <?php if (!empty($error)): ?>
                 <div class="error-message">
                     <i class="fas fa-exclamation-triangle"></i>
@@ -419,7 +425,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 <div class="info-row">
                     <div class="info-label">รายละเอียด:</div>
-                    <div class="info-value"><?= nl2br(htmlspecialchars($task['description'])) ?></div>
+                    <div class="info-value"> <?= nl2br(htmlspecialchars($task['description'])) ?></div>
                 </div>
 
                 <div class="info-row">
@@ -429,14 +435,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <?= htmlspecialchars($task['dev_name'] . ' ' . $task['dev_lastname']) ?>
                     </div>
                 </div>
-<!-- 
+
                 <div class="info-row">
                     <div class="info-label">เริ่มงาน:</div>
                     <div class="info-value">
                         <i class="fas fa-play-circle"></i>
                         <?= $task['started_at'] ? date('d/m/Y H:i', strtotime($task['started_at'])) : 'ไม่ระบุ' ?>
                     </div>
-                </div> -->
+                </div>
 
                 <div class="info-row">
                     <div class="info-label">เสร็จงาน:</div>
@@ -446,15 +452,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                 </div>
 
-                <?php if ($task['developer_notes']): ?>
-                <div class="info-row">
-                    <div class="info-label">หมายเหตุจาก Dev:</div>
-                    <div class="info-value">
-                        <div style="background: #e6fffa; padding: 10px; border-radius: 6px; border-left: 3px solid #38b2ac;">
-                            <?= nl2br(htmlspecialchars($task['developer_notes'])) ?>
+             <?php if ($task['developer_notes']): ?>
+                    <div class="info-row">
+
+                        <div class="info-value">
+                            <div style="background: #e6fffa; padding: 10px; border-radius: 6px; border-left: 3px solid #38b2ac;">
+                                หมายเหตุจากผู้พัฒนา: <?= nl2br(htmlspecialchars($task['developer_notes'])) ?>
+                            </div>
                         </div>
                     </div>
-                </div>
                 <?php endif; ?>
             </div>
 
@@ -509,6 +515,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <button type="button" class="btn btn-revision" onclick="toggleRevision()">
                             <i class="fas fa-redo"></i> ขอแก้ไขงาน
                         </button>
+
+                          <a href="index2.php" class="btn btn-primary">
+                            <i class="fas fa-arrow-left"></i> ย้อนกลับ
+                        </a>
                     </div>
                 </div>
 
@@ -587,39 +597,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 event.target.innerHTML = '<i class="fas fa-paper-plane"></i> ส่งคำขอแก้ไข';
             }
         }
+ </script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+<script>
+// ตรวจสอบและส่งรีวิว
+function submitReview(action) {
+  const rating = document.getElementById("rating").value;
+  const comment = document.getElementById("review_comment").value.trim();
+  const revisionNotes = document.getElementById("revision_notes").value.trim();
 
-        // ส่งฟอร์มรีวิว
-        function submitReview(action) {
-            const rating = ratingInput.value;
-            const comment = document.getElementById('review_comment').value.trim();
-            
-            if (!rating) {
-                alert('กรุณาให้คะแนนงาน');
-                return;
-            }
-            
-            if (!comment) {
-                alert('กรุณาใส่ความเห็นเกี่ยวกับงาน');
-                return;
-            }
-            
-            if (action === 'revision') {
-                const revisionNotes = document.getElementById('revision_notes').value.trim();
-                if (!revisionNotes) {
-                    alert('กรุณาระบุรายละเอียดที่ต้องการแก้ไข');
-                    return;
-                }
-            }
-            
-            const confirmMessage = action === 'accept' 
-                ? 'ยืนยันการยอมรับงานนี้?' 
-                : 'ยืนยันการขอแก้ไขงาน?';
-                
-            if (confirm(confirmMessage)) {
-                document.getElementById('action').value = action;
-                document.getElementById('reviewForm').submit();
-            }
-        }
-    </script>
+  // ตรวจสอบคะแนน
+  if (!rating || rating < 1 || rating > 5) {
+    showAlert('rating');
+    return;
+  }
+
+  // ตรวจสอบความคิดเห็น
+  if (comment === "") {
+    showAlert('comment');
+    return;
+  }
+
+  // ถ้าเลือกแก้ไข แต่ไม่กรอกรายละเอียด
+  if (action === "revision" && revisionNotes === "") {
+    swal("กรุณาระบุรายละเอียดที่ต้องการแก้ไข", {
+      icon: "warning",
+      buttons: {
+        confirm: { className: "btn btn-warning" },
+      },
+    });
+    return;
+  }
+
+  // ถ้าผ่านทั้งหมด → เซ็ตค่า action แล้ว submit
+  document.getElementById("action").value = action;
+
+  showAlert('success');
+  setTimeout(() => {
+    document.getElementById("reviewForm").submit();
+  }, 1500);
+}
+
+// ฟังก์ชัน Alert รวม
+function showAlert(type) {
+  if (type === 'rating') {
+    swal("กรุณาให้คะแนน", "เช็คข้อมูลให้ครบในฟอร์มคะแนนและความเห็น", {
+      icon: "warning",
+      buttons: { confirm: { className: "btn btn-warning" } }
+    });
+  } 
+  else if (type === 'comment') {
+    swal("กรุณาใส่ความคิดเห็น", "เช็คข้อมูลให้ครบในฟอร์มคะแนนและความเห็น", {
+      icon: "warning",
+      buttons: { confirm: { className: "btn btn-warning" } }
+    });
+  } 
+  else if (type === 'success') {
+    swal("Good job!", "ขอบคุณที่ใช้บริการ BobbyCare", {
+      icon: "success",
+      buttons: { confirm: { className: "btn btn-success" } }
+    });
+  }
+}
+</script>
+
 </body>
 </html>

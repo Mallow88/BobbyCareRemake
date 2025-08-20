@@ -259,7 +259,7 @@ foreach ($requests as &$req) {
                                 <ul class="nav nav-collapse">
                                     <li>
                                         <a href="index.php">
-                                            <span class="sub-item">หน้าหลัก 1</span>
+                                            <span class="sub-item">หน้าหลัก</span>
                                         </a>
                                     </li>
                                 </ul>
