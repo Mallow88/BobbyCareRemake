@@ -8,6 +8,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'developer') {
 }
 
 $developer_id = $_SESSION['user_id'];
+$picture_url = $_SESSION['picture_url'] ?? null;
 
 // ดึงงานทั้งหมดของ developer
 $stmt = $conn->prepare("
@@ -53,9 +54,18 @@ $days_in_month = date('t', $first_day);
 $start_day = date('w', $first_day); // วันแรกของเดือนเป็นวันอะไร (0=อาทิตย์)
 
 $thai_months = [
-    1 => 'มกราคม', 2 => 'กุมภาพันธ์', 3 => 'มีนาคม', 4 => 'เมษายน',
-    5 => 'พฤษภาคม', 6 => 'มิถุนายน', 7 => 'กรกฎาคม', 8 => 'สิงหาคม',
-    9 => 'กันยายน', 10 => 'ตุลาคม', 11 => 'พฤศจิกายน', 12 => 'ธันวาคม'
+    1 => 'มกราคม',
+    2 => 'กุมภาพันธ์',
+    3 => 'มีนาคม',
+    4 => 'เมษายน',
+    5 => 'พฤษภาคม',
+    6 => 'มิถุนายน',
+    7 => 'กรกฎาคม',
+    8 => 'สิงหาคม',
+    9 => 'กันยายน',
+    10 => 'ตุลาคม',
+    11 => 'พฤศจิกายน',
+    12 => 'ธันวาคม'
 ];
 
 $thai_days = ['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'];
@@ -109,9 +119,9 @@ foreach ($tasks as $task) {
 
     <!-- CSS Just for demo purpose, don't include it in your project -->
     <link rel="stylesheet" href="../assets/css/demo.css" />
-     <style>
+    <style>
         :root {
-          
+
             --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             --glass-bg: rgba(255, 255, 255, 0.95);
             --glass-border: rgba(255, 255, 255, 0.2);
@@ -266,12 +276,12 @@ foreach ($tasks as $task) {
         .task-item.completed {
             background: linear-gradient(135deg, #10b981, #059669);
         }
-        
+
         .task-item.task-start {
             border-radius: 6px 0 0 6px;
             margin-right: 0;
         }
-        
+
         .task-item.task-middle {
             border-radius: 0;
             margin: 0;
@@ -280,12 +290,12 @@ foreach ($tasks as $task) {
             font-size: 0.6rem;
             padding: 1px 3px;
         }
-        
+
         .task-item.task-end {
             border-radius: 0 6px 6px 0;
             margin-left: 0;
         }
-        
+
         .task-item.note-task {
             background: linear-gradient(135deg, #9f7aea, #805ad5);
             border-left: 3px solid #6b46c1;
@@ -313,9 +323,17 @@ foreach ($tasks as $task) {
         }
 
         @keyframes pulse-urgent {
-            0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); }
+            0% {
+                box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(220, 38, 38, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+            }
         }
 
         .priority-badge {
@@ -351,7 +369,7 @@ foreach ($tasks as $task) {
             background: #10b981;
             color: white;
         }
-        
+
         .add-note-btn {
             background: rgba(102, 126, 234, 0.1);
             border: 1px dashed #667eea;
@@ -364,7 +382,7 @@ foreach ($tasks as $task) {
             text-align: center;
             transition: all 0.2s ease;
         }
-        
+
         .add-note-btn:hover {
             background: rgba(102, 126, 234, 0.2);
             transform: scale(1.05);
@@ -387,7 +405,7 @@ foreach ($tasks as $task) {
             transition: all 0.2s ease;
             opacity: 0.7;
         }
-        
+
         .note-btn:hover {
             opacity: 1;
             transform: scale(1.1);
@@ -540,19 +558,22 @@ foreach ($tasks as $task) {
             color: #1e40af;
         }
 
-        .form-control, .form-select {
+        .form-control,
+        .form-select {
             border: 2px solid #e9ecef;
             border-radius: 10px;
             padding: 12px 15px;
             transition: all 0.3s ease;
         }
 
-        .form-control:focus, .form-select:focus {
+        .form-control:focus,
+        .form-select:focus {
             border-color: #667eea;
             box-shadow: 0 0 0 0.25rem rgba(102, 126, 234, 0.25);
         }
 
         @media (max-width: 768px) {
+
             .calendar-table th,
             .calendar-table td {
                 height: 80px;
@@ -582,157 +603,156 @@ foreach ($tasks as $task) {
 
 <body>
 
-  <div class="wrapper">
-    <!-- Sidebar -->
-    <div class="sidebar" data-background-color="dark">
-      <div class="sidebar-logo">
-        <!-- Logo Header -->
-        <div class="logo-header" data-background-color="dark">
-          <a href="tasks_board.php" class="logo">
-            <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="30" />
-          </a>
-          <div class="nav-toggle">
-            <button class="btn btn-toggle toggle-sidebar">
-              <i class="gg-menu-right"></i>
-            </button>
-            <button class="btn btn-toggle sidenav-toggler">
-              <i class="gg-menu-left"></i>
-            </button>
-          </div>
-          <button class="topbar-toggler more">
-            <i class="gg-more-vertical-alt"></i>
-          </button>
-        </div>
-        <!-- End Logo Header -->
-      </div>
-      <div class="sidebar-wrapper scrollbar scrollbar-inner">
-        <div class="sidebar-content">
-          <ul class="nav nav-secondary">
-            <li class="nav-item ">
-              <a href="tasks_board.php">
-                <i class="fas fa-home"></i>
-                <p>หน้าหลัก</p>
-              </a>
-            </li>
-            <li class="nav-section">
-              <span class="sidebar-mini-icon">
-                <i class="fa fa-ellipsis-h"></i>
-              </span>
-              <h4 class="text-section">Components</h4>
-            </li>
-
-        
-
-            <li class="nav-item  ">
-              <a href="completed_reviews.php">
-                <i class="fas fa-comments"></i> <!-- รีวิวจากผู้ใช้ -->
-                <p>งานที่รีวิวเเล้ว</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li>
-
-            <li class="nav-item ">
-              <a href="export_report.php">
-                <i class="fas fa-tachometer-alt"></i> <!-- Dashboard -->
-                <p>Dashboard_DEV</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li>
-
-            <li class="nav-item active ">
-              <a href="calendar2.php">
-                <i class="fas fa-check-circle"></i> <!-- รายการที่อนุมัติ -->
-                <p>ปฏิทิน</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li>
-
-            <li class="nav-item">
-              <a href="../logout.php">
-                <i class="fas fa-sign-out-alt"></i> <!-- Logout -->
-                <p>Logout</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li>
-
-          </ul>
-        </div>
-      </div>
-    </div>
-    <!-- End Sidebar -->
-
-    <div class="main-panel">
-      <div class="main-header">
-        <div class="main-header-logo">
-          <!-- Logo Header -->
-          <div class="logo-header" data-background-color="dark">
-            <a href="tasks_board.php" class="logo">
-              <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="20" />
-            </a>
-            <div class="nav-toggle">
-              <button class="btn btn-toggle toggle-sidebar">
-                <i class="gg-menu-right"></i>
-              </button>
-              <button class="btn btn-toggle sidenav-toggler">
-                <i class="gg-menu-left"></i>
-              </button>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar" data-background-color="dark">
+            <div class="sidebar-logo">
+                <!-- Logo Header -->
+                <div class="logo-header" data-background-color="dark">
+                    <a href="tasks_board.php" class="logo">
+                        <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="30" />
+                    </a>
+                    <div class="nav-toggle">
+                        <button class="btn btn-toggle toggle-sidebar">
+                            <i class="gg-menu-right"></i>
+                        </button>
+                        <button class="btn btn-toggle sidenav-toggler">
+                            <i class="gg-menu-left"></i>
+                        </button>
+                    </div>
+                    <button class="topbar-toggler more">
+                        <i class="gg-more-vertical-alt"></i>
+                    </button>
+                </div>
+                <!-- End Logo Header -->
             </div>
-            <button class="topbar-toggler more">
-              <i class="gg-more-vertical-alt"></i>
-            </button>
-          </div>
-          <!-- End Logo Header -->
+            <div class="sidebar-wrapper scrollbar scrollbar-inner">
+                <div class="sidebar-content">
+                    <ul class="nav nav-secondary">
+                        <li class="nav-item ">
+                            <a href="tasks_board.php">
+                                <i class="fas fa-home"></i>
+                                <p>หน้าหลัก</p>
+                            </a>
+                        </li>
+                        <li class="nav-section">
+                            <span class="sidebar-mini-icon">
+                                <i class="fa fa-ellipsis-h"></i>
+                            </span>
+                            <h4 class="text-section">Components</h4>
+                        </li>
+
+
+                        <li class="nav-item  ">
+                            <a href="completed_reviews.php">
+                                <i class="fas fa-comments"></i> <!-- รีวิวจากผู้ใช้ -->
+                                <p>งานที่รีวิวเเล้ว</p>
+                                <span class="badge badge-success"></span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item ">
+                            <a href="export_report.php">
+                                <i class="fas fa-tachometer-alt"></i> <!-- Dashboard -->
+                                <p>Dashboard_DEV</p>
+                                <span class="badge badge-success"></span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item active ">
+                            <a href="calendar2.php">
+                                <i class="fas fa-check-circle"></i> <!-- รายการที่อนุมัติ -->
+                                <p>ปฏิทิน</p>
+                                <span class="badge badge-success"></span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="../logout.php">
+                                <i class="fas fa-sign-out-alt"></i> <!-- Logout -->
+                                <p>Logout</p>
+                                <span class="badge badge-success"></span>
+                            </a>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
         </div>
+        <!-- End Sidebar -->
 
-        <!-- Navbar Header -->
-        <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
-          <div class="container-fluid">
-            <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-
-              <!-- โปรไฟล์ -->
-              <li class="nav-item topbar-user dropdown hidden-caret">
-                <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
-
-                  <div class="avatar-sm">
-                    <img src="<?= htmlspecialchars($picture_url) ?>" alt="..." class="avatar-img rounded-circle" />
-                  </div>
-
-                  <span class="profile-username">
-                    <span class="op-7">Development :</span>
-                    <span class="fw-bold"><?= htmlspecialchars($_SESSION['name']) ?></span>
-                  </span>
-                </a>
-                <ul class="dropdown-menu dropdown-user animated fadeIn">
-                  <div class="dropdown-user-scroll scrollbar-outer">
-                    <li>
-                      <div class="user-box">
-                        <div class="avatar-lg">
-                          <img src="<?= htmlspecialchars($picture_url) ?>" alt="image profile" class="avatar-img rounded" />
+        <div class="main-panel">
+            <div class="main-header">
+                <div class="main-header-logo">
+                    <!-- Logo Header -->
+                    <div class="logo-header" data-background-color="dark">
+                        <a href="tasks_board.php" class="logo">
+                            <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="20" />
+                        </a>
+                        <div class="nav-toggle">
+                            <button class="btn btn-toggle toggle-sidebar">
+                                <i class="gg-menu-right"></i>
+                            </button>
+                            <button class="btn btn-toggle sidenav-toggler">
+                                <i class="gg-menu-left"></i>
+                            </button>
                         </div>
-                        <div class="u-text">
-                          <h4><?= htmlspecialchars($_SESSION['name']) ?> </h4>
+                        <button class="topbar-toggler more">
+                            <i class="gg-more-vertical-alt"></i>
+                        </button>
+                    </div>
+                    <!-- End Logo Header -->
+                </div>
 
-                          <!-- <p class="text-muted"><?= htmlspecialchars($email) ?></p> -->
-                          <a href="" class="btn btn-xs btn-secondary btn-sm">View Profile</a>
-                        </div>
-                      </div>
-                    </li>
-                    <li>
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="#">My Profile</a>
+                <!-- Navbar Header -->
+                <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+                    <div class="container-fluid">
+                        <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
 
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="../logout.php">Logout</a>
-                    </li>
-                  </div>
-                </ul>
-              </li>
+                            <!-- โปรไฟล์ -->
+                            <li class="nav-item topbar-user dropdown hidden-caret">
+                                <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+
+                                    <div class="avatar-sm">
+                                        <img src="<?= htmlspecialchars($picture_url) ?>" alt="..." class="avatar-img rounded-circle" />
+                                    </div>
+
+                                    <span class="profile-username">
+                                        <span class="op-7">Development :</span>
+                                        <span class="fw-bold"><?= htmlspecialchars($_SESSION['name']) ?></span>
+                                    </span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-user animated fadeIn">
+                                    <div class="dropdown-user-scroll scrollbar-outer">
+                                        <li>
+                                            <div class="user-box">
+                                                <div class="avatar-lg">
+                                                    <img src="<?= htmlspecialchars($picture_url) ?>" alt="image profile" class="avatar-img rounded" />
+                                                </div>
+                                                <div class="u-text">
+                                                    <h4><?= htmlspecialchars($_SESSION['name']) ?> </h4>
+
+                                                    <!-- <p class="text-muted"><?= htmlspecialchars($email) ?></p> -->
+                                                    <a href="" class="btn btn-xs btn-secondary btn-sm">View Profile</a>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item" href="#">My Profile</a>
+
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item" href="../logout.php">Logout</a>
+                                        </li>
+                                    </div>
+                                </ul>
+                            </li>
 
 
-            </ul>
-          </div>
-        </nav>
-        <!-- End Navbar -->
+                        </ul>
+                    </div>
+                </nav>
+                <!-- End Navbar -->
             </div>
 
 
@@ -740,377 +760,366 @@ foreach ($tasks as $task) {
 
             <div class="container py-5">
 
-<div class="container mt-5 pt-5">
-        <!-- Header Section -->
-    
+                <div class="container mt-5 pt-5">
+                    <!-- Header Section -->
 
-        <!-- สถิติงาน -->
-        <div class="stats-grid">
-            <?php
-            $status_counts = [
-                'pending' => 0,
-                'received' => 0,
-                'in_progress' => 0,
-                'on_hold' => 0,
-                'completed' => 0
-            ];
 
-            foreach ($tasks as $task) {
-                if (isset($status_counts[$task['task_status']])) {
-                    $status_counts[$task['task_status']]++;
-                }
-            }
+                    <!-- สถิติงาน -->
+                    <div class="stats-grid">
+                        <?php
+                        $status_counts = [
+                            'pending' => 0,
+                            'received' => 0,
+                            'in_progress' => 0,
+                            'on_hold' => 0,
+                            'completed' => 0
+                        ];
 
-            $status_labels = [
-                'pending' => 'รอรับ',
-                'received' => 'รับแล้ว',
-                'in_progress' => 'กำลังทำ',
-                'on_hold' => 'พักงาน',
-                'completed' => 'เสร็จแล้ว'
-            ];
+                        foreach ($tasks as $task) {
+                            if (isset($status_counts[$task['task_status']])) {
+                                $status_counts[$task['task_status']]++;
+                            }
+                        }
 
-            foreach ($status_counts as $status => $count):
-            ?>
-                <div class="stat-card <?= $status ?>">
-                    <div class="stat-number"><?= $count ?></div>
-                    <div class="stat-label"><?= $status_labels[$status] ?></div>
-                </div>
-            <?php endforeach; ?>
-        </div>
+                        $status_labels = [
+                            'pending' => 'รอรับ',
+                            'received' => 'รับแล้ว',
+                            'in_progress' => 'กำลังทำ',
+                            'on_hold' => 'พักงาน',
+                            'completed' => 'เสร็จแล้ว'
+                        ];
 
-        <!-- ส่วนหัวปฏิทิน -->
-        <div class="month-navigation">
-            <?php
-            $prev_month = $current_month - 1;
-            $prev_year = $current_year;
-            if ($prev_month < 1) {
-                $prev_month = 12;
-                $prev_year--;
-            }
-
-            $next_month = $current_month + 1;
-            $next_year = $current_year;
-            if ($next_month > 12) {
-                $next_month = 1;
-                $next_year++;
-            }
-            ?>
-            <a href="?month=<?= $prev_month ?>&year=<?= $prev_year ?>" class="month-nav-btn">
-                <i class="fas fa-chevron-left"></i> เดือนก่อน
-            </a>
-
-            <div class="month-title">
-                <?= $thai_months[$current_month] ?> <?= $current_year + 543 ?>
-            </div>
-
-            <a href="?month=<?= $next_month ?>&year=<?= $next_year ?>" class="month-nav-btn">
-                เดือนถัดไป <i class="fas fa-chevron-right"></i>
-            </a>
-        </div>
-
-        <!-- ตารางปฏิทิน -->
-        <div class="table-responsive">
-            <table class="table calendar-table mb-0">
-                <thead>
-                    <tr>
-                        <?php foreach ($thai_days as $day): ?>
-                            <th><?= $day ?></th>
+                        foreach ($status_counts as $status => $count):
+                        ?>
+                            <div class="stat-card <?= $status ?>">
+                                <div class="stat-number"><?= $count ?></div>
+                                <div class="stat-label"><?= $status_labels[$status] ?></div>
+                            </div>
                         <?php endforeach; ?>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php
-                    $current_date = 1;
-                    $today = date('Y-m-d');
-                    
-                    for ($week = 0; $week < 6; $week++):
-                        if ($current_date > $days_in_month) break;
-                    ?>
-                        <tr>
-                            <?php for ($day = 0; $day < 7; $day++): ?>
-                                <td class="<?php
-                                    if ($week == 0 && $day < $start_day) {
-                                        echo 'other-month';
-                                    } elseif ($current_date > $days_in_month) {
-                                        echo 'other-month';
-                                    } else {
-                                        $cell_date = sprintf('%04d-%02d-%02d', $current_year, $current_month, $current_date);
-                                        if ($cell_date == $today) {
-                                            echo 'today';
-                                        }
-                                    }
-                                ?>">
-                                    <?php if ($week == 0 && $day < $start_day): ?>
-                                        <!-- วันของเดือนก่อน -->
-                                        <?php
-                                        $prev_month_days = date('t', mktime(0, 0, 0, $current_month - 1, 1, $current_year));
-                                        echo $prev_month_days - ($start_day - $day - 1);
-                                        ?>
-                                    <?php elseif ($current_date <= $days_in_month): ?>
-                                        <div class="date-number"><?= $current_date ?></div>
-                                        <?php
-                                        $cell_date = sprintf('%04d-%02d-%02d', $current_year, $current_month, $current_date);
-                                        
-                                        // เรียงงานตามความสำคัญ
-                                        $cell_tasks = [];
-                                        foreach ($tasks as $task) {
-                                            $start_date = date('Y-m-d', strtotime($task['started_at'] ?? $task['created_at']));
-                                            $estimated_days = $task['estimated_days'] ?? 1;
-                                            $end_date = date('Y-m-d', strtotime($start_date . ' + ' . ($estimated_days - 1) . ' days'));
-                                            
-                                            if ($cell_date >= $start_date && $cell_date <= $end_date) {
-                                                $cell_tasks[] = $task;
-                                            }
-                                        }
-                                        
-                                        // เรียงตามความสำคัญ
-                                        usort($cell_tasks, function($a, $b) {
-                                            $priority_order = ['urgent' => 1, 'high' => 2, 'medium' => 3, 'low' => 4];
-                                            $a_priority = $priority_order[$a['priority']] ?? 5;
-                                            $b_priority = $priority_order[$b['priority']] ?? 5;
-                                            return $a_priority - $b_priority;
-                                        });
-                                        
-                                        // แสดงงานที่เรียงแล้ว
-                                        foreach ($cell_tasks as $task):
-                                            $start_date = date('Y-m-d', strtotime($task['started_at'] ?? $task['created_at']));
-                                            $estimated_days = $task['estimated_days'] ?? 1;
-                                            $end_date = date('Y-m-d', strtotime($start_date . ' + ' . ($estimated_days - 1) . ' days'));
-                                            
-                                            $is_start = ($cell_date === $start_date);
-                                            $is_end = ($cell_date === $end_date);
-                                            $is_middle = (!$is_start && !$is_end);
-                                        ?>
-                                            <div class="task-item <?= $task['task_status'] ?> priority-<?= $task['priority'] ?> <?= $is_start ? 'task-start' : ($is_end ? 'task-end' : 'task-middle') ?>" 
-                                                 onclick="showTaskDetail(<?= htmlspecialchars(json_encode($task)) ?>)"
-                                                 title="<?= htmlspecialchars($task['title']) ?> (<?= $estimated_days ?> วัน)">
-                                                <div class="priority-badge">
+                    </div>
+
+                    <!-- ส่วนหัวปฏิทิน -->
+                    <div class="month-navigation">
+                        <?php
+                        $prev_month = $current_month - 1;
+                        $prev_year = $current_year;
+                        if ($prev_month < 1) {
+                            $prev_month = 12;
+                            $prev_year--;
+                        }
+
+                        $next_month = $current_month + 1;
+                        $next_year = $current_year;
+                        if ($next_month > 12) {
+                            $next_month = 1;
+                            $next_year++;
+                        }
+                        ?>
+                        <a href="?month=<?= $prev_month ?>&year=<?= $prev_year ?>" class="month-nav-btn">
+                            <i class="fas fa-chevron-left"></i> เดือนก่อน
+                        </a>
+
+                        <div class="month-title">
+                            <?= $thai_months[$current_month] ?> <?= $current_year + 543 ?>
+                        </div>
+
+                        <a href="?month=<?= $next_month ?>&year=<?= $next_year ?>" class="month-nav-btn">
+                            เดือนถัดไป <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+
+
+
+                    <!-- ตารางปฏิทิน -->
+                    <div class="table-responsive">
+                        <table class="table calendar-table mb-0">
+                            <thead>
+                                <tr>
+                                    <?php foreach ($thai_days as $day): ?>
+                                        <th><?= $day ?></th>
+                                    <?php endforeach; ?>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                $current_date = 1;
+                                $today = date('Y-m-d');
+
+                                for ($week = 0; $week < 6; $week++):
+                                    if ($current_date > $days_in_month) break;
+                                ?>
+                                    <tr>
+                                        <?php for ($day = 0; $day < 7; $day++): ?>
+                                            <td class="<?php
+                                                        if ($week == 0 && $day < $start_day) {
+                                                            echo 'other-month';
+                                                        } elseif ($current_date > $days_in_month) {
+                                                            echo 'other-month';
+                                                        } else {
+                                                            $cell_date = sprintf('%04d-%02d-%02d', $current_year, $current_month, $current_date);
+                                                            if ($cell_date == $today) {
+                                                                echo 'today';
+                                                            }
+                                                        }
+                                                        ?>">
+                                                <?php if ($week == 0 && $day < $start_day): ?>
+                                                    <!-- วันของเดือนก่อน -->
                                                     <?php
-                                                    switch($task['priority']) {
-                                                        case 'urgent': echo '!'; break;
-                                                        case 'high': echo '↑'; break;
-                                                        case 'medium': echo '→'; break;
-                                                        case 'low': echo '↓'; break;
-                                                        default: echo '•'; break;
+                                                    $prev_month_days = date('t', mktime(0, 0, 0, $current_month - 1, 1, $current_year));
+                                                    echo $prev_month_days - ($start_day - $day - 1);
+                                                    ?>
+                                                <?php elseif ($current_date <= $days_in_month): ?>
+                                                    <div class="date-number"><?= $current_date ?></div>
+                                                    <?php
+                                                    $cell_date = sprintf('%04d-%02d-%02d', $current_year, $current_month, $current_date);
+
+                                                    // เรียงงานตามความสำคัญ
+                                                    $cell_tasks = [];
+                                                    foreach ($tasks as $task) {
+                                                        $start_date = date('Y-m-d', strtotime($task['started_at'] ?? $task['created_at']));
+                                                        $estimated_days = $task['estimated_days'] ?? 1;
+                                                        $end_date = date('Y-m-d', strtotime($start_date . ' + ' . ($estimated_days - 1) . ' days'));
+
+                                                        if ($cell_date >= $start_date && $cell_date <= $end_date) {
+                                                            $cell_tasks[] = $task;
+                                                        }
+                                                    }
+
+                                                    // เรียงตามความสำคัญ
+                                                    usort($cell_tasks, function ($a, $b) {
+                                                        $priority_order = ['urgent' => 1, 'high' => 2, 'medium' => 3, 'low' => 4];
+                                                        $a_priority = $priority_order[$a['priority']] ?? 5;
+                                                        $b_priority = $priority_order[$b['priority']] ?? 5;
+                                                        return $a_priority - $b_priority;
+                                                    });
+
+                                                    // แสดงงานที่เรียงแล้ว
+                                                    $task_count = count($cell_tasks);
+                                                    ?>
+                                                    <?php if ($task_count > 0): ?>
+                                                        <div class="task-summary badge bg-primary w-100 text-center fw-bold fs-5"
+                                                            onclick="openTaskList('<?= $cell_date ?>')">
+                                                            <span class="fs-4"><?= $task_count ?></span> งานทั้งหมด
+                                                        </div>
+
+
+                                                    <?php endif; ?>
+
+                                                    <?php
+                                                    // นับ note task
+                                                    $note_count = 0;
+                                                    if (isset($tasks_by_date[$cell_date])) {
+                                                        foreach ($tasks_by_date[$cell_date] as $note_task) {
+                                                            if ($note_task['current_step'] === 'developer_self_created') {
+                                                                $note_count++;
+                                                            }
+                                                        }
                                                     }
                                                     ?>
-                                                </div>
-                                                <?php if ($is_start): ?>
-                                                    <i class="fas fa-play me-1"></i>เริ่ม: <?= htmlspecialchars(mb_substr($task['title'], 0, 10)) ?>
-                                                <?php elseif ($is_end): ?>
-                                                    <i class="fas fa-flag-checkered me-1"></i>เสร็จ: <?= htmlspecialchars(mb_substr($task['title'], 0, 10)) ?>
-                                                <?php else: ?>
-                                                    <div style="text-align: center; font-weight: bold;">▬▬▬</div>
-                                                <?php endif; ?>
-                                            </div>
-                                        <?php endforeach; ?>
-                                        
-                                        <?php
-                                        // แสดงงานที่สร้างในวันนี้ (Note)
-                                        if (isset($tasks_by_date[$cell_date])):
-                                            foreach ($tasks_by_date[$cell_date] as $note_task):
-                                                if ($note_task['current_step'] === 'developer_self_created'):
-                                        ?>
-                                                    <div class="task-item note-task priority-<?= $note_task['priority'] ?>" 
-                                                         onclick="showTaskDetail(<?= htmlspecialchars(json_encode($note_task)) ?>)"
-                                                         title="งานส่วนตัว: <?= htmlspecialchars($note_task['title']) ?>">
-                                                        <div class="priority-badge">
-                                                            <?php
-                                                            switch($note_task['priority']) {
-                                                                case 'urgent': echo '!'; break;
-                                                                case 'high': echo '↑'; break;
-                                                                case 'medium': echo '→'; break;
-                                                                case 'low': echo '↓'; break;
-                                                                default: echo '•'; break;
-                                                            }
-                                                            ?>
+
+                                                    <?php if ($note_count > 0): ?>
+                                                        <div class="task-summary badge bg-warning w-100 text-center fw-bold fs-5"
+                                                            onclick="showNoteList('<?= $cell_date ?>')">
+                                                            <?= $note_count ?> งานใหม่วันนี้
                                                         </div>
-                                                        <i class="fas fa-sticky-note me-1"></i><?= htmlspecialchars(mb_substr($note_task['title'], 0, 12)) ?>
-                                                    </div>
-                                        <?php 
-                                                endif;
-                                            endforeach;
-                                        endif;
-                                        ?>
-                                        
-                                        <!-- ปุ่มสร้าง Note ในวันนี้ -->
-                                        <div class="add-note-btn" onclick="createNoteForDate('<?= $cell_date ?>')" title="สร้างงานในวันนี้">
-                                            <i class="fas fa-plus"></i>
+
+
+                                                    <?php endif; ?>
+
+
+                                                    <!-- ปุ่มสร้าง Note ในวันนี้ -->
+                                                  
+
+                                                    <a href="tasks_board.php"
+                                                        class="class="add-note-btn
+                                                        title="สร้างงานในวันนี้">
+                                                        <i class="fas fa-plus me-1"></i> สร้างงาน
+                                                    </a>
+
+                                                    <?php
+                                                    $current_date++;
+                                                    ?>
+                                                <?php else: ?>
+                                                    <!-- วันของเดือนถัดไป -->
+                                                    <?= $current_date - $days_in_month ?>
+                                                    <?php $current_date++; ?>
+                                                <?php endif; ?>
+                                            </td>
+                                        <?php endfor; ?>
+                                    </tr>
+                                <?php endfor; ?>
+                            </tbody>
+                        </table>
+                    </div>
+
+
+
+                    <!-- Modal สำหรับแสดงรายละเอียดงาน -->
+                    <div class="modal fade" id="taskModal" tabindex="-1">
+                        <div class="modal-dialog modal-lg">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">
+                                        <i class="fas fa-info-circle me-2"></i>รายละเอียดงาน
+                                    </h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-primary">หัวข้องาน:</h6>
+                                                <p id="modalTitle" class="mb-0"></p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-primary">รายละเอียด:</h6>
+                                                <div id="modalDescription" class="bg-light p-3 rounded"></div>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-primary">ผู้ร้องขอ:</h6>
+                                                <p id="modalRequester" class="mb-0"></p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-primary">สถานะ:</h6>
+                                                <p id="modalStatus" class="mb-0"></p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-primary">ความสำคัญ:</h6>
+                                                <p id="modalPriority" class="mb-0"></p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-primary">เวลาแทน:</h6>
+                                                <p id="modalEstimatedTime" class="mb-0"></p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-primary">วันที่รับงาน:</h6>
+                                                <p id="modalDate" class="mb-0"></p>
+                                            </div>
                                         </div>
-                                        <?php
-                                        $current_date++;
-                                        ?>
-                                    <?php else: ?>
-                                        <!-- วันของเดือนถัดไป -->
-                                        <?= $current_date - $days_in_month ?>
-                                        <?php $current_date++; ?>
-                                    <?php endif; ?>
-                                </td>
-                            <?php endfor; ?>
-                        </tr>
-                    <?php endfor; ?>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- คำอธิบายสี -->
-        <div class="legend">
-            <div class="legend-item">
-                <div class="legend-color" style="background: linear-gradient(135deg, #f59e0b, #d97706);"></div>
-                <span>รอรับ</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: linear-gradient(135deg, #3b82f6, #2563eb);"></div>
-                <span>รับแล้ว</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);"></div>
-                <span>กำลังทำ</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: linear-gradient(135deg, #ef4444, #dc2626);"></div>
-                <span>พักงาน</span>
-            </div>
-            <div class="legend-item">
-                <div class="legend-color" style="background: linear-gradient(135deg, #10b981, #059669);"></div>
-                <span>เสร็จแล้ว</span>
-            </div>
-        </div>
-
-        <!-- คำอธิบายความสำคัญ -->
-        <div class="legend mt-3">
-            <div class="legend-item">
-                <span style="color: #dc2626; font-weight: bold;">!</span>
-                <span>เร่งด่วน</span>
-            </div>
-            <div class="legend-item">
-                <span style="color: #ef4444; font-weight: bold;">↑</span>
-                <span>สูง</span>
-            </div>
-            <div class="legend-item">
-                <span style="color: #f59e0b; font-weight: bold;">→</span>
-                <span>ปานกลาง</span>
-            </div>
-            <div class="legend-item">
-                <span style="color: #10b981; font-weight: bold;">↓</span>
-                <span>ต่ำ</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal สำหรับแสดงรายละเอียดงาน -->
-    <div class="modal fade" id="taskModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-info-circle me-2"></i>รายละเอียดงาน
-                    </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-8">
-                            <div class="mb-3">
-                                <h6 class="fw-bold text-primary">หัวข้องาน:</h6>
-                                <p id="modalTitle" class="mb-0"></p>
-                            </div>
-                            <div class="mb-3">
-                                <h6 class="fw-bold text-primary">รายละเอียด:</h6>
-                                <div id="modalDescription" class="bg-light p-3 rounded"></div>
-                            </div>
-                            <div class="mb-3">
-                                <h6 class="fw-bold text-primary">ผู้ร้องขอ:</h6>
-                                <p id="modalRequester" class="mb-0"></p>
-                            </div>
-                            <div class="mb-3">
-                                <h6 class="fw-bold text-primary">สถานะ:</h6>
-                                <p id="modalStatus" class="mb-0"></p>
-                            </div>
-                            <div class="mb-3">
-                                <h6 class="fw-bold text-primary">ความสำคัญ:</h6>
-                                <p id="modalPriority" class="mb-0"></p>
-                            </div>
-                            <div class="mb-3">
-                                <h6 class="fw-bold text-primary">เวลาแทน:</h6>
-                                <p id="modalEstimatedTime" class="mb-0"></p>
-                            </div>
-                            <div class="mb-3">
-                                <h6 class="fw-bold text-primary">วันที่รับงาน:</h6>
-                                <p id="modalDate" class="mb-0"></p>
+                                        <div class="col-md-4">
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-primary">ประเภทบริการ:</h6>
+                                                <p id="modalService" class="mb-0"></p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-primary">กำหนดเสร็จ:</h6>
+                                                <p id="modalDeadline" class="mb-0"></p>
+                                            </div>
+                                            <div class="mb-3">
+                                                <h6 class="fw-bold text-primary">ความคืบหน้า:</h6>
+                                                <div class="progress mb-2">
+                                                    <div id="modalProgress" class="progress-bar" role="progressbar"></div>
+                                                </div>
+                                                <small id="modalProgressText" class="text-muted"></small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
+                                    <a id="modalViewBoard" href="#" class="btn btn-gradient">
+                                        <i class="fas fa-external-link-alt me-2"></i>ดูในบอร์ดงาน
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                        <div class="col-md-4">
-                            <div class="mb-3">
-                                <h6 class="fw-bold text-primary">ประเภทบริการ:</h6>
-                                <p id="modalService" class="mb-0"></p>
+                    </div>
+
+
+
+                </div>
+
+
+
+
+                <!-- Modal แสดงงานของวัน -->
+                <div class="modal fade" id="taskListModal" tabindex="-1">
+                    <div class="modal-dialog modal-xl">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="taskListTitle">
+                                    รายละเอียดงานประจำวัน
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                             </div>
-                            <div class="mb-3">
-                                <h6 class="fw-bold text-primary">กำหนดเสร็จ:</h6>
-                                <p id="modalDeadline" class="mb-0"></p>
-                            </div>
-                            <div class="mb-3">
-                                <h6 class="fw-bold text-primary">ความคืบหน้า:</h6>
-                                <div class="progress mb-2">
-                                    <div id="modalProgress" class="progress-bar" role="progressbar"></div>
-                                </div>
-                                <small id="modalProgressText" class="text-muted"></small>
+                            <div class="modal-body" id="taskListContent">
+                                <!-- table จะถูกโหลดจาก fetch_tasks_by_date.php -->
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">ปิด</button>
-                    <a id="modalViewBoard" href="#" class="btn btn-gradient">
-                        <i class="fas fa-external-link-alt me-2"></i>ดูในบอร์ดงาน
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
 
 
+                <!--   Core JS Files   -->
+                <script src="../assets/js/core/jquery-3.7.1.min.js"></script>
+                <script src="../assets/js/core/popper.min.js"></script>
+                <script src="../assets/js/core/bootstrap.min.js"></script>
+                <!-- Chart JS -->
+                <script src="../assets/js/plugin/chart.js/chart.min.js"></script>
+                <!-- jQuery Scrollbar -->
+                <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
+                <!-- Kaiadmin JS -->
+                <script src="../assets/js/kaiadmin.min.js"></script>
+                <!-- Kaiadmin DEMO methods, don't include it in your project! -->
+                <script src="../assets/js/setting-demo2.js"></script>
 
-        </div>
-        <!--   Core JS Files   -->
-        <script src="../assets/js/core/jquery-3.7.1.min.js"></script>
-        <script src="../assets/js/core/popper.min.js"></script>
-        <script src="../assets/js/core/bootstrap.min.js"></script>
-        <!-- Chart JS -->
-        <script src="../assets/js/plugin/chart.js/chart.min.js"></script>
-        <!-- jQuery Scrollbar -->
-        <script src="../assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js"></script>
-        <!-- Kaiadmin JS -->
-        <script src="../assets/js/kaiadmin.min.js"></script>
-        <!-- Kaiadmin DEMO methods, don't include it in your project! -->
-        <script src="../assets/js/setting-demo2.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
-        <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+                <script>
+                    document.addEventListener("DOMContentLoaded", function() {
+                        document.querySelectorAll('[data-bs-target^="#gmApprovalSection"]').forEach(button => {
+                            button.addEventListener("click", function() {
+                                const targetId = this.getAttribute("data-bs-target");
+                                const container = document.querySelector(targetId + " .gm-approval-content");
+                                const requestId = container.getAttribute("data-request-id");
 
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                document.querySelectorAll('[data-bs-target^="#gmApprovalSection"]').forEach(button => {
-                    button.addEventListener("click", function() {
-                        const targetId = this.getAttribute("data-bs-target");
-                        const container = document.querySelector(targetId + " .gm-approval-content");
-                        const requestId = container.getAttribute("data-request-id");
-
-                        if (!container.dataset.loaded) {
-                            fetch("gm_approve.php?id=" + requestId)
-                                .then(response => response.text())
-                                .then(html => {
-                                    container.innerHTML = html;
-                                    container.dataset.loaded = "true";
-                                })
-                                .catch(err => {
-                                    container.innerHTML = `<div class="alert alert-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
-                                });
-                        }
+                                if (!container.dataset.loaded) {
+                                    fetch("gm_approve.php?id=" + requestId)
+                                        .then(response => response.text())
+                                        .then(html => {
+                                            container.innerHTML = html;
+                                            container.dataset.loaded = "true";
+                                        })
+                                        .catch(err => {
+                                            container.innerHTML = `<div class="alert alert-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
+                                        });
+                                }
+                            });
+                        });
                     });
-                });
-            });
-        </script>
+                </script>
+
+
+                <script>
+                    function openTaskList(dateString) {
+                        // dateString เช่น "2025-08-20"
+                        let parts = dateString.split("-");
+                        let formattedDate = parts[2] + "/" + parts[1] + "/" + parts[0]; // dd/mm/yyyy
+
+                        // set title modal
+                        document.getElementById("taskListTitle").innerText =
+                            "รายละเอียดงานประจำวัน (" + formattedDate + ")";
+
+                        // โหลดข้อมูลจาก PHP
+                        $("#taskListContent").load(
+                            "fetch_tasks_by_date.php?popup=1&year=" + parts[0] +
+                            "&month=" + parseInt(parts[1]) +
+                            "&day=" + parseInt(parts[2]),
+                            function(response, status) {
+                                if (status === "error") {
+                                    $("#taskListContent").html('<div class="alert alert-danger">เกิดข้อผิดพลาดในการโหลดงาน</div>');
+                                }
+                            }
+                        );
+
+                        // เปิด modal
+                        $("#taskListModal").modal("show");
+                    }
+                </script>
+
+
+
 
 
 </body>
