@@ -10,28 +10,27 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'developer') {
 $developer_id = $_SESSION['user_id'];
 
 // ===== รับค่า filter =====
-$current_year  = $_GET['year']  ?? 'all';
-$current_month = $_GET['month'] ?? 'all';
-$current_day   = $_GET['day']   ?? 'all';
+$current_year  = isset($_GET['year'])  && is_numeric($_GET['year'])  ? (int)$_GET['year']  : 'all';
+$current_month = isset($_GET['month']) && is_numeric($_GET['month']) ? (int)$_GET['month'] : 'all';
+$current_day   = isset($_GET['day'])   && is_numeric($_GET['day'])   ? (int)$_GET['day']   : 'all';
 
 // ====== ถ้าเป็น popup (กดจาก calendar) ======
 if (isset($_GET['popup'])) {
     $where  = [];
     $params = [];
 
-    // กรองตามวัน/เดือน/ปี
-    if ($current_day !== 'all') {
-        $where[]  = "DAY(sr.created_at) = ?";
-        $params[] = (int)$current_day;
-    }
-    if ($current_month !== 'all') {
-        $where[]  = "MONTH(sr.created_at) = ?";
-        $params[] = (int)$current_month;
-    }
-    if ($current_year !== 'all') {
-        $where[]  = "YEAR(sr.created_at) = ?";
-        $params[] = (int)$current_year;
-    }
+if ($current_day !== 'all') {
+    $where[]  = "DAY(sr.created_at) = ?";
+    $params[] = $current_day;
+}
+if ($current_month !== 'all') {
+    $where[]  = "MONTH(sr.created_at) = ?";
+    $params[] = $current_month;
+}
+if ($current_year !== 'all') {
+    $where[]  = "YEAR(sr.created_at) = ?";
+    $params[] = $current_year;
+}
 
     // ===== SQL หลัก =====
     $sql = "
