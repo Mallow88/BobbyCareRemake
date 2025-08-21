@@ -8,15 +8,26 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'developer') {
 }
 
 $developer_id = $_SESSION['user_id'];
-
 $picture_url = $_SESSION['picture_url'] ?? null;
 
+// ================== Filter ประเภทงาน ==================
+$type = $_GET['type'] ?? 'all';
+$where = [];
+$params = [];
 
-$stmt = $conn->prepare("
-    SELECT 
+if ($type !== 'all') {
+    $where[] = "s.category = ?";
+    $params[] = $type;
+}
+
+
+// ================== Query หลัก ==================
+$sql = "
+       SELECT 
         t.*,
         sr.title,
         sr.description,
+        s.category,   -- ใช้จาก services แทน
         sr.created_at as request_date,
         requester.name AS requester_name,
         requester.lastname AS requester_lastname,
@@ -33,19 +44,28 @@ $stmt = $conn->prepare("
     FROM user_reviews ur
     JOIN tasks t ON ur.task_id = t.id
     JOIN service_requests sr ON t.service_request_id = sr.id
+    JOIN services s ON sr.service_id = s.id       -- 👈 join เพิ่ม
     JOIN users requester ON sr.user_id = requester.id
     JOIN users dev ON t.developer_user_id = dev.id
     LEFT JOIN gm_approvals gma ON sr.id = gma.service_request_id
-     LEFT JOIN document_numbers dn ON sr.id = dn.service_request_id
+    LEFT JOIN document_numbers dn ON sr.id = dn.service_request_id
     LEFT JOIN assignor_approvals aa ON sr.id = aa.service_request_id
     LEFT JOIN users assignor ON aa.assignor_user_id = assignor.id
-    ORDER BY ur.reviewed_at DESC
-");
-$stmt->execute();
+
+";
+
+// เพิ่มเงื่อนไขถ้ามี filter
+if ($where) {
+    $sql .= " WHERE " . implode(" AND ", $where);
+}
+
+$sql .= " ORDER BY ur.reviewed_at DESC";
+
+$stmt = $conn->prepare($sql);
+$stmt->execute($params);
 $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-
-// คำนวณสถิติ
+// ================== คำนวณสถิติ ==================
 $total_reviews = count($tasks);
 $total_rating = 0;
 $accepted_count = 0;
@@ -62,8 +82,8 @@ foreach ($tasks as $review) {
 
 $average_rating = $total_reviews > 0 ? round($total_rating / $total_reviews, 1) : 0;
 $acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews) * 100, 1) : 0;
-
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -209,157 +229,157 @@ $acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews)
 
 <body>
 
-  <div class="wrapper">
-    <!-- Sidebar -->
-    <div class="sidebar" data-background-color="dark">
-      <div class="sidebar-logo">
-        <!-- Logo Header -->
-        <div class="logo-header" data-background-color="dark">
-          <a href="tasks_board.php" class="logo">
-            <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="30" />
-          </a>
-          <div class="nav-toggle">
-            <button class="btn btn-toggle toggle-sidebar">
-              <i class="gg-menu-right"></i>
-            </button>
-            <button class="btn btn-toggle sidenav-toggler">
-              <i class="gg-menu-left"></i>
-            </button>
-          </div>
-          <button class="topbar-toggler more">
-            <i class="gg-more-vertical-alt"></i>
-          </button>
-        </div>
-        <!-- End Logo Header -->
-      </div>
-      <div class="sidebar-wrapper scrollbar scrollbar-inner">
-        <div class="sidebar-content">
-          <ul class="nav nav-secondary">
-            <li class="nav-item ">
-              <a href="tasks_board.php">
-                <i class="fas fa-home"></i>
-                <p>หน้าหลัก</p>
-              </a>
-            </li>
-            <li class="nav-section">
-              <span class="sidebar-mini-icon">
-                <i class="fa fa-ellipsis-h"></i>
-              </span>
-              <h4 class="text-section">Components</h4>
-            </li>
-
-        
-
-            <li class="nav-item active ">
-              <a href="completed_reviews.php">
-                <i class="fas fa-comments"></i> <!-- รีวิวจากผู้ใช้ -->
-                <p>งานที่รีวิวเเล้ว</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li>
-
-            <li class="nav-item ">
-              <a href="export_report.php">
-                <i class="fas fa-tachometer-alt"></i> <!-- Dashboard -->
-                <p>Dashboard_DEV</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li>
-
-            <li class="nav-item ">
-              <a href="calendar2.php">
-                <i class="fas fa-check-circle"></i> <!-- รายการที่อนุมัติ -->
-                <p>ปฏิทิน</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li>
-
-            <li class="nav-item">
-              <a href="../logout.php">
-                <i class="fas fa-sign-out-alt"></i> <!-- Logout -->
-                <p>Logout</p>
-                <span class="badge badge-success"></span>
-              </a>
-            </li>
-
-          </ul>
-        </div>
-      </div>
-    </div>
-    <!-- End Sidebar -->
-
-    <div class="main-panel">
-      <div class="main-header">
-        <div class="main-header-logo">
-          <!-- Logo Header -->
-          <div class="logo-header" data-background-color="dark">
-            <a href="tasks_board.php" class="logo">
-              <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="20" />
-            </a>
-            <div class="nav-toggle">
-              <button class="btn btn-toggle toggle-sidebar">
-                <i class="gg-menu-right"></i>
-              </button>
-              <button class="btn btn-toggle sidenav-toggler">
-                <i class="gg-menu-left"></i>
-              </button>
+    <div class="wrapper">
+        <!-- Sidebar -->
+        <div class="sidebar" data-background-color="dark">
+            <div class="sidebar-logo">
+                <!-- Logo Header -->
+                <div class="logo-header" data-background-color="dark">
+                    <a href="tasks_board.php" class="logo">
+                        <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="30" />
+                    </a>
+                    <div class="nav-toggle">
+                        <button class="btn btn-toggle toggle-sidebar">
+                            <i class="gg-menu-right"></i>
+                        </button>
+                        <button class="btn btn-toggle sidenav-toggler">
+                            <i class="gg-menu-left"></i>
+                        </button>
+                    </div>
+                    <button class="topbar-toggler more">
+                        <i class="gg-more-vertical-alt"></i>
+                    </button>
+                </div>
+                <!-- End Logo Header -->
             </div>
-            <button class="topbar-toggler more">
-              <i class="gg-more-vertical-alt"></i>
-            </button>
-          </div>
-          <!-- End Logo Header -->
+            <div class="sidebar-wrapper scrollbar scrollbar-inner">
+                <div class="sidebar-content">
+                    <ul class="nav nav-secondary">
+                        <li class="nav-item ">
+                            <a href="tasks_board.php">
+                                <i class="fas fa-home"></i>
+                                <p>หน้าหลัก</p>
+                            </a>
+                        </li>
+                        <li class="nav-section">
+                            <span class="sidebar-mini-icon">
+                                <i class="fa fa-ellipsis-h"></i>
+                            </span>
+                            <h4 class="text-section">Components</h4>
+                        </li>
+
+
+
+                        <li class="nav-item active ">
+                            <a href="completed_reviews.php">
+                                <i class="fas fa-comments"></i> <!-- รีวิวจากผู้ใช้ -->
+                                <p>งานที่รีวิวเเล้ว</p>
+                                <span class="badge badge-success"></span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item ">
+                            <a href="export_report.php">
+                                <i class="fas fa-tachometer-alt"></i> <!-- Dashboard -->
+                                <p>Dashboard_DEV</p>
+                                <span class="badge badge-success"></span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item ">
+                            <a href="calendar2.php">
+                                <i class="fas fa-check-circle"></i> <!-- รายการที่อนุมัติ -->
+                                <p>ปฏิทิน</p>
+                                <span class="badge badge-success"></span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a href="../logout.php">
+                                <i class="fas fa-sign-out-alt"></i> <!-- Logout -->
+                                <p>Logout</p>
+                                <span class="badge badge-success"></span>
+                            </a>
+                        </li>
+
+                    </ul>
+                </div>
+            </div>
         </div>
+        <!-- End Sidebar -->
 
-        <!-- Navbar Header -->
-        <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
-          <div class="container-fluid">
-            <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
-
-              <!-- โปรไฟล์ -->
-              <li class="nav-item topbar-user dropdown hidden-caret">
-                <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
-
-                  <div class="avatar-sm">
-                    <img src="<?= htmlspecialchars($picture_url) ?>" alt="..." class="avatar-img rounded-circle" />
-                  </div>
-
-                  <span class="profile-username">
-                    <span class="op-7">Development :</span>
-                    <span class="fw-bold"><?= htmlspecialchars($_SESSION['name']) ?></span>
-                  </span>
-                </a>
-                <ul class="dropdown-menu dropdown-user animated fadeIn">
-                  <div class="dropdown-user-scroll scrollbar-outer">
-                    <li>
-                      <div class="user-box">
-                        <div class="avatar-lg">
-                          <img src="<?= htmlspecialchars($picture_url) ?>" alt="image profile" class="avatar-img rounded" />
+        <div class="main-panel">
+            <div class="main-header">
+                <div class="main-header-logo">
+                    <!-- Logo Header -->
+                    <div class="logo-header" data-background-color="dark">
+                        <a href="tasks_board.php" class="logo">
+                            <img src="../img/logo/bobby-full.png" alt="navbar brand" class="navbar-brand" height="20" />
+                        </a>
+                        <div class="nav-toggle">
+                            <button class="btn btn-toggle toggle-sidebar">
+                                <i class="gg-menu-right"></i>
+                            </button>
+                            <button class="btn btn-toggle sidenav-toggler">
+                                <i class="gg-menu-left"></i>
+                            </button>
                         </div>
-                        <div class="u-text">
-                          <h4><?= htmlspecialchars($_SESSION['name']) ?> </h4>
+                        <button class="topbar-toggler more">
+                            <i class="gg-more-vertical-alt"></i>
+                        </button>
+                    </div>
+                    <!-- End Logo Header -->
+                </div>
 
-                          <!-- <p class="text-muted"><?= htmlspecialchars($email) ?></p> -->
-                          <a href="" class="btn btn-xs btn-secondary btn-sm">View Profile</a>
-                        </div>
-                      </div>
-                    </li>
-                    <li>
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="#">My Profile</a>
+                <!-- Navbar Header -->
+                <nav class="navbar navbar-header navbar-header-transparent navbar-expand-lg border-bottom">
+                    <div class="container-fluid">
+                        <ul class="navbar-nav topbar-nav ms-md-auto align-items-center">
 
-                      <div class="dropdown-divider"></div>
-                      <a class="dropdown-item" href="../logout.php">Logout</a>
-                    </li>
-                  </div>
-                </ul>
-              </li>
+                            <!-- โปรไฟล์ -->
+                            <li class="nav-item topbar-user dropdown hidden-caret">
+                                <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
+
+                                    <div class="avatar-sm">
+                                        <img src="<?= htmlspecialchars($picture_url) ?>" alt="..." class="avatar-img rounded-circle" />
+                                    </div>
+
+                                    <span class="profile-username">
+                                        <span class="op-7">Development :</span>
+                                        <span class="fw-bold"><?= htmlspecialchars($_SESSION['name']) ?></span>
+                                    </span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-user animated fadeIn">
+                                    <div class="dropdown-user-scroll scrollbar-outer">
+                                        <li>
+                                            <div class="user-box">
+                                                <div class="avatar-lg">
+                                                    <img src="<?= htmlspecialchars($picture_url) ?>" alt="image profile" class="avatar-img rounded" />
+                                                </div>
+                                                <div class="u-text">
+                                                    <h4><?= htmlspecialchars($_SESSION['name']) ?> </h4>
+
+                                                    <!-- <p class="text-muted"><?= htmlspecialchars($email) ?></p> -->
+                                                    <a href="" class="btn btn-xs btn-secondary btn-sm">View Profile</a>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li>
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item" href="#">My Profile</a>
+
+                                            <div class="dropdown-divider"></div>
+                                            <a class="dropdown-item" href="../logout.php">Logout</a>
+                                        </li>
+                                    </div>
+                                </ul>
+                            </li>
 
 
-            </ul>
-          </div>
-        </nav>
-        <!-- End Navbar -->
+                        </ul>
+                    </div>
+                </nav>
+                <!-- End Navbar -->
             </div>
 
 
@@ -390,6 +410,32 @@ $acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews)
                         </div>
                     </div>
 
+                    <!-- ฟิลเตอร์ประเภทงาน -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <a href="?type=<?= ($type === 'development') ? 'all' : 'development' ?>" class="text-decoration-none">
+                                <div class="card h-100 shadow-sm border-0 <?= ($type === 'development') ? 'bg-primary text-white' : '' ?>">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-laptop-code fa-2x mb-2"></i>
+                                        <h5 class="card-title mb-0">งานพัฒนา</h5>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="?type=<?= ($type === 'service') ? 'all' : 'service' ?>" class="text-decoration-none">
+                                <div class="card h-100 shadow-sm border-0 <?= ($type === 'service') ? 'bg-success text-white' : '' ?>">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-laptop-code fa-2x mb-2"></i>
+                                        <h5 class="card-title mb-0">งานบริการ</h5>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+
+
 
                     <!-- รายการรีวิว -->
                     <h2 class="mb-4"><i class="fas fa-star text-warning"></i> งานที่ได้รับการรีวิวแล้ว</h2>
@@ -405,23 +451,35 @@ $acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews)
                             <div class="task-item">
                                 <div class="task-header">
                                     <div>
-                                        <div class="task-title"><?= htmlspecialchars($task['document_number']) ?>  หัวข้องาน : <?= htmlspecialchars($task['title']) ?></div> <div class="task-meta">
+                                        <div class="task-title"><?= htmlspecialchars($task['document_number']) ?> หัวข้องาน : <?= htmlspecialchars($task['title']) ?></div>
+                                        <div class="task-meta">
                                             <i class="fas fa-user"></i> ผู้ขอ: <?= htmlspecialchars($task['requester_name'] . ' ' . $task['requester_lastname']) ?>
                                             &nbsp; | &nbsp;
                                             <i class="fas fa-user-cog"></i> ผู้พัฒนา: <?= htmlspecialchars($task['dev_name'] . ' ' . $task['dev_lastname']) ?>
                                         </div>
                                     </div>
                                     <div>
+                                          <div class="task-meta mt-3">
                                         <?php if ($task['review_status'] === 'accepted'): ?>
                                             <span class="status-badge status-accepted">ยอมรับงาน</span>
                                         <?php elseif ($task['review_status'] === 'revision_requested'): ?>
                                             <span class="status-badge status-revision">ขอแก้ไข</span>
                                         <?php endif; ?>
+                                         </div>
+
+                                        <div class="task-meta mt-3">
+                                            <span class="badge <?= ($task['category'] === 'development') ? 'bg-primary' : (($task['category'] === 'service') ? 'bg-success' : 'bg-secondary') ?> p-2">
+                                                <i class="fas fa-briefcase"></i>
+                                                <?= ($task['category'] === 'development') ? 'งานพัฒนา' : (($task['category'] === 'service') ? 'งานบริการ' : 'ไม่ระบุ') ?>
+                                            </span>
+                                        </div>
                                     </div>
+
                                 </div>
 
                                 <div class="review-box">
                                     <div class="rating-stars"><?= str_repeat('⭐', $task['rating']) ?></div>
+
                                     <div><strong><?= $task['rating'] ?>/5 ดาว</strong> | รีวิวเมื่อ <?= date('d/m/Y H:i', strtotime($task['reviewed_at'])) ?></div>
 
                                     <?php if ($task['review_comment']): ?>
@@ -439,39 +497,28 @@ $acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews)
                                         </div>
                                     <?php endif; ?>
 
-                                     <?php if ($task['developer_notes']): ?>
-                        <div style="background: #e6fffa; border-radius: 8px; padding: 15px; margin: 15px 0; border-left: 3px solid #38b2ac;">
-                            <strong><i class="fas fa-sticky-note"></i> หมายเหตุจากผู้พัฒนา:</strong><br>
-                            <?= nl2br(htmlspecialchars($task['developer_notes'])) ?>
-                        </div>
-                        <?php endif; ?>
+                                    <?php if ($task['developer_notes']): ?>
+                                        <div style="background: #e6fffa; border-radius: 8px; padding: 15px; margin: 15px 0; border-left: 3px solid #38b2ac;">
+                                            <strong><i class="fas fa-sticky-note"></i> หมายเหตุจากผู้พัฒนา:</strong><br>
+                                            <?= nl2br(htmlspecialchars($task['developer_notes'])) ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
 
                                 <div class="task-meta mt-3">
                                     <i class="fas fa-check-circle"></i> เสร็จงาน: <?= date('d/m/Y H:i', strtotime($task['completed_at'])) ?>
                                 </div>
+
+
+
+
+
                             </div>
                         <?php endforeach; ?>
                     <?php endif; ?>
-                    <!-- <footer class="footer">
-        <div class="container-fluid d-flex justify-content-between">
-            <nav class="pull-left">
 
-            </nav>
-            <div class="copyright">
-                © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
-                <i class="fa fa-heart heart text-danger"></i>
-
-            </div>
-            <div>
-
-            </div>
-        </div>
-    </footer> -->
                 </div>
             </div>
-
-
 
 
         </div>

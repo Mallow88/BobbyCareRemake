@@ -11,12 +11,25 @@ $gm_id = $_SESSION['user_id'];
 
 $picture_url = $_SESSION['picture_url'] ?? null;
 
+// ================== Filter ประเภทงาน ==================
+$type = $_GET['type'] ?? 'all';
+$where = [];
+$params = [];
 
-$stmt = $conn->prepare("
-    SELECT 
+if ($type !== 'all') {
+    $where[] = "s.category = ?";
+    $params[] = $type;
+}
+
+
+
+// ================== Query หลัก ==================
+$sql = "
+       SELECT 
         t.*,
         sr.title,
         sr.description,
+        s.category,   -- ใช้จาก services แทน
         sr.created_at as request_date,
         requester.name AS requester_name,
         requester.lastname AS requester_lastname,
@@ -33,19 +46,28 @@ $stmt = $conn->prepare("
     FROM user_reviews ur
     JOIN tasks t ON ur.task_id = t.id
     JOIN service_requests sr ON t.service_request_id = sr.id
+    JOIN services s ON sr.service_id = s.id       -- 👈 join เพิ่ม
     JOIN users requester ON sr.user_id = requester.id
     JOIN users dev ON t.developer_user_id = dev.id
     LEFT JOIN gm_approvals gma ON sr.id = gma.service_request_id
-     LEFT JOIN document_numbers dn ON sr.id = dn.service_request_id
+    LEFT JOIN document_numbers dn ON sr.id = dn.service_request_id
     LEFT JOIN assignor_approvals aa ON sr.id = aa.service_request_id
     LEFT JOIN users assignor ON aa.assignor_user_id = assignor.id
-    ORDER BY ur.reviewed_at DESC
-");
-$stmt->execute();
+
+";
+
+// เพิ่มเงื่อนไขถ้ามี filter
+if ($where) {
+    $sql .= " WHERE " . implode(" AND ", $where);
+}
+
+$sql .= " ORDER BY ur.reviewed_at DESC";
+
+$stmt = $conn->prepare($sql);
+$stmt->execute($params);
 $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-
-// คำนวณสถิติ
+// ================== คำนวณสถิติ ==================
 $total_reviews = count($tasks);
 $total_rating = 0;
 $accepted_count = 0;
@@ -62,7 +84,6 @@ foreach ($tasks as $review) {
 
 $average_rating = $total_reviews > 0 ? round($total_rating / $total_reviews, 1) : 0;
 $acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews) * 100, 1) : 0;
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -375,6 +396,32 @@ $acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews)
                         </div>
                     </div>
 
+                    <!-- ฟิลเตอร์ประเภทงาน -->
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <a href="?type=<?= ($type === 'development') ? 'all' : 'development' ?>" class="text-decoration-none">
+                                <div class="card h-100 shadow-sm border-0 <?= ($type === 'development') ? 'bg-primary text-white' : '' ?>">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-laptop-code fa-2x mb-2"></i>
+                                        <h5 class="card-title mb-0">งานพัฒนา</h5>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="?type=<?= ($type === 'service') ? 'all' : 'service' ?>" class="text-decoration-none">
+                                <div class="card h-100 shadow-sm border-0 <?= ($type === 'service') ? 'bg-success text-white' : '' ?>">
+                                    <div class="card-body text-center">
+                                        <i class="fas fa-laptop-code fa-2x mb-2"></i>
+                                        <h5 class="card-title mb-0">งานบริการ</h5>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+
+
+
 
                     <!-- รายการรีวิว -->
                     <h2 class="mb-4"><i class="fas fa-star text-warning"></i> งานที่ได้รับการรีวิวแล้ว</h2>
@@ -390,23 +437,35 @@ $acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews)
                             <div class="task-item">
                                 <div class="task-header">
                                     <div>
-                                        <div class="task-title"><?= htmlspecialchars($task['document_number']) ?>  หัวข้องาน : <?= htmlspecialchars($task['title']) ?></div> <div class="task-meta">
+                                        <div class="task-title"><?= htmlspecialchars($task['document_number']) ?> หัวข้องาน : <?= htmlspecialchars($task['title']) ?></div>
+                                        <div class="task-meta">
                                             <i class="fas fa-user"></i> ผู้ขอ: <?= htmlspecialchars($task['requester_name'] . ' ' . $task['requester_lastname']) ?>
                                             &nbsp; | &nbsp;
                                             <i class="fas fa-user-cog"></i> ผู้พัฒนา: <?= htmlspecialchars($task['dev_name'] . ' ' . $task['dev_lastname']) ?>
                                         </div>
                                     </div>
                                     <div>
+                                          <div class="task-meta mt-3">
                                         <?php if ($task['review_status'] === 'accepted'): ?>
                                             <span class="status-badge status-accepted">ยอมรับงาน</span>
                                         <?php elseif ($task['review_status'] === 'revision_requested'): ?>
                                             <span class="status-badge status-revision">ขอแก้ไข</span>
                                         <?php endif; ?>
+                                         </div>
+
+                                        <div class="task-meta mt-3">
+                                            <span class="badge <?= ($task['category'] === 'development') ? 'bg-primary' : (($task['category'] === 'service') ? 'bg-success' : 'bg-secondary') ?> p-2">
+                                                <i class="fas fa-briefcase"></i>
+                                                <?= ($task['category'] === 'development') ? 'งานพัฒนา' : (($task['category'] === 'service') ? 'งานบริการ' : 'ไม่ระบุ') ?>
+                                            </span>
+                                        </div>
                                     </div>
+
                                 </div>
 
                                 <div class="review-box">
                                     <div class="rating-stars"><?= str_repeat('⭐', $task['rating']) ?></div>
+
                                     <div><strong><?= $task['rating'] ?>/5 ดาว</strong> | รีวิวเมื่อ <?= date('d/m/Y H:i', strtotime($task['reviewed_at'])) ?></div>
 
                                     <?php if ($task['review_comment']): ?>
@@ -424,39 +483,28 @@ $acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews)
                                         </div>
                                     <?php endif; ?>
 
-                                     <?php if ($task['developer_notes']): ?>
-                        <div style="background: #e6fffa; border-radius: 8px; padding: 15px; margin: 15px 0; border-left: 3px solid #38b2ac;">
-                            <strong><i class="fas fa-sticky-note"></i> หมายเหตุจากผู้พัฒนา:</strong><br>
-                            <?= nl2br(htmlspecialchars($task['developer_notes'])) ?>
-                        </div>
-                        <?php endif; ?>
+                                    <?php if ($task['developer_notes']): ?>
+                                        <div style="background: #e6fffa; border-radius: 8px; padding: 15px; margin: 15px 0; border-left: 3px solid #38b2ac;">
+                                            <strong><i class="fas fa-sticky-note"></i> หมายเหตุจากผู้พัฒนา:</strong><br>
+                                            <?= nl2br(htmlspecialchars($task['developer_notes'])) ?>
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
 
                                 <div class="task-meta mt-3">
                                     <i class="fas fa-check-circle"></i> เสร็จงาน: <?= date('d/m/Y H:i', strtotime($task['completed_at'])) ?>
                                 </div>
+
+
+
+
+
                             </div>
                         <?php endforeach; ?>
                     <?php endif; ?>
-                    <!-- <footer class="footer">
-        <div class="container-fluid d-flex justify-content-between">
-            <nav class="pull-left">
 
-            </nav>
-            <div class="copyright">
-                © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
-                <i class="fa fa-heart heart text-danger"></i>
-
-            </div>
-            <div>
-
-            </div>
-        </div>
-    </footer> -->
                 </div>
             </div>
-
-
 
 
         </div>
@@ -500,93 +548,6 @@ $acceptance_rate = $total_reviews > 0 ? round(($accepted_count / $total_reviews)
             });
         </script>
 
-  
-    <style>
-        /* overlay ครอบทั้งหน้าตอนเมนูเปิด */
-        .sidebar-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, .25);
-            z-index: 998;
-            /* ให้อยู่ใต้ sidebar นิดเดียว */
-            display: none;
-        }
-
-        .sidebar-overlay.show {
-            display: block;
-        }
-    </style>
-    <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-    <script>
-        (function() {
-            const sidebar = document.querySelector('.sidebar');
-            const overlay = document.getElementById('sidebarOverlay');
-
-            // ปุ่มที่ใช้เปิด/ปิดเมนู (ตามโค้ดคุณมีทั้งสองคลาส)
-            const toggleBtns = document.querySelectorAll('.toggle-sidebar, .sidenav-toggler');
-
-            // คลาสที่มักถูกเติมเมื่อ "เมนูเปิด" (เติมเพิ่มได้ถ้าโปรเจ็กต์คุณใช้ชื่ออื่น)
-            const OPEN_CLASSES = ['nav_open', 'toggled', 'show', 'active'];
-
-            // helper: เช็คว่าเมนูถือว่า "เปิด" อยู่ไหม
-            function isSidebarOpen() {
-                if (!sidebar) return false;
-                // ถ้าบอดี้หรือไซด์บาร์มีคลาสในรายการนี้ตัวใดตัวหนึ่ง ให้ถือว่าเปิด
-                const openOnBody = OPEN_CLASSES.some(c => document.body.classList.contains(c) || document.documentElement.classList.contains(c));
-                const openOnSidebar = OPEN_CLASSES.some(c => sidebar.classList.contains(c));
-                return openOnBody || openOnSidebar;
-            }
-
-            // helper: สั่งปิดเมนูแบบไม่ผูกกับไส้ในธีมมากนัก
-            function closeSidebar() {
-                // เอาคลาสเปิดออกจาก body/html และ sidebar (กันเหนียว)
-                OPEN_CLASSES.forEach(c => {
-                    document.body.classList.remove(c);
-                    document.documentElement.classList.remove(c);
-                    sidebar && sidebar.classList.remove(c);
-                });
-                overlay?.classList.remove('show');
-            }
-
-            // เมื่อกดปุ่ม toggle: ถ้าเปิดแล้วให้โชว์ overlay / ถ้าปิดก็ซ่อน
-            toggleBtns.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // หน่วงนิดให้ธีมสลับคลาสเสร็จก่อน
-                    setTimeout(() => {
-                        if (isSidebarOpen()) {
-                            overlay?.classList.add('show');
-                        } else {
-                            overlay?.classList.remove('show');
-                        }
-                    }, 10);
-                });
-            });
-
-            // คลิกที่ overlay = ปิดเมนู
-            overlay?.addEventListener('click', () => {
-                closeSidebar();
-            });
-
-            // คลิกที่ใดก็ได้บนหน้า: ถ้านอก sidebar + นอกปุ่ม toggle และขณะ mobile → ปิดเมนู
-            document.addEventListener('click', (e) => {
-                // จำกัดเฉพาะจอเล็ก (คุณจะปรับ breakpoint เองก็ได้)
-                if (window.innerWidth > 991) return;
-
-                const clickedInsideSidebar = e.target.closest('.sidebar');
-                const clickedToggle = e.target.closest('.toggle-sidebar, .sidenav-toggler');
-
-                if (!clickedInsideSidebar && !clickedToggle && isSidebarOpen()) {
-                    closeSidebar();
-                }
-            });
-
-            // ปิดเมนูอัตโนมัติเมื่อ resize จากจอเล็กไปจอใหญ่ (กันค้าง)
-            window.addEventListener('resize', () => {
-                if (window.innerWidth > 991) closeSidebar();
-            });
-        })();
-    </script>
 
 </body>
 

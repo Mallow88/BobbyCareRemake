@@ -90,107 +90,108 @@ function generateDocumentNumber($conn, $warehouse_number, $code_name)
 
 
 // ฟังก์ชันส่งข้อความเข้า LINE Official Account
-function sendLinePushCarousel($toUserId, $requests) {
-       $access_token = "hAfRJZ7KyjncT3I2IB6UhHqU/DmP1qPxW2PbeDE7KtUUveyiSKgLvJxrahWyrFUmlrta4MAnw8V3QRr5b7LwoKYh4hv1ATfX8yrJOMFQ+zdQxm3rScAAGNaJTEN1mJxHN93jHbqLoK8dQ080ja5BFAdB04t89/1O/w1cDnyilFU="; // ใส่ Channel access token (long-lived)
+function sendLinePushCarousel($toUserId, $requests)
+{
+    $access_token = "hAfRJZ7KyjncT3I2IB6UhHqU/DmP1qPxW2PbeDE7KtUUveyiSKgLvJxrahWyrFUmlrta4MAnw8V3QRr5b7LwoKYh4hv1ATfX8yrJOMFQ+zdQxm3rScAAGNaJTEN1mJxHN93jHbqLoK8dQ080ja5BFAdB04t89/1O/w1cDnyilFU="; // ใส่ Channel access token (long-lived)
 
 
     $url = "https://api.line.me/v2/bot/message/push";
 
     $bubbles = [];
-foreach ($requests as $req) {
-    $bubbles[] = [
-        "type" => "bubble",
-        "size" => "mega",
-        "header" => [
-            "type" => "box",
-            "layout" => "vertical",
-            "contents" => [
-                [
-                    "type" => "text",
-                    "text" => "📑 เอกสารใหม่",
-                    "weight" => "bold",
-                    "size" => "lg",
-                    "align" => "center",
-                   "color" => "#ffffffff" 
+    foreach ($requests as $req) {
+        $bubbles[] = [
+            "type" => "bubble",
+            "size" => "mega",
+            "header" => [
+                "type" => "box",
+                "layout" => "vertical",
+                "contents" => [
+                    [
+                        "type" => "text",
+                        "text" => "📑 เอกสารใหม่",
+                        "weight" => "bold",
+                        "size" => "lg",
+                        "align" => "center",
+                        "color" => "#ffffffff"
+                    ],
+                    [
+                        "type" => "text",
+                        "text" => $req['document_number'],
+                        "size" => "md",
+                        "align" => "center",
+                        "color" => "#FFFFFF",
+                        "margin" => "md"
+                    ]
                 ],
-                [
-                    "type" => "text",
-                    "text" => $req['document_number'],
-                    "size" => "md",
-                    "align" => "center",
-                    "color" => "#FFFFFF",
-                    "margin" => "md"
-                ]
+                "backgroundColor" => "#5677fc",
+                "paddingAll" => "20px"
             ],
-            "backgroundColor" => "#5677fc", 
-            "paddingAll" => "20px"
-        ],
-        "body" => [
-            "type" => "box",
-            "layout" => "vertical",
-            "spacing" => "md",
-            "contents" => [
-                [
-                    "type" => "text",
-                    "text" => "📌 เรื่อง: {$req['title']}",
-                    "wrap" => true,
-                    "weight" => "bold",
-                    "size" => "sm",
-                    "color" => "#333333"
-                ],
-                [
-                    "type" => "text",
-                    "text" => "📝 {$req['description']}",
-                    "wrap" => true,
-                    "size" => "sm",
-                    "color" => "#666666"
-                ],
-                [
-                    "type" => "text",
-                    "text" => "✨ ประโยชน์: {$req['expected_benefits']}",
-                    "wrap" => true,
-                    "size" => "sm",
-                    "color" => "#32CD32"
-                ],
-                ["type" => "separator", "margin" => "md"],
-                [
-                    "type" => "text",
-                    "text" => "ผู้ขอบริการ : {$req['user_name']} {$req['user_lastname']}",
-                    "size" => "sm",
-                    "color" => "#000000"
-                ],
-                [
-                    "type" => "text",
-                    "text" => "🆔 {$req['employee_id']} | 🏢 {$req['department']}",
-                    "size" => "sm",
-                    "color" => "#444444"
-                ]
-            ]
-        ],
-        "footer" => [
-            "type" => "box",
-            "layout" => "vertical",
-            "contents" => [
-                [
-                    "type" => "button",
-                    "style" => "primary",
-                    "color" => "#d0d9ff",
-                    "action" => [
-                        "type" => "uri",
-                        "label" => "🔎 ดูรายละเอียดเพิ่มเติม",
-                        "uri" => "http://yourdomain/index2.php?id={$req['request_id']}"
+            "body" => [
+                "type" => "box",
+                "layout" => "vertical",
+                "spacing" => "md",
+                "contents" => [
+                    [
+                        "type" => "text",
+                        "text" => "📌 เรื่อง: {$req['title']}",
+                        "wrap" => true,
+                        "weight" => "bold",
+                        "size" => "sm",
+                        "color" => "#333333"
+                    ],
+                    [
+                        "type" => "text",
+                        "text" => "📝 {$req['description']}",
+                        "wrap" => true,
+                        "size" => "sm",
+                        "color" => "#666666"
+                    ],
+                    [
+                        "type" => "text",
+                        "text" => "✨ ประโยชน์: {$req['expected_benefits']}",
+                        "wrap" => true,
+                        "size" => "sm",
+                        "color" => "#32CD32"
+                    ],
+                    ["type" => "separator", "margin" => "md"],
+                    [
+                        "type" => "text",
+                        "text" => "ผู้ขอบริการ : {$req['user_name']} {$req['user_lastname']}",
+                        "size" => "sm",
+                        "color" => "#000000"
+                    ],
+                    [
+                        "type" => "text",
+                        "text" => "🆔 {$req['employee_id']} | 🏢 {$req['department']}",
+                        "size" => "sm",
+                        "color" => "#444444"
                     ]
                 ]
             ],
-            "backgroundColor" => "#5677fc"
-        ],
-        "styles" => [
-            "header" => ["separator" => true],
-            "body"   => ["separator" => true],
-            "footer" => ["separator" => true]
-        ]
-    ];
-}
+            "footer" => [
+                "type" => "box",
+                "layout" => "vertical",
+                "contents" => [
+                    [
+                        "type" => "button",
+                        "style" => "primary",
+                        "color" => "#d0d9ff",
+                        "action" => [
+                            "type" => "uri",
+                            "label" => "🔎 ดูรายละเอียดเพิ่มเติม",
+                            "uri" => "http://yourdomain/index2.php?id={$req['request_id']}"
+                        ]
+                    ]
+                ],
+                "backgroundColor" => "#5677fc"
+            ],
+            "styles" => [
+                "header" => ["separator" => true],
+                "body"   => ["separator" => true],
+                "footer" => ["separator" => true]
+            ]
+        ];
+    }
 
 
     $flexMessage = [
@@ -376,9 +377,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     if ($insert_data['program_purpose']) $description_parts[] = "วัตถุประสงค์: " . $insert_data['program_purpose'];
                     if ($insert_data['target_users']) $description_parts[] = "กลุ่มผู้ใช้: " . $insert_data['target_users'];
                     if ($insert_data['main_functions']) $description_parts[] = "ฟังก์ชันหลัก: " . $insert_data['main_functions'];
-                     if ($insert_data['main_functions']) $description_parts[] = "ข้อมูลที่ต้องใช้: " . $insert_data['data_requirements'];
-                      if ($insert_data['main_functions']) $description_parts[] = "ขั้นตอนการทำงานเดิม: " . $insert_data['current_workflow'];
-                       if ($insert_data['main_functions']) $description_parts[] = "โปรแกรมที่คาดว่าจะเกี่ยวข้อง: " . $insert_data['related_programs'];
+                    if ($insert_data['main_functions']) $description_parts[] = "ข้อมูลที่ต้องใช้: " . $insert_data['data_requirements'];
+                    if ($insert_data['main_functions']) $description_parts[] = "ขั้นตอนการทำงานเดิม: " . $insert_data['current_workflow'];
+                    if ($insert_data['main_functions']) $description_parts[] = "โปรแกรมที่คาดว่าจะเกี่ยวข้อง: " . $insert_data['related_programs'];
                     break;
                 case 'โปรแกรมเดิม (แก้ปัญหา)':
                     if ($insert_data['current_program_name']) $description_parts[] = "โปรแกรม: " . $insert_data['current_program_name'];
@@ -395,12 +396,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 case 'โปรแกรมเดิม (เพิ่มฟังก์ชั่น)':
                     if ($insert_data['program_name_function']) $description_parts[] = "โปรแกรม: " . $insert_data['program_name_function'];
                     if ($insert_data['new_functions']) $description_parts[] = "ฟังก์ชั่นใหม่: " . $insert_data['new_functions'];
-                     if ($insert_data['new_functions']) $description_parts[] = "ระบบที่ใกล้เคียง: " . $insert_data['integration_requirements'];
+                    if ($insert_data['new_functions']) $description_parts[] = "ระบบที่ใกล้เคียง: " . $insert_data['integration_requirements'];
+                    if ($insert_data['new_functions']) $description_parts[] = "ประโยชน์: " . $insert_data['function_benefits'];
+        
                     break;
                 case 'โปรแกรมเดิม (ตกแต่ง)':
                     if ($insert_data['program_name_decorate']) $description_parts[] = "โปรแกรม: " . $insert_data['program_name_decorate'];
                     if ($insert_data['decoration_type']) $description_parts[] = "ประเภทการตกแต่ง: " . $insert_data['decoration_type'];
-                        if ($insert_data['decoration_type']) $description_parts[] = "ตัวอย่างอ้างอิง: " . $insert_data['reference_examples'];
+                    if ($insert_data['decoration_type']) $description_parts[] = "ตัวอย่างอ้างอิง: " . $insert_data['reference_examples'];
                     break;
             }
         }
@@ -440,7 +443,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 mkdir($upload_dir, 0755, true);
             }
 
-            $allowed_types = ['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'gif', 'txt', 'zip', 'rar'];
+          $allowed_types = [
+    'pdf', 'doc', 'docx',
+    'xls', 'xlsx',
+    'ppt', 'pptx',
+    'csv',
+    'jpg', 'jpeg', 'png', 'gif',
+    'txt', 'zip', 'rar'
+];
+
+
             $max_file_size = 10 * 1024 * 1024; // 10MB
 
             foreach ($_FILES['attachments']['name'] as $key => $filename) {
@@ -452,7 +464,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
 
                     if ($_FILES['attachments']['size'][$key] > $max_file_size) {
-                        throw new Exception("ไฟล์ $filename มีขนาดใหญ่เกินไป");
+                        throw new Exception("ไฟล์ $filename มีขนาดใหญ่เกินไป เแนะนำให้บีบไฟล์");
                     }
 
                     $stored_filename = $request_id . '_' . time() . '_' . $key . '.' . $file_extension;
@@ -476,42 +488,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $conn->commit();
         // $_SESSION['success'] = "สร้างคำขอบริการสำเร็จ! เลขที่เอกสาร: $document_number";
-     
-
-// === ส่งแจ้งเตือน LINE Official Account ไปยังผู้จัดการฝ่าย ===
-// ดึง LINE userId ของผู้จัดการฝ่ายจาก DB (คุณควรเก็บ userId ของแต่ละ div manager ไว้ในตาราง users ด้วย)
-// ดึงข้อมูลผู้ใช้ที่สร้างคำขอ
-$user_stmt = $conn->prepare("SELECT name, lastname, employee_id, department FROM users WHERE id = ?");
-$user_stmt->execute([$user_id]);
-$user_info = $user_stmt->fetch(PDO::FETCH_ASSOC);
-$user_name = $user_info['name'] ?? '';
-$user_lastname = $user_info['lastname'] ?? '';
-$employee_id = $user_info['employee_id'] ?? '';
-$department = $user_info['department'] ?? '';
-$divmgr_stmt = $conn->prepare("SELECT line_id FROM users WHERE id = ?");
-$description = $insert_data['description'] ?? '-';
-$expected_benefits = $insert_data['expected_benefits'] ?? '-';
-$divmgr_stmt->execute([$assigned_div_mgr_id]);
-$divmgr = $divmgr_stmt->fetch(PDO::FETCH_ASSOC);
-
-if ($divmgr && !empty($divmgr['line_id'])) {
-    sendLinePushCarousel($divmgr['line_id'], [[
-        'document_number' => $document_number,
-        'title' => $title,
-        'description' => $description,
-        'expected_benefits' => $expected_benefits,
-        'user_name' => $user_name,
-        'user_lastname' => $user_lastname,
-        'employee_id' => $employee_id,
-        'department' => $department,
-        'request_id' => $request_id
-    ]]);
-}
 
 
-header("Location: index2.php");
-exit();
+        // === ส่งแจ้งเตือน LINE Official Account ไปยังผู้จัดการฝ่าย ===
+        // ดึง LINE userId ของผู้จัดการฝ่ายจาก DB (คุณควรเก็บ userId ของแต่ละ div manager ไว้ในตาราง users ด้วย)
+        // ดึงข้อมูลผู้ใช้ที่สร้างคำขอ
+        $user_stmt = $conn->prepare("SELECT name, lastname, employee_id, department FROM users WHERE id = ?");
+        $user_stmt->execute([$user_id]);
+        $user_info = $user_stmt->fetch(PDO::FETCH_ASSOC);
+        $user_name = $user_info['name'] ?? '';
+        $user_lastname = $user_info['lastname'] ?? '';
+        $employee_id = $user_info['employee_id'] ?? '';
+        $department = $user_info['department'] ?? '';
+        $divmgr_stmt = $conn->prepare("SELECT line_id FROM users WHERE id = ?");
+        $description = $insert_data['description'] ?? '-';
+        $expected_benefits = $insert_data['expected_benefits'] ?? '-';
+        $divmgr_stmt->execute([$assigned_div_mgr_id]);
+        $divmgr = $divmgr_stmt->fetch(PDO::FETCH_ASSOC);
 
+        if ($divmgr && !empty($divmgr['line_id'])) {
+            sendLinePushCarousel($divmgr['line_id'], [[
+                'document_number' => $document_number,
+                'title' => $title,
+                'description' => $description,
+                'expected_benefits' => $expected_benefits,
+                'user_name' => $user_name,
+                'user_lastname' => $user_lastname,
+                'employee_id' => $employee_id,
+                'department' => $department,
+                'request_id' => $request_id
+            ]]);
+        }
+
+
+        header("Location: index2.php");
+        exit();
     } catch (Exception $e) {
         if ($conn->inTransaction()) {
             $conn->rollBack();
@@ -843,268 +854,327 @@ exit();
 
 
 
-   <div class="page-inner">
-                <!-- Form -->
-                <div class="glass-card p-4">
-                    <?php if (!empty($error)): ?>
-                        <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
-                            <i class="fas fa-exclamation-triangle me-3"></i>
-                            <?= htmlspecialchars($error) ?>
-                        </div>
-                    <?php endif; ?>
-
-                    <form method="post" enctype="multipart/form-data" id="createRequestForm">
-                        <!-- ข้อมูลพื้นฐาน -->
-                        <div class="form-section">
-                            <div class="section-title">
-                                <div class="section-icon">
-                                    <i class="fas fa-info-circle"></i>
-                                </div>
-                                <span>ข้อมูลพื้นฐาน</span>
+                <div class="page-inner">
+                    <!-- Form -->
+                    <div class="glass-card p-4">
+                        <?php if (!empty($error)): ?>
+                            <div class="alert alert-danger d-flex align-items-center mb-4" role="alert">
+                                <i class="fas fa-exclamation-triangle me-3"></i>
+                                <?= htmlspecialchars($error) ?>
                             </div>
+                        <?php endif; ?>
 
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="service_id" class="form-label">
-                                        <i class="fas fa-cogs me-2"></i>ประเภทบริการ <span class="text-danger">*</span>
-                                    </label>
-                                    <select class="form-select" id="service_id" name="service_id" required onchange="handleServiceChange()">
-                                        <option value="">-- เลือกประเภทบริการ --</option>
-                                        <?php
-                                        // กรองเอาเฉพาะ services ที่ category = 'development'
-                                        $current_category = '';
-                                        foreach ($services as $service):
-                                            if ($service['category'] !== 'development') continue;  // ข้ามถ้าไม่ใช่ development
-
-                                            if ($current_category !== $service['category']):
-                                                if ($current_category !== '') echo '</optgroup>';
-                                                // ตั้งชื่อกลุ่มแค่ Development เท่านั้น
-                                                echo '<optgroup label="งาน Development">';
-                                                $current_category = $service['category'];
-                                            endif;
-                                        ?>
-                                            <option value="<?= $service['id'] ?>" data-category="<?= $service['category'] ?>" data-name="<?= htmlspecialchars($service['name']) ?>">
-                                                <?= htmlspecialchars($service['name']) ?>
-                                            </option>
-                                        <?php endforeach; ?>
-                                        <?php if ($current_category !== '') echo '</optgroup>'; ?>
-                                    </select>
-                                </div>
-
-                                <div class="col-md-6 mb-3">
-
-                                    <label for="work_category" class="form-label">
-                                        <i class="fas fa-warehouse me-1"></i>หัวข้องานคลัง
-
-                                    </label>
-
-
-                                    <select class="form-select" id="work_category" name="work_category" required>
-                                        <option value="">-- เลือกหัวข้องานคลัง --</option>
-                                        <?php foreach ($dept_by_warehouse as $warehouse => $depts): ?>
-                                            <optgroup label="<?= $warehouse ?>">
-                                                <?php foreach ($depts as $dept): ?>
-                                                    <option value="<?= $dept['warehouse_number'] ?>-<?= $dept['code_name'] ?>">
-                                                        <?= $dept['department_code'] ?> - <?= $dept['code_name'] ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </optgroup>
-                                        <?php endforeach; ?>
-                                    </select>
-
-
-                                </div>
-
-                                <div class="col-12 mb-3">
-                                    <label for="title" class="form-label">
-                                        <i class="fas fa-heading me-2"></i>หัวข้อคำขอ <span class="text-danger">*</span>
-                                    </label>
-                                    <input type="text" class="form-control" id="title" name="title" required
-                                        placeholder="ระบุหัวข้อคำขอบริการ">
-
-                                    <!-- กล่องข้อความแจ้งเตือน ซ่อนเริ่มต้น -->
-                                    <div id="title-error" class="text-danger mt-1" style="display: none;">
-                                        ห้ามกรอกอักขระพิเศษ: / * - +
-                                    </div>
-                                </div>
-
-                            </div>
-                        </div>
-
-                        <!-- เลือกผู้จัดการฝ่าย -->
-                        <div class="row">
-                            <div class="col-12 mb-3">
-                                <label for="assigned_div_mgr_id" class="form-label">
-                                    <i class="fas fa-user-tie me-2"></i>เลือกผู้จัดการฝ่าย <span class="text-danger">*</span>
-                                </label>
-                                <select class="form-select" id="assigned_div_mgr_id" name="assigned_div_mgr_id" required>
-                                    <option value="">-- เลือกผู้จัดการฝ่าย --</option>
-                                    <?php foreach ($div_managers as $manager): ?>
-                                        <option value="<?= $manager['id'] ?>">
-                                            <?= htmlspecialchars($manager['name'] . ' ' . $manager['lastname']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- ฟิลด์เพิ่มเติมสำหรับงาน Development -->
-                        <div id="developmentFields" class="development-fields">
+                        <form method="post" enctype="multipart/form-data" id="createRequestForm">
+                            <!-- ข้อมูลพื้นฐาน -->
                             <div class="form-section">
                                 <div class="section-title">
                                     <div class="section-icon">
-                                        <i class="fas fa-code"></i>
+                                        <i class="fas fa-info-circle"></i>
                                     </div>
-                                    <span id="developmentTitle">ข้อมูลเพิ่มเติมสำหรับงาน Development</span>
+                                    <span>ข้อมูลพื้นฐาน</span>
                                 </div>
 
-                                <!-- ฟิลด์สำหรับโปรแกรมใหม่ -->
-                                <div id="newProgramFields" class="development-grid" style="display: none;">
-                                    <div>
-                                        <label for="program_purpose" class="form-label">
-                                            <i class="fas fa-bullseye me-2"></i>วัตถุประสงค์ของโปรแกรม <span class="text-danger">*</span>
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="service_id" class="form-label">
+                                            <i class="fas fa-cogs me-2"></i>ประเภทบริการ <span class="text-danger">*</span>
                                         </label>
-                                        <textarea class="form-control" id="program_purpose" name="program_purpose" rows="3"
-                                            placeholder="คำเตือน: กรุณาอธิบายอย่างละเอียด ว่าโปรแกรมนี้ถูกพัฒนาขึ้นเพื่อทำอะไร และต้องการแก้ปัญหาอะไรหรือลดการทำงานส่วนไหน
+                                        <select class="form-select" id="service_id" name="service_id" required onchange="handleServiceChange()">
+                                            <option value="">-- เลือกประเภทบริการ --</option>
+                                            <?php
+                                            // กรองเอาเฉพาะ services ที่ category = 'development'
+                                            $current_category = '';
+                                            foreach ($services as $service):
+                                                if ($service['category'] !== 'development') continue;  // ข้ามถ้าไม่ใช่ development
+
+                                                if ($current_category !== $service['category']):
+                                                    if ($current_category !== '') echo '</optgroup>';
+                                                    // ตั้งชื่อกลุ่มแค่ Development เท่านั้น
+                                                    echo '<optgroup label="งาน Development">';
+                                                    $current_category = $service['category'];
+                                                endif;
+                                            ?>
+                                                <option value="<?= $service['id'] ?>" data-category="<?= $service['category'] ?>" data-name="<?= htmlspecialchars($service['name']) ?>">
+                                                    <?= htmlspecialchars($service['name']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                            <?php if ($current_category !== '') echo '</optgroup>'; ?>
+                                        </select>
+                                    </div>
+
+                                    <div class="col-md-6 mb-3">
+
+                                        <label for="work_category" class="form-label">
+                                            <i class="fas fa-warehouse me-1"></i>หัวข้องานคลัง
+
+                                        </label>
+
+
+                                        <select class="form-select" id="work_category" name="work_category" required>
+                                            <option value="">-- เลือกหัวข้องานคลัง --</option>
+                                            <?php foreach ($dept_by_warehouse as $warehouse => $depts): ?>
+                                                <optgroup label="<?= $warehouse ?>">
+                                                    <?php foreach ($depts as $dept): ?>
+                                                        <option value="<?= $dept['warehouse_number'] ?>-<?= $dept['code_name'] ?>">
+                                                            <?= $dept['department_code'] ?> - <?= $dept['code_name'] ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </optgroup>
+                                            <?php endforeach; ?>
+                                        </select>
+
+
+                                    </div>
+
+                                    <div class="col-12 mb-3">
+                                        <label for="title" class="form-label">
+                                            <i class="fas fa-heading me-2"></i>หัวข้อคำขอ <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" class="form-control" id="title" name="title" required
+                                            placeholder="ระบุหัวข้อคำขอบริการ">
+
+                                        <!-- กล่องข้อความแจ้งเตือน ซ่อนเริ่มต้น -->
+                                        <div id="title-error" class="text-danger mt-1" style="display: none;">
+                                            ห้ามกรอกอักขระพิเศษ: / * - +
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            <!-- เลือกผู้จัดการฝ่าย -->
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label for="assigned_div_mgr_id" class="form-label">
+                                        <i class="fas fa-user-tie me-2"></i>เลือกผู้จัดการฝ่าย <span class="text-danger">*</span>
+                                    </label>
+                                    <select class="form-select" id="assigned_div_mgr_id" name="assigned_div_mgr_id" required>
+                                        <option value="">-- เลือกผู้จัดการฝ่าย --</option>
+                                        <?php foreach ($div_managers as $manager): ?>
+                                            <option value="<?= $manager['id'] ?>">
+                                                <?= htmlspecialchars($manager['name'] . ' ' . $manager['lastname']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- ฟิลด์เพิ่มเติมสำหรับงาน Development -->
+                            <div id="developmentFields" class="development-fields">
+                                <div class="form-section">
+                                    <div class="section-title">
+                                        <div class="section-icon">
+                                            <i class="fas fa-code"></i>
+                                        </div>
+                                        <span id="developmentTitle">ข้อมูลเพิ่มเติมสำหรับงาน Development</span>
+                                    </div>
+
+                                    <!-- ฟิลด์สำหรับโปรแกรมใหม่ -->
+                                    <div id="newProgramFields" class="development-grid" style="display: none;">
+                                        <div>
+                                            <label for="program_purpose" class="form-label">
+                                                <i class="fas fa-bullseye me-2"></i>วัตถุประสงค์ของโปรแกรม <span class="text-danger">*</span>
+                                            </label>
+                                            <textarea class="form-control" id="program_purpose" name="program_purpose" rows="3"
+                                                placeholder="คำเตือน: กรุณาอธิบายอย่างละเอียด ว่าโปรแกรมนี้ถูกพัฒนาขึ้นเพื่อทำอะไร และต้องการแก้ปัญหาอะไรหรือลดการทำงานส่วนไหน
 
                                             "></textarea>
-                                    </div>
-                                    <div>
-                                        <label for="target_users" class="form-label">
-                                            <i class="fas fa-users me-2"></i>กลุ่มผู้ใช้งาน <span class="text-danger">*</span>
-                                        </label>
-                                        <textarea class="form-control" id="target_users" name="target_users" rows="2"
-                                            placeholder=" ระบุให้ชัดเจนว่ากลุ่มผู้ใช้คือใคร และเกี่ยวข้องกับฝ่าย/ตำแหน่งใด ถ้าหลายกลุ่มใช้งาน ให้แยกเป็นข้อ ๆ เช่น 
+                                        </div>
+                                        <div>
+                                            <label for="target_users" class="form-label">
+                                                <i class="fas fa-users me-2"></i>กลุ่มผู้ใช้งาน <span class="text-danger">*</span>
+                                            </label>
+                                            <textarea class="form-control" id="target_users" name="target_users" rows="2"
+                                                placeholder=" ระบุให้ชัดเจนว่ากลุ่มผู้ใช้คือใคร และเกี่ยวข้องกับฝ่าย/ตำแหน่งใด ถ้าหลายกลุ่มใช้งาน ให้แยกเป็นข้อ ๆ เช่น 
 1.พนักงาน 
 2.เจ้าหน้าที่ "></textarea>
-                                    </div>
-                                    <div>
-                                        <label for="main_functions" class="form-label">
-                                            <i class="fas fa-list me-2"></i>ฟังก์ชันหลักที่ต้องการ <span class="text-danger">*</span>
-                                        </label>
-                                        <textarea class="form-control" id="main_functions" name="main_functions" rows="4"
-                                            placeholder="ระบุฟังก์ชันหลักที่ต้องการ เช่น การบันทึกข้อมูล, การออกรายงาน, แดชบอร์ด
+                                        </div>
+                                        <div>
+                                            <label for="main_functions" class="form-label">
+                                                <i class="fas fa-list me-2"></i>ฟังก์ชันหลักที่ต้องการ <span class="text-danger">*</span>
+                                            </label>
+                                            <textarea class="form-control" id="main_functions" name="main_functions" rows="4"
+                                                placeholder="ระบุฟังก์ชันหลักที่ต้องการ เช่น การบันทึกข้อมูล, การออกรายงาน, แดชบอร์ด
 เเละ ไม่ควรใช้คำกว้าง ๆ เช่น ทำงานได้หลากหลาย"></textarea>
-                                    </div>
-                                    <div>
-                                        <label for="data_requirements" class="form-label">
-                                            <i class="fas fa-database me-2"></i>ข้อมูลที่ต้องใช้ <span class="text-danger">*</span>
-                                        </label>
-                                        <textarea class="form-control" id="data_requirements" name="data_requirements" rows="3"
-                                            placeholder="ระบุประเภทของข้อมูลที่ต้องใช้ให้ครบ เพื่อให้ระบบออกแบบฐานข้อมูลได้ถูกต้อง
+                                        </div>
+                                        <div>
+                                            <label for="data_requirements" class="form-label">
+                                                <i class="fas fa-database me-2"></i>ข้อมูลที่ต้องใช้ <span class="text-danger">*</span>
+                                            </label>
+                                            <textarea class="form-control" id="data_requirements" name="data_requirements" rows="3"
+                                                placeholder="ระบุประเภทของข้อมูลที่ต้องใช้ให้ครบ เพื่อให้ระบบออกแบบฐานข้อมูลได้ถูกต้อง
 เคล็ดลับ: ระบุทั้งชนิดข้อมูลและแหล่งที่มา เช่น
 ข้อมูลพนักงาน (จากฝ่ายบุคคล)
 ข้อมูลสินค้า (จากฐานข้อมูลสต็อก)"></textarea>
-                                    </div>
-                                    <div>
-                                        <label for="current_workflow" class="form-label">
-                                            <i class="fas fa-list-ol me-2"></i>ขั้นตอนการทำงานเดิม
-                                        </label>
-                                        <textarea class="form-control" id="current_workflow" name="current_workflow" rows="3"
-                                            placeholder="อธิบายขั้นตอนการทำงานปัจจุบัน  เขียนให้ครบถ้วนตามลำดับที่ใช้งานจริง เพื่อให้เห็น pain point
+                                        </div>
+                                        <div>
+                                            <label for="current_workflow" class="form-label">
+                                                <i class="fas fa-list-ol me-2"></i>ขั้นตอนการทำงานเดิม
+                                            </label>
+                                            <textarea class="form-control" id="current_workflow" name="current_workflow" rows="3"
+                                                placeholder="อธิบายขั้นตอนการทำงานปัจจุบัน  เขียนให้ครบถ้วนตามลำดับที่ใช้งานจริง เพื่อให้เห็น pain point
 เคล็ดลับ: ใช้ลำดับขั้นตอน เช่น
 1.พนักงานกรอกข้อมูลลงในกระดาษ
 2.นั่งกรอกข้อมูลจากกระดาษเข้าในระบบ
 3.ตรวจสอบด้วยการนับหรือเช็คด้วยตาเปล่า "></textarea>
-                                    </div>
-                                    <div>
-                                        <label for="related_programs" class="form-label">
-                                            <i class="fas fa-desktop me-2"></i>โปรแกรมที่คาดว่าจะเกี่ยวข้อง
-                                        </label>
-                                        <textarea class="form-control" id="related_programs" name="related_programs" rows="2"
-                                            placeholder="โปรแกรมหรือระบบที่คาดว่าจะต้องใช้ในการพัฒนาหรือใกล้เคียงที่สามารถทำมาเชื่อมหรือทำงานร่วมกันได้"></textarea>
-                                    </div>
-                                    <div>
-                                        <label for="expected_benefits" class="form-label">
-                                            <i class="fas fa-chart-line me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
-                                        </label>
-                                        <textarea class="form-control" id="expected_benefits_new" name="expected_benefits_new" rows="2"
-                                            placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้
+                                        </div>
+                                        <div>
+                                            <label for="related_programs" class="form-label">
+                                                <i class="fas fa-desktop me-2"></i>โปรแกรมที่คาดว่าจะเกี่ยวข้อง
+                                            </label>
+                                            <textarea class="form-control" id="related_programs" name="related_programs" rows="2"
+                                                placeholder="โปรแกรมหรือระบบที่คาดว่าจะต้องใช้ในการพัฒนาหรือใกล้เคียงที่สามารถทำมาเชื่อมหรือทำงานร่วมกันได้"></textarea>
+                                        </div>
+                                        <div>
+                                            <label for="expected_benefits" class="form-label">
+                                                <i class="fas fa-chart-line me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+                                            </label>
+                                            <textarea class="form-control" id="expected_benefits_new" name="expected_benefits_new" rows="2"
+                                                placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้
 คำเตือน: ให้ชัดเจนว่าประโยชน์นั้นเป็นเชิงปริมาณหรือคุณภาพ เพื่อให้วัดผลได้ "></textarea>
-                                    </div>
-                                </div>
-
-                                <!-- ฟิลด์สำหรับโปรแกรมเดิม (แก้ปัญหา) -->
-                                <div id="fixProblemFields" style="display: none;">
-
-                                    <!-- แถวที่ 1 -->
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="current_program_name" class="form-label">
-                                                <i class="fas fa-desktop me-2"></i> ชื่อโปรแกรมที่มีปัญหา <span class="text-danger">*</span>
-                                            </label>
-                                            <select class="form-select" id="current_program_name" name="current_program_name">
-                                                <option value="">-- เลือกโปรแกรม --</option>
-                                                <?php foreach ($programs as $program): ?>
-                                                    <option value="<?= htmlspecialchars($program['name']) ?>">
-                                                        <?= htmlspecialchars($program['name']) ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </select>
                                         </div>
+                                    </div>
 
-                                        <div class="col-md-6 mb-3">
-                                            <label for="problem_description" class="form-label">
-                                                <i class="fas fa-exclamation-triangle me-2"></i> รายละเอียดปัญหา <span class="text-danger">*</span>
-                                            </label>
-                                            <textarea class="form-control" id="problem_description" name="problem_description" rows="4"
-                                                placeholder="อธิบายปัญหาที่เกิดขึ้นอย่างละเอียด เช่น พฤติกรรมที่ผิดปกติ
+                                    <!-- ฟิลด์สำหรับโปรแกรมเดิม (แก้ปัญหา) -->
+                                    <div id="fixProblemFields" style="display: none;">
+
+                                        <!-- แถวที่ 1 -->
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="current_program_name" class="form-label">
+                                                    <i class="fas fa-desktop me-2"></i> ชื่อโปรแกรมที่มีปัญหา <span class="text-danger">*</span>
+                                                </label>
+                                                <select class="form-select" id="current_program_name" name="current_program_name">
+                                                    <option value="">-- เลือกโปรแกรม --</option>
+                                                    <?php foreach ($programs as $program): ?>
+                                                        <option value="<?= htmlspecialchars($program['name']) ?>">
+                                                            <?= htmlspecialchars($program['name']) ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-6 mb-3">
+                                                <label for="problem_description" class="form-label">
+                                                    <i class="fas fa-exclamation-triangle me-2"></i> รายละเอียดปัญหา <span class="text-danger">*</span>
+                                                </label>
+                                                <textarea class="form-control" id="problem_description" name="problem_description" rows="4"
+                                                    placeholder="อธิบายปัญหาที่เกิดขึ้นอย่างละเอียด เช่น พฤติกรรมที่ผิดปกติ
 ข้อความแจ้งเตือนหรือรหัส Error (Error Message / Code)"></textarea>
-                                        </div>
-                                    </div>
-
-                                    <!-- แถวที่ 2 -->
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="error_frequency" class="form-label">
-                                                <i class="fas fa-clock me-2"></i> ความถี่ของปัญหา <span class="text-danger">*</span>
-                                            </label>
-                                            <select class="form-select" id="error_frequency" name="error_frequency">
-                                                <option value="">-- เลือกความถี่ --</option>
-                                                <option value="เกิดขึ้น1-5ครั้ง">เกิดขึ้น1-5ครั้ง</option>
-                                                <option value="เกิดขึ้น5-10ครั้ง">เกิดขึ้น5-10ครั้ง</option>
-                                                <option value="เกิดขึ้น10-15ครั้ง">เกิดขึ้น10-15ครั้ง</option>
-                                                <option value="เกิดขึ้นมากกว่า20ครั้ง">เกิดขึ้นมากกว่า20ครั้ง</option>
-                                            </select>
+                                            </div>
                                         </div>
 
-                                        <div class="col-md-6 mb-3">
-                                            <label for="steps_to_reproduce" class="form-label">
-                                                <i class="fas fa-redo me-2"></i> ขั้นตอนการทำให้เกิดปัญหา
-                                            </label>
-                                            <textarea class="form-control" id="steps_to_reproduce" name="steps_to_reproduce" rows="3"
-                                                placeholder="ระบุขั้นตอนการใช้งานที่ทำให้เกิดปัญหา เช่น  
+                                        <!-- แถวที่ 2 -->
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="error_frequency" class="form-label">
+                                                    <i class="fas fa-clock me-2"></i> ความถี่ของปัญหา <span class="text-danger">*</span>
+                                                </label>
+                                                <select class="form-select" id="error_frequency" name="error_frequency">
+                                                    <option value="">-- เลือกความถี่ --</option>
+                                                    <option value="เกิดขึ้น1-5ครั้ง">เกิดขึ้น1-5ครั้ง</option>
+                                                    <option value="เกิดขึ้น5-10ครั้ง">เกิดขึ้น5-10ครั้ง</option>
+                                                    <option value="เกิดขึ้น10-15ครั้ง">เกิดขึ้น10-15ครั้ง</option>
+                                                    <option value="เกิดขึ้นมากกว่า20ครั้ง">เกิดขึ้นมากกว่า20ครั้ง</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-6 mb-3">
+                                                <label for="steps_to_reproduce" class="form-label">
+                                                    <i class="fas fa-redo me-2"></i> ขั้นตอนการทำให้เกิดปัญหา
+                                                </label>
+                                                <textarea class="form-control" id="steps_to_reproduce" name="steps_to_reproduce" rows="3"
+                                                    placeholder="ระบุขั้นตอนการใช้งานที่ทำให้เกิดปัญหา เช่น  
 1.เปิดโปรแกรม Bobby 
 2.เลือกเมนู ปริ้นLabel
 3.โปรเเกรมค้าง "></textarea>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <!-- แถวที่ 3 -->
-                                    <div class="row">
-                                        <div class="col-12 mb-3">
-                                            <label for="expected_benefits" class="form-label">
-                                                <i class="fas fa-chart-line me-2"></i> ประโยชน์ที่คาดว่าจะได้รับ
-                                            </label>
-                                            <textarea class="form-control" id="expected_benefits_fix_problem" name="expected_benefits_fix_problem" rows="2"
-                                                placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้
+                                        <!-- แถวที่ 3 -->
+                                        <div class="row">
+                                            <div class="col-12 mb-3">
+                                                <label for="expected_benefits" class="form-label">
+                                                    <i class="fas fa-chart-line me-2"></i> ประโยชน์ที่คาดว่าจะได้รับ
+                                                </label>
+                                                <textarea class="form-control" id="expected_benefits_fix_problem" name="expected_benefits_fix_problem" rows="2"
+                                                    placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้
 คำเตือน: ให้ชัดเจนว่าประโยชน์นั้นเป็นเชิงปริมาณหรือคุณภาพ เพื่อให้วัดผลได้"></textarea>
+                                            </div>
                                         </div>
+
                                     </div>
 
-                                </div>
+
+                                    <!-- ฟิลด์สำหรับโปรแกรมเดิม (เปลี่ยนข้อมูล) -->
+                                    <div id="changeDataFields" style="display: none;">
+
+                                        <!-- แถวที่ 1 -->
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="program_name_change" class="form-label">
+                                                    <i class="fas fa-desktop me-2"></i> ชื่อโปรแกรมที่ต้องการเปลี่ยนข้อมูล <span class="text-danger">*</span>
+                                                </label>
+                                                <select class="form-select" id="program_name_change" name="program_name_change">
+                                                    <option value="">-- เลือกโปรแกรม --</option>
+                                                    <?php foreach ($programs as $program): ?>
+                                                        <option value="<?= htmlspecialchars($program['name']) ?>">
+                                                            <?= htmlspecialchars($program['name']) ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
+
+                                            <div class="col-md-6 mb-3">
+                                                <label for="data_to_change" class="form-label">
+                                                    <i class="fas fa-edit me-2"></i> ข้อมูลที่ต้องการเปลี่ยน <span class="text-danger">*</span>
+                                                </label>
+                                                <textarea class="form-control" id="data_to_change" name="data_to_change" rows="3"
+                                                    placeholder="ระบุข้อมูลที่ต้องการเปลี่ยนแปลง เช่น ข้อความ, ตัวเลข, รายการ"></textarea>
+                                            </div>
+                                        </div>
+
+                                        <!-- แถวที่ 2 -->
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label for="new_data_value" class="form-label">
+                                                    <i class="fas fa-arrow-right me-2"></i> ข้อมูลใหม่ที่ต้องการ <span class="text-danger">*</span>
+                                                </label>
+                                                <textarea class="form-control" id="new_data_value" name="new_data_value" rows="3"
+                                                    placeholder="ระบุข้อมูลใหม่ที่ต้องการให้แสดงแทน"></textarea>
+                                            </div>
+
+                                            <div class="col-md-6 mb-3">
+                                                <label for="change_reason" class="form-label">
+                                                    <i class="fas fa-question-circle me-2"></i> เหตุผลในการเปลี่ยนแปลง <span class="text-danger">*</span>
+                                                </label>
+                                                <textarea class="form-control" id="change_reason" name="change_reason" rows="2"
+                                                    placeholder="อธิบายเหตุผลที่ต้องการเปลี่ยนแปลงข้อมูล"></textarea>
+                                            </div>
+                                        </div>
+
+                                        <!-- แถวที่ 3 -->
+                                        <div class="row">
+                                            <div class="col-12 mb-3">
+                                                <label for="expected_benefits" class="form-label">
+                                                    <i class="fas fa-chart-line me-2"></i> ประโยชน์ที่คาดว่าจะได้รับ
+                                                </label>
+                                                <textarea class="form-control" id="expected_benefits_change_data" name="expected_benefits_change_data" rows="2"
+                                                    placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้
+คำเตือน: ให้ชัดเจนว่าประโยชน์นั้นเป็นเชิงปริมาณหรือคุณภาพ เพื่อให้วัดผลได้"></textarea>
+                                            </div>
+                                        </div>
+
+                                    </div>
 
 
-                                <!-- ฟิลด์สำหรับโปรแกรมเดิม (เปลี่ยนข้อมูล) -->
-                                <div id="changeDataFields" style="display: none;">
-
-                                    <!-- แถวที่ 1 -->
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="program_name_change" class="form-label">
-                                                <i class="fas fa-desktop me-2"></i> ชื่อโปรแกรมที่ต้องการเปลี่ยนข้อมูล <span class="text-danger">*</span>
+                                    <!-- ฟิลด์สำหรับโปรแกรมเดิม (เพิ่มฟังก์ชั่น) -->
+                                    <div id="addFunctionFields" class="development-grid" style="display: none;">
+                                        <div>
+                                            <label for="program_name_function" class="form-label">
+                                                <i class="fas fa-desktop me-2"></i>ชื่อโปรแกรมที่ต้องการเพิ่มฟังก์ชั่น <span class="text-danger">*</span>
                                             </label>
-                                            <select class="form-select" id="program_name_change" name="program_name_change">
+                                            <select class="form-select" id="program_name_function" name="program_name_function">
                                                 <option value="">-- เลือกโปรแกรม --</option>
                                                 <?php foreach ($programs as $program): ?>
                                                     <option value="<?= htmlspecialchars($program['name']) ?>">
@@ -1113,195 +1183,137 @@ exit();
                                                 <?php endforeach; ?>
                                             </select>
                                         </div>
-
-                                        <div class="col-md-6 mb-3">
-                                            <label for="data_to_change" class="form-label">
-                                                <i class="fas fa-edit me-2"></i> ข้อมูลที่ต้องการเปลี่ยน <span class="text-danger">*</span>
+                                        <div>
+                                            <label for="new_functions" class="form-label">
+                                                <i class="fas fa-plus-circle me-2"></i>ฟังก์ชั่นใหม่ที่ต้องการ <span class="text-danger">*</span>
                                             </label>
-                                            <textarea class="form-control" id="data_to_change" name="data_to_change" rows="3"
-                                                placeholder="ระบุข้อมูลที่ต้องการเปลี่ยนแปลง เช่น ข้อความ, ตัวเลข, รายการ"></textarea>
+                                            <textarea class="form-control" id="new_functions" name="new_functions" rows="4"
+                                                placeholder="อธิบายฟังก์ชั่นใหม่ที่ต้องการเพิ่ม เช่น การออกรายงาน, การคำนวณ, การลดการทำงานของหน้างาน จะต้องสอดคล้องกับการทำงานหรือลดหน้าที่ได้ "></textarea>
                                         </div>
-                                    </div>
-
-                                    <!-- แถวที่ 2 -->
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label for="new_data_value" class="form-label">
-                                                <i class="fas fa-arrow-right me-2"></i> ข้อมูลใหม่ที่ต้องการ <span class="text-danger">*</span>
+                                        <div>
+                                            <label for="function_benefits" class="form-label">
+                                                <i class="fas fa-chart-line me-2"></i>ประโยชน์ของฟังก์ชั่นใหม่ <span class="text-danger">*</span>
                                             </label>
-                                            <textarea class="form-control" id="new_data_value" name="new_data_value" rows="3"
-                                                placeholder="ระบุข้อมูลใหม่ที่ต้องการให้แสดงแทน"></textarea>
-                                        </div>
-
-                                        <div class="col-md-6 mb-3">
-                                            <label for="change_reason" class="form-label">
-                                                <i class="fas fa-question-circle me-2"></i> เหตุผลในการเปลี่ยนแปลง <span class="text-danger">*</span>
-                                            </label>
-                                            <textarea class="form-control" id="change_reason" name="change_reason" rows="2"
-                                                placeholder="อธิบายเหตุผลที่ต้องการเปลี่ยนแปลงข้อมูล"></textarea>
-                                        </div>
-                                    </div>
-
-                                    <!-- แถวที่ 3 -->
-                                    <div class="row">
-                                        <div class="col-12 mb-3">
-                                            <label for="expected_benefits" class="form-label">
-                                                <i class="fas fa-chart-line me-2"></i> ประโยชน์ที่คาดว่าจะได้รับ
-                                            </label>
-                                            <textarea class="form-control" id="expected_benefits_change_data" name="expected_benefits_change_data" rows="2"
-                                                placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้
+                                            <textarea class="form-control" id="function_benefits" name="function_benefits" rows="3"
+                                                placeholder="อธิบายประโยชน์ที่จะได้รับจากฟังก์ชั่นใหม่ 
 คำเตือน: ให้ชัดเจนว่าประโยชน์นั้นเป็นเชิงปริมาณหรือคุณภาพ เพื่อให้วัดผลได้"></textarea>
                                         </div>
-                                    </div>
-
-                                </div>
-
-
-                                <!-- ฟิลด์สำหรับโปรแกรมเดิม (เพิ่มฟังก์ชั่น) -->
-                                <div id="addFunctionFields" class="development-grid" style="display: none;">
-                                    <div>
-                                        <label for="program_name_function" class="form-label">
-                                            <i class="fas fa-desktop me-2"></i>ชื่อโปรแกรมที่ต้องการเพิ่มฟังก์ชั่น <span class="text-danger">*</span>
-                                        </label>
-                                        <select class="form-select" id="program_name_function" name="program_name_function">
-                                            <option value="">-- เลือกโปรแกรม --</option>
-                                            <?php foreach ($programs as $program): ?>
-                                                <option value="<?= htmlspecialchars($program['name']) ?>">
-                                                    <?= htmlspecialchars($program['name']) ?>
-                                                </option>
-                                            <?php endforeach; ?>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label for="new_functions" class="form-label">
-                                            <i class="fas fa-plus-circle me-2"></i>ฟังก์ชั่นใหม่ที่ต้องการ <span class="text-danger">*</span>
-                                        </label>
-                                        <textarea class="form-control" id="new_functions" name="new_functions" rows="4"
-                                            placeholder="อธิบายฟังก์ชั่นใหม่ที่ต้องการเพิ่ม เช่น การออกรายงาน, การคำนวณ, การลดการทำงานของหน้างาน จะต้องสอดคล้องกับการทำงานหรือลดหน้าที่ได้ "></textarea>
-                                    </div>
-                                    <div>
-                                        <label for="function_benefits" class="form-label">
-                                            <i class="fas fa-chart-line me-2"></i>ประโยชน์ของฟังก์ชั่นใหม่ <span class="text-danger">*</span>
-                                        </label>
-                                        <textarea class="form-control" id="function_benefits" name="function_benefits" rows="3"
-                                            placeholder="อธิบายประโยชน์ที่จะได้รับจากฟังก์ชั่นใหม่ 
-คำเตือน: ให้ชัดเจนว่าประโยชน์นั้นเป็นเชิงปริมาณหรือคุณภาพ เพื่อให้วัดผลได้"></textarea>
-                                    </div>
-                                    <div>
-                                        <label for="integration_requirements" class="form-label">
-                                            <i class="fas fa-link me-2"></i>ระบบที่ใกล้เคียงหรือคล้ายกัน
-                                        </label>
-                                        <textarea class="form-control" id="integration_requirements" name="integration_requirements" rows="2"
-                                            placeholder="มีระบบที่ใกล้เคียงที่สามารถนำมาเชื่อมหรือทำงานค้ลายกันได้ (ถ้ามี) ถ้าไม่มีให้กรอกไม่มี"></textarea>
-                                    </div>
-                                </div>
-
-                                <!-- ฟิลด์สำหรับโปรแกรมเดิม (ตกแต่ง) -->
-
-                                <div id="decorateFields" style="display: none;">
-                                    <div class="row">
-                                        <!-- ชื่อโปรแกรม -->
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">
-                                                <i class="fas fa-desktop me-2"></i> ชื่อโปรแกรมที่ต้องการตกแต่ง <span class="text-danger">*</span>
+                                        <div>
+                                            <label for="integration_requirements" class="form-label">
+                                                <i class="fas fa-link me-2"></i>ระบบที่ใกล้เคียงหรือคล้ายกัน
                                             </label>
-                                             <select class="form-select" id="program_name_decorate" name="program_name_decorate">
-                                                <option value="">-- เลือกโปรแกรม --</option>
-                                                <?php foreach ($programs as $program): ?>
-                                                    <option value="<?= htmlspecialchars($program['name']) ?>">
-                                                        <?= htmlspecialchars($program['name']) ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </select>
+                                            <textarea class="form-control" id="integration_requirements" name="integration_requirements" rows="2"
+                                                placeholder="มีระบบที่ใกล้เคียงที่สามารถนำมาเชื่อมหรือทำงานค้ลายกันได้ (ถ้ามี) ถ้าไม่มีให้กรอกไม่มี"></textarea>
                                         </div>
+                                    </div>
 
-                                        <!-- ประเภทการตกแต่ง -->
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">
-                                                <i class="fas fa-palette me-2"></i> ประเภทการตกแต่ง <span class="text-danger">*</span>
-                                            </label>
-                                            <div class="row">
-                                                <div class="col-6">
-                                                    <div class="form-check">
-                                                        <input type="checkbox" class="form-check-input" id="ui_design" name="decoration_type[]" value="ปรับปรุงหน้าตาระบบ"> ปรับปรุงหน้าตาระบบ
+                                    <!-- ฟิลด์สำหรับโปรแกรมเดิม (ตกแต่ง) -->
+
+                                    <div id="decorateFields" style="display: none;">
+                                        <div class="row">
+                                            <!-- ชื่อโปรแกรม -->
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">
+                                                    <i class="fas fa-desktop me-2"></i> ชื่อโปรแกรมที่ต้องการตกแต่ง <span class="text-danger">*</span>
+                                                </label>
+                                                <select class="form-select" id="program_name_decorate" name="program_name_decorate">
+                                                    <option value="">-- เลือกโปรแกรม --</option>
+                                                    <?php foreach ($programs as $program): ?>
+                                                        <option value="<?= htmlspecialchars($program['name']) ?>">
+                                                            <?= htmlspecialchars($program['name']) ?>
+                                                        </option>
+                                                    <?php endforeach; ?>
+                                                </select>
+                                            </div>
+
+                                            <!-- ประเภทการตกแต่ง -->
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">
+                                                    <i class="fas fa-palette me-2"></i> ประเภทการตกแต่ง <span class="text-danger">*</span>
+                                                </label>
+                                                <div class="row">
+                                                    <div class="col-6">
+                                                        <div class="form-check">
+                                                            <input type="checkbox" class="form-check-input" id="ui_design" name="decoration_type[]" value="ปรับปรุงหน้าตาระบบ"> ปรับปรุงหน้าตาระบบ
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input type="checkbox" class="form-check-input" id="color_scheme" name="decoration_type[]" value="เปลี่ยนสีธีม,ปุ่ม,ฟังก์ชั่น"> เปลี่ยนสีธีม, ปุ่ม, ฟังก์ชั่น
+                                                        </div>
                                                     </div>
-                                                    <div class="form-check">
-                                                        <input type="checkbox" class="form-check-input" id="color_scheme" name="decoration_type[]" value="เปลี่ยนสีธีม,ปุ่ม,ฟังก์ชั่น"> เปลี่ยนสีธีม, ปุ่ม, ฟังก์ชั่น
-                                                    </div>
-                                                </div>
-                                                <div class="col-6">
-                                                    <div class="form-check">
-                                                        <input type="checkbox" class="form-check-input" id="layout_improve" name="decoration_type[]" value="ปรับปรุงการจัดวาง,หัวข้อ"> ปรับปรุงการจัดวาง, หัวข้อ
-                                                    </div>
-                                                    <div class="form-check">
-                                                        <input type="checkbox" class="form-check-input" id="icon" name="decoration_type[]" value="เปลี่ยนICON" > เปลี่ยน ICON
+                                                    <div class="col-6">
+                                                        <div class="form-check">
+                                                            <input type="checkbox" class="form-check-input" id="layout_improve" name="decoration_type[]" value="ปรับปรุงการจัดวาง,หัวข้อ"> ปรับปรุงการจัดวาง, หัวข้อ
+                                                        </div>
+                                                        <div class="form-check">
+                                                            <input type="checkbox" class="form-check-input" id="icon" name="decoration_type[]" value="เปลี่ยนICON"> เปลี่ยน ICON
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <!-- แถวถัดไป -->
-                                    <div class="row">
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">
-                                                <i class="fas fa-images me-2"></i> ตัวอย่างอ้างอิงหรือโปรแกรมที่ใกล้เคียง
-                                            </label>
-                                            <textarea class="form-control" id="reference_examples" name="reference_examples" rows="2" placeholder="มีระบบหรือโปรแกรมที่ใกล้เคียงให้อ้างอิงหรือไม่ (ถ้ามี) ถ้าไม่มีให้ระบุไม่มี"></textarea>
-                                        </div>
-                                        <div class="col-md-6 mb-3">
-                                            <label class="form-label">
-                                                <i class="fas fa-chart-line me-2"></i> ประโยชน์ที่คาดว่าจะได้รับ
-                                            </label>
-                                            <textarea class="form-control" id="expected_benefits_decorate" name="expected_benefits_decorate"   rows="2" placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้
+                                        <!-- แถวถัดไป -->
+                                        <div class="row">
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">
+                                                    <i class="fas fa-images me-2"></i> ตัวอย่างอ้างอิงหรือโปรแกรมที่ใกล้เคียง
+                                                </label>
+                                                <textarea class="form-control" id="reference_examples" name="reference_examples" rows="2" placeholder="มีระบบหรือโปรแกรมที่ใกล้เคียงให้อ้างอิงหรือไม่ (ถ้ามี) ถ้าไม่มีให้ระบุไม่มี"></textarea>
+                                            </div>
+                                            <div class="col-md-6 mb-3">
+                                                <label class="form-label">
+                                                    <i class="fas fa-chart-line me-2"></i> ประโยชน์ที่คาดว่าจะได้รับ
+                                                </label>
+                                                <textarea class="form-control" id="expected_benefits_decorate" name="expected_benefits_decorate" rows="2" placeholder="ระบุประโยชน์หรือผลลัพธ์ที่คาดว่าจะได้รับจากการดำเนินการตามคำขอนี้
 คำเตือน: ให้ชัดเจนว่าประโยชน์นั้นเป็นเชิงปริมาณหรือคุณภาพ เพื่อให้วัดผลได้
                                             "></textarea>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
 
-                            </div>
-                        </div>
-
-                        <!-- ไฟล์แนบ -->
-                        <div class="form-section">
-                            <div class="section-title">
-                                <div class="section-icon">
-                                    <i class="fas fa-paperclip"></i>
-                                </div>
-                                <span>ไฟล์แนบเอกสารที่เกี่ยวข้อกับการทำงาน (SD) หรือสไลด์การทำเสนอ</span>
-                            </div>
-
-                            <div class="mb-3">
-                                <label for="attachments" class="form-label">
-                                    <i class="fas fa-upload me-2"></i>เลือกไฟล์แนบ
-                                </label>
-                                <input type="file" class="form-control" id="attachments" name="attachments[]" multiple
-                                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png,.gif,.txt,.zip,.rar">
-                                <div class="form-text">
-                                    ประเภทไฟล์ที่รองรับ: PDF, DOC, DOCX, JPG, PNG, GIF, TXT, ZIP, RAR (ขนาดไม่เกิน 10MB ต่อไฟล์)
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- ปุ่มส่ง -->
-                        <div class="text-center">
-                            <button type="submit" class="btn btn-gradient btn-lg">
-                                <i class="fas fa-paper-plane me-2"></i>ส่งคำขอบริการ
-                            </button>
-                        </div>
-                    </form>
+                            <!-- ไฟล์แนบ -->
+                            <div class="form-section">
+                                <div class="section-title">
+                                    <div class="section-icon">
+                                        <i class="fas fa-paperclip"></i>
+                                    </div>
+                                    <span>ไฟล์แนบเอกสารที่เกี่ยวข้อกับการทำงาน (SD) หรือสไลด์การทำเสนอ</span>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label for="attachments" class="form-label">
+                                        <i class="fas fa-upload me-2"></i>เลือกไฟล์แนบ
+                                    </label>
+                                   <input type="file" class="form-control" id="attachments" name="attachments[]" multiple
+       accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.jpg,.jpeg,.png,.gif,.txt,.zip,.rar">
+
+                                    <div class="form-text">
+                                        ประเภทไฟล์ที่รองรับ: PDF, DOC, DOCX, JPG, PNG, GIF, TXT, ZIP, RAR, ppt, pptx, xls, xlsx, csv(ขนาดไม่เกิน 10MB ต่อไฟล์)
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- ปุ่มส่ง -->
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-gradient btn-lg">
+                                    <i class="fas fa-paper-plane me-2"></i>ส่งคำขอบริการ
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 </div>
+
+
+
+
+
             </div>
-
-
-
-
-
         </div>
-    </div>
 
-    <!-- <footer class="footer">
+        <!-- <footer class="footer">
         <div class="container-fluid d-flex justify-content-between">
           <nav class="pull-left">
 
@@ -1523,8 +1535,8 @@ exit();
             });
         });
     </script>
-    
-    
+
+
     <style>
         /* overlay ครอบทั้งหน้าตอนเมนูเปิด */
         .sidebar-overlay {

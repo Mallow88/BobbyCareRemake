@@ -67,17 +67,23 @@ if (!file_exists($file_path)) {
 
 // กำหนด Content-Type
 $mime_types = [
-    'pdf' => 'application/pdf',
-    'jpg' => 'image/jpeg',
+    'pdf'  => 'application/pdf',
+    'jpg'  => 'image/jpeg',
     'jpeg' => 'image/jpeg',
-    'png' => 'image/png',
-    'gif' => 'image/gif',
-    'doc' => 'application/msword',
+    'png'  => 'image/png',
+    'gif'  => 'image/gif',
+    'doc'  => 'application/msword',
     'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-    'txt' => 'text/plain',
-    'zip' => 'application/zip',
-    'rar' => 'application/x-rar-compressed'
+    'xls'  => 'application/vnd.ms-excel',
+    'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'ppt'  => 'application/vnd.ms-powerpoint',
+    'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'csv'  => 'text/csv',
+    'txt'  => 'text/plain',
+    'zip'  => 'application/zip',
+    'rar'  => 'application/x-rar-compressed'
 ];
+
 
 $extension = strtolower($file['file_type']);
 $content_type = $mime_types[$extension] ?? 'application/octet-stream';
