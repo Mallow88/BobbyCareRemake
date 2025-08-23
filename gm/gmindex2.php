@@ -97,9 +97,9 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <!-- CSS Just for demo purpose, don't include it in your project -->
     <link rel="stylesheet" href="../assets/css/demo.css" />
+  
     <style>
         :root {
-
             --card-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
             --glass-bg: rgba(255, 255, 255, 0.95);
             --glass-border: rgba(255, 255, 255, 0.2);
@@ -177,7 +177,7 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
             margin-bottom: 20px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
-            border-left: 5px solid #9f7aea;
+            border-left: 5px solid #805ad5;
         }
 
         .request-card:hover {
@@ -368,7 +368,7 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
         .btn-approve {
-            background: linear-gradient(135deg, #9f7aea, #805ad5);
+            background: linear-gradient(135deg, #805ad5, #6b46c1);
             color: white;
             padding: 12px 24px;
             border: none;
@@ -380,12 +380,12 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
             display: flex;
             align-items: center;
             gap: 8px;
-            box-shadow: 0 4px 15px rgba(159, 122, 234, 0.3);
+            box-shadow: 0 4px 15px rgba(128, 90, 213, 0.3);
         }
 
         .btn-approve:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(159, 122, 234, 0.4);
+            box-shadow: 0 8px 25px rgba(128, 90, 213, 0.4);
             color: white;
         }
 
@@ -427,9 +427,19 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
         .estimate-info {
             background: #fef5e7;
             border-radius: 8px;
+            padding: 8px 12px;
+            margin: 8px 0;
+            border-left: 3px solid #f59e0b;
+            display: inline-block;
+            font-size: 0.9rem;
+        }
+
+        .budget-info {
+            background: #e6fffa;
+            border-radius: 8px;
             padding: 10px 15px;
             margin: 10px 0;
-            border-left: 3px solid #f59e0b;
+            border-left: 3px solid #38b2ac;
             display: inline-block;
         }
 
@@ -597,63 +607,77 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div class="container">
 
 
-
-
-
-                <!-- Content -->
-                <div class="glass-card p-4">
-
-                    <!-- Header -->
-                    <div class="d-flex align-items-center mb-4">
-                        <i class="fas fa-clipboard-check text-primary me-3 fs-3"></i>
-                        <h2 class="mb-0 fw-bold">รายการคำขอที่รอการพิจารณา</h2>
-                    </div>
-
-                    <?php if (empty($requests)): ?>
-
-                        <!-- Empty State -->
-                        <div class="empty-state">
-                            <i class="fas fa-inbox"></i>
-                            <h3 class="fw-bold mb-3">ไม่มีคำขอที่รอการพิจารณา</h3>
-                            <p class="fs-5">ขณะนี้ไม่มีคำขอที่ต้องการการอนุมัติจากคุณ</p>
+                <div class="container">
+                    <!-- Content -->
+                    <div class="glass-card p-4">
+                        <div class="d-flex align-items-center mb-4">
+                            <i class="fas fa-clipboard-check text-primary me-3 fs-3"></i>
+                            <h2 class="mb-0 fw-bold">รายการคำขอที่รอการพิจารณา</h2>
                         </div>
 
-                    <?php else: ?>
-                        <?php foreach ($requests as $req): ?>
+                        <?php if (empty($requests)): ?>
+                            <div class="empty-state">
+                                <i class="fas fa-inbox"></i>
+                                <h3 class="fw-bold mb-3">ไม่มีคำขอที่รอการพิจารณา</h3>
+                                <p class="fs-5">ขณะนี้ไม่มีคำขอที่ต้องการการอนุมัติจากคุณ</p>
+                            </div>
+                        <?php else: ?>
+                            <?php foreach ($requests as $req): ?>
+                                <div class="request-card">
+                                    <div class="">
+                                        <!-- บรรทัดแรก: เลขที่เอกสาร + วันที่ -->
+                                        <div class="d-flex justify-content-between text-muted mb-2 flex-wrap">
 
-                            <div class="request-card">
+                                            <div>
+                                                <?php if (!empty($req['service_name'])): ?>
+                                                    <div class="text-secondary">
+                                                        <?php if ($req['service_category'] === 'development'): ?>
+                                                            <i class="fas fa-code me-1"></i>
+                                                        <?php else: ?>
+                                                            <i class="fas fa-tools me-1"></i>
+                                                        <?php endif; ?>
+                                                        <strong>ประเภทคำขอ: <?= htmlspecialchars($req['service_name']) ?></strong>
+                                                    </div>
+                                                <?php endif; ?>
 
-                                <div class="">
-                                    <!-- บรรทัดแรก: เลขที่เอกสาร + วันที่ -->
-                                    <div class="d-flex justify-content-between text-muted mb-2 flex-wrap">
-
-                                        <div>
-                                            <?php if (!empty($req['service_name'])): ?>
-                                                <div class="text-secondary">
-                                                    <?php if ($req['service_category'] === 'development'): ?>
-                                                        <i class="fas fa-code me-1"></i>
-                                                    <?php else: ?>
-                                                        <i class="fas fa-tools me-1"></i>
-                                                    <?php endif; ?>
-                                                    <strong>ประเภทคำขอ: <?= htmlspecialchars($req['service_name']) ?></strong>
+                                                <div>
+                                                    <i class="fas fa-calendar me-1"></i>
+                                                    วันที่ขอดำเนินเรื่อง: <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
                                                 </div>
-                                            <?php endif; ?>
+                                            </div>
 
-
-                                            <span class="me-3">
-                                                <i class="fas fa-file-alt me-1"></i>
-                                                เลขที่: <?= htmlspecialchars($req['document_number'] ?? '-') ?>
-                                            </span>
+                                            
                                         </div>
 
-
+ <!-- Priority & Estimate -->
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <!-- Priority (ซ้าย) -->
+                                    <div>
+                                        <span class="priority-badge priority-<?= $req['priority_level'] ?>">
+                                            <i class="fas fa-exclamation-circle me-1"></i>
+                                            <?php
+                                            $priorities = [
+                                                'low' => 'ต่ำ',
+                                                'medium' => 'ปานกลาง',
+                                                'high' => 'สูง',
+                                                'urgent' => 'เร่งด่วน'
+                                            ];
+                                            echo $priorities[$req['priority_level']] ?? 'ปานกลาง';
+                                            ?>
+                                        </span>
                                     </div>
 
-
+                                    <!-- Estimate Days (ขวา) -->
+                                    <?php if ($req['estimated_days']): ?>
+                                        <div class="estimate-info text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            ประมาณ <?= $req['estimated_days'] ?> วัน
+                                        </div>
+                                    <?php endif; ?>
                                 </div>
+                                    </div>
 
-
-                                <h6 class="fw-bold text-info mb-3">
+                                     <h6 class="fw-bold text-info mb-3">
                                     <i class=""></i>ข้อมูลผู้ขอ
                                 </h6>
                                 <!-- ข้อมูลผู้ขอ -->
@@ -687,198 +711,38 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </div>
                                 <br>
 
-                                <!-- Development Details -->
-                                <?php if ($req['service_category'] === 'development'): ?>
-                                    <div>
-                                        <h5 class="fw-bold text-dark mb-2">
-                                            หัวข้อ: <?= htmlspecialchars($req['title'] ?? '-') ?>
-                                        </h5>
-                                        <div class="row">
-                                            <?php
-                                            $fields = [
-                                                'program_purpose' => 'วัตถุประสงค์',
-                                                'target_users' => 'กลุ่มผู้ใช้งาน',
-                                                'main_functions' => 'ฟังก์ชันหลัก',
-                                                'data_requirements' => 'ข้อมูลที่ต้องใช้',
-                                                'current_program_name' => 'โปรแกรมที่มีปัญหา',
-                                                'problem_description' => 'รายละเอียดปัญหา',
-                                                'error_frequency' => 'ความถี่ของปัญหา',
-                                                'steps_to_reproduce' => 'ขั้นตอนการทำให้เกิดปัญหา',
-                                                'program_name_change' => 'โปรแกรมที่ต้องการเปลี่ยนข้อมูล',
-                                                'data_to_change' => 'ข้อมูลที่ต้องการเปลี่ยน',
-                                                'new_data_value' => 'ข้อมูลใหม่ที่ต้องการ',
-                                                'change_reason' => 'เหตุผลในการเปลี่ยนแปลง',
-                                                'program_name_function' => 'โปรแกรมที่ต้องการเพิ่มฟังก์ชั่น',
-                                                'new_functions' => 'ฟังก์ชั่นใหม่ที่ต้องการ',
-                                                'function_benefits' => 'ประโยชน์ของฟังก์ชั่นใหม่',
-                                                'integration_requirements' => 'ความต้องการเชื่อมต่อ',
-                                                'program_name_decorate' => 'โปรแกรมที่ต้องการตกแต่ง',
-                                                'decoration_type' => 'ประเภทการตกแต่ง',
-                                                'reference_examples' => 'ตัวอย่างอ้างอิง',
-                                                'current_workflow' => 'ขั้นตอนการทำงานเดิม',
-                                                'approach_ideas' => 'แนวทาง/ไอเดีย',
-                                                'related_programs' => 'โปรแกรมที่คาดว่าจะเกี่ยวข้อง',
-                                                'current_tools' => 'ปกติใช้โปรแกรมอะไรทำงานอยู่',
-                                                'system_impact' => 'ผลกระทบต่อระบบ',
-                                                'related_documents' => 'เอกสารการทำงานที่เกี่ยวข้อง',
-                                            ];
 
-                                            foreach ($fields as $key => $label):
-                                                if (!empty($req[$key])):
-                                            ?>
-                                                    <div class="col-md-6 mb-3">
-                                                        <strong><?= $label ?>:</strong><br>
-                                                        <?= nl2br(htmlspecialchars($req[$key])) ?>
-                                                    </div>
-                                            <?php
-                                                endif;
-                                            endforeach;
-                                            ?>
-                                        </div>
-                                    </div>
-                                <?php endif; ?>
-
-                                <!-- Expected Benefits -->
-                                <?php if ($req['expected_benefits']): ?>
-                                    <h6 class="fw-bold text-success mb-2">
-                                        <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
-                                        <p class="mb-0"><?= nl2br(htmlspecialchars($req['expected_benefits'])) ?></p>
-                                    </h6>
-                                <?php endif; ?>
-
-
-                                <!-- Priority & Estimate -->
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <!-- Priority (ซ้าย) -->
-                                    <div>
-                                        <span class="priority-badge priority-<?= $req['priority_level'] ?>">
-                                            <i class="fas fa-exclamation-circle me-1"></i>
-                                            <?php
-                                            $priorities = [
-                                                'low' => 'ต่ำ',
-                                                'medium' => 'ปานกลาง',
-                                                'high' => 'สูง',
-                                                'urgent' => 'เร่งด่วน'
-                                            ];
-                                            echo $priorities[$req['priority_level']] ?? 'ปานกลาง';
-                                            ?>
-                                        </span>
-                                    </div>
-
-                                    <!-- Estimate Days (ขวา) -->
-                                    <?php if ($req['estimated_days']): ?>
-                                        <div class="estimate-info text-muted">
-                                            <i class="fas fa-clock me-1"></i>
-                                            ประมาณ <?= $req['estimated_days'] ?> วัน
-                                        </div>
-                                    <?php endif; ?>
-                                </div>
-
-
-                                <div>
-                                    <i class="fas fa-calendar me-1"></i>
-                                    วันที่ขอดำเนินเรื่อง: <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
-                                </div>
-                                <!-- Attachments -->
-                                <?php
-                                require_once __DIR__ . '/../includes/attachment_display.php';
-                                displayAttachments($req['id']);
-                                ?>
-                                <br>
-
-
-                                <div class="text-center mb-3">
-                                    <button class="btn btn-outline-primary" type="button"
-                                        data-bs-toggle="collapse" data-bs-target="#approvalTimeline"
-                                        aria-expanded="false" aria-controls="approvalTimeline">
-                                        <i class="fas fa-route me-2"></i> รายละเอียดขั้นตอนการอนุมัติ
-                                    </button>
-                                </div>
-
-                                <!-- Approval Timeline -->
-                                <div class="collapse" id="approvalTimeline">
-                                    <div class="approval-timeline">
-                                        <h5 class="fw-bold mb-3">
-                                            <i class="fas fa-route me-2"></i>ขั้นตอนการอนุมัติที่ผ่านมา
-                                        </h5>
-
-                                        <!-- Manager Approval -->
-                                        <div class="timeline-step">
-                                            <div class="step-icon">
-                                                <i class="fas fa-check"></i>
-                                            </div>
-                                            <div class="step-content">
-                                                <div class="step-title">1. ผู้จัดการฝ่าย - อนุมัติแล้ว</div>
-                                                <div class="step-details">
-                                                    <strong>โดย:</strong> <?= htmlspecialchars($req['div_mgr_name']) ?>
-                                                    <?php if ($req['div_mgr_reason']): ?>
-                                                        <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($req['div_mgr_reason']) ?>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <!-- Department Approval -->
-                                        <div class="timeline-step">
-                                            <div class="step-icon">
-                                                <i class="fas fa-check"></i>
-                                            </div>
-                                            <div class="step-content">
-                                                <div class="step-title">2. ผู้จัดการแผนก - อนุมัติแล้ว</div>
-                                                <div class="step-details">
-                                                    <strong>โดย:</strong> <?= htmlspecialchars($req['assignor_name']) ?>
-                                                    <br><strong>มอบหมายให้ผู้พัฒนา:</strong> <?= htmlspecialchars($req['dev_name'] . ' ' . $req['dev_lastname']) ?>
-                                                    <?php if (!empty($req['budget_approved'])): ?>
-                                                        <br><strong>งบประมาณที่ขอ:</strong> <?= htmlspecialchars($req['budget_approved']) ?>
-                                                    <?php endif; ?>
-                                                    <?php if ($req['assignor_reason']): ?>
-                                                        <br><strong>หมายเหตุ:</strong> <?= htmlspecialchars($req['assignor_reason']) ?>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div class="action-buttons">
+                                        <a href="gm_approve.php?id=<?= $req['id'] ?>" class="btn-approve">
+                                            <i class="fas fa-gavel"></i>
+                                            กดเพื่อดูรายละเอียดเพิ่มเติม
+                                        </a>
                                     </div>
                                 </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
 
-                                <!-- Action Button -->
-                                <div class="action-buttons">
-                                    <button class="btn btn-success btn-sm"
-                                        type="button"
-                                        data-bs-toggle="collapse"
-                                        data-bs-target="#gmApprovalSection<?= $req['id'] ?>"
-                                        aria-expanded="false"
-                                        aria-controls="gmApprovalSection<?= $req['id'] ?>">
-                                        <i class="fas fa-clipboard-check"></i> พิจารณาคำขอ
-                                    </button>
-                                </div>
-
-                                <div class="collapse mt-3" id="gmApprovalSection<?= $req['id'] ?>">
-                                    <div class="">
-                                        <div class="gm-approval-content" data-request-id="<?= $req['id'] ?>">
-                                            <div class="text-center text-muted py-3">
-                                                <i class="fas fa-spinner fa-spin"></i> กำลังโหลดข้อมูล...
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                
-
-
-                            </div>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
 
                 </div>
-
-
-
             </div>
+
+            <!-- <footer class="footer">
+        <div class="container-fluid d-flex justify-content-between">
+          <nav class="pull-left">
+
+          </nav>
+          <div class="copyright">
+            © 2025, made with by เเผนกพัฒนาระบบงาน for BobbyCareRemake.
+            <i class="fa fa-heart heart text-danger"></i>
+
+          </div>
+          <div>
+
+          </div>
         </div>
-    </div>
-
-
-    </div>
+      </footer> -->
+        </div>
     </div>
 
 
@@ -898,32 +762,32 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <!-- Kaiadmin DEMO methods, don't include it in your project! -->
     <script src="../assets/js/setting-demo2.js"></script>
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            document.querySelectorAll('[data-bs-target^="#gmApprovalSection"]').forEach(button => {
-                button.addEventListener("click", function() {
-                    const targetId = this.getAttribute("data-bs-target");
-                    const container = document.querySelector(targetId + " .gm-approval-content");
-                    const requestId = container.getAttribute("data-request-id");
+        // แสดง/ซ่อน textarea เหตุผลตามการเลือก
+        document.querySelectorAll('input[name="status"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                const form = this.closest('form');
+                const textarea = form.querySelector('textarea');
+                const label = form.querySelector('label[for^="reason"]');
 
-                    if (!container.dataset.loaded) {
-                        fetch("gm_approve.php?id=" + requestId)
-                            .then(response => response.text())
-                            .then(html => {
-                                container.innerHTML = html;
-                                container.dataset.loaded = "true";
-                            })
-                            .catch(err => {
-                                container.innerHTML = `<div class="alert alert-danger">เกิดข้อผิดพลาดในการโหลดข้อมูล</div>`;
-                            });
-                    }
-                });
+                if (this.value === 'rejected') {
+                    textarea.required = true;
+                    label.innerHTML = 'เหตุผลการไม่อนุมัติ: <span style="color: red;">*</span>';
+                    textarea.placeholder = 'กรุณาระบุเหตุผลการไม่อนุมัติ';
+                } else {
+                    textarea.required = false;
+                    label.innerHTML = 'เหตุผล/ข้อเสนอแนะ:';
+                    textarea.placeholder = 'ระบุเหตุผลหรือข้อเสนอแนะ (ไม่บังคับ)';
+                }
             });
         });
     </script>
+
 
 
     <style>
@@ -1012,8 +876,6 @@ $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
             });
         })();
     </script>
-
-
 </body>
 
 </html>

@@ -16,21 +16,17 @@ $current_day   = isset($_GET['day'])   && is_numeric($_GET['day'])   ? (int)$_GE
 
 // ====== ถ้าเป็น popup (กดจาก calendar) ======
 if (isset($_GET['popup'])) {
-    $where  = [];
-    $params = [];
+    $where  = ["t.developer_user_id = ?"];
+    $params = [$developer_id];
+// วันที่ที่เลือกจาก calendar
+if ($current_year !== 'all' && $current_month !== 'all' && $current_day !== 'all') {
+    $selected_date = sprintf("%04d-%02d-%02d", $current_year, $current_month, $current_day);
 
-if ($current_day !== 'all') {
-    $where[]  = "DAY(sr.created_at) = ?";
-    $params[] = $current_day;
+    // งานจะแสดงตั้งแต่วันสร้าง → วัน deadline (ไม่ตัดออกหลังเสร็จ)
+    $where[] = "DATE(?) BETWEEN DATE(sr.created_at) AND DATE(sr.deadline)";
+    $params[] = $selected_date;
 }
-if ($current_month !== 'all') {
-    $where[]  = "MONTH(sr.created_at) = ?";
-    $params[] = $current_month;
-}
-if ($current_year !== 'all') {
-    $where[]  = "YEAR(sr.created_at) = ?";
-    $params[] = $current_year;
-}
+
 
     // ===== SQL หลัก =====
     $sql = "
@@ -115,7 +111,6 @@ if ($current_year !== 'all') {
     $stmt->execute($params);
     $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // ===== แสดงผลเป็นตาราง =====
  // ===== แสดงผลเป็นตาราง =====
 if ($tasks) {
     echo '<div class="table-responsive">';
@@ -123,7 +118,6 @@ if ($tasks) {
     echo '<thead class="table-primary text-center">
             <tr>
                 <th>#</th>
-                <th>เลขที่เอกสาร</th>
                 <th>หัวข้อ</th>
                 <th>ผู้พัฒนา</th>
                 <th>ประเภทงาน</th>
@@ -136,45 +130,43 @@ if ($tasks) {
           </thead><tbody>';
 
     $i = 1;
-    foreach ($tasks as $t) {
-        // ===== จัด format =====
-        $due_date = $t['estimated_days'] 
-            ? date('d/m/Y', strtotime($t['created_at'] . " + {$t['estimated_days']} days"))
-            : '-';
+   foreach ($tasks as $t) {
+    // กำหนดส่งจริง
+    $due_date = !empty($t['deadline']) 
+        ? date('d/m/Y', strtotime($t['deadline'])) 
+        : '-';
 
-        // สีสถานะ
-        $status_badge = match($t['task_status']) {
-            'pending'     => '<span class="badge bg-secondary">รอดำเนินการ</span>',
-            'received'    => '<span class="badge bg-info text-dark">รับงานแล้ว</span>',
-            'in_progress' => '<span class="badge bg-warning text-dark">กำลังทำ</span>',
-            'on_hold'     => '<span class="badge bg-dark">พักงาน</span>',
-            'completed'   => '<span class="badge bg-success">เสร็จสิ้น</span>',
-            'accepted'    => '<span class="badge bg-primary">ผู้ใช้รับงานแล้ว</span>',
-            default       => '<span class="badge bg-light text-dark">'.$t['task_status'].'</span>',
-        };
+    // Badge สถานะงาน
+    $status_badge = match($t['task_status']) {
+        'pending'     => '<span class="badge bg-secondary">รอดำเนินการ</span>',
+        'received'    => '<span class="badge bg-info text-dark">รับงานแล้ว</span>',
+        'in_progress' => '<span class="badge bg-warning text-dark">กำลังทำ</span>',
+        'on_hold'     => '<span class="badge bg-dark">พักงาน</span>',
+        'completed'   => '<span class="badge bg-success">เสร็จสิ้น</span>',
+        'accepted'    => '<span class="badge bg-primary">ผู้ใช้รับงานแล้ว</span>',
+        default       => '<span class="badge bg-light text-dark">'.$t['task_status'].'</span>',
+    };
 
-        // สี deadline
-        $deadline_badge = match($t['deadline_status']) {
-            'overdue'  => '<span class="badge bg-danger"><i class="fas fa-exclamation-circle"></i> เลยกำหนด</span>',
-            'due_soon' => '<span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> ใกล้ครบกำหนด</span>',
-            default    => '<span class="badge bg-success"><i class="fas fa-check-circle"></i> ปกติ</span>',
-        };
+    // Badge deadline
+    $deadline_badge = match($t['deadline_status']) {
+        'overdue'  => '<span class="badge bg-danger"><i class="fas fa-exclamation-circle"></i> เลยกำหนด</span>',
+        'due_soon' => '<span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> ใกล้ครบกำหนด</span>',
+        default    => '<span class="badge bg-success"><i class="fas fa-check-circle"></i> ปกติ</span>',
+    };
 
-        echo "<tr>
-                <td class='text-center'>{$i}</td>
-                <td class='fw-bold text-primary'>" . htmlspecialchars($t['document_number']) . "</td>
-                <td>" . htmlspecialchars($t['title']) . "</td>
-                <td>" . htmlspecialchars($t['dev_name'] . ' ' . $t['dev_lastname']) . "</td>
-                <td>" . htmlspecialchars($t['service_name']) . "</td>
-                <td>" . htmlspecialchars($t['requester_name'] . ' ' . $t['requester_lastname']) . "</td>
-                <td>" . htmlspecialchars($t['requester_department']) . "</td>
-                <td class='text-center'>{$status_badge}</td>
-                <td class='text-center'>{$due_date}<br>{$deadline_badge}</td>
-                <td class='text-center'>" . date('d/m/Y', strtotime($t['request_created_at'])) . "</td>
-              </tr>";
-        $i++;
-    }
-
+    echo "<tr>
+            <td class='text-center'>{$i}</td>
+            <td>" . htmlspecialchars($t['title']) . "</td>
+            <td>" . htmlspecialchars($t['dev_name'] . ' ' . $t['dev_lastname']) . "</td>
+            <td>" . htmlspecialchars($t['service_name']) . "</td>
+            <td>" . htmlspecialchars($t['requester_name'] . ' ' . $t['requester_lastname']) . "</td>
+            <td>" . htmlspecialchars($t['requester_department']) . "</td>
+            <td class='text-center'>{$status_badge}</td>
+            <td class='text-center'>{$due_date}<br>{$deadline_badge}</td>
+            <td class='text-center'>" . date('d/m/Y', strtotime($t['request_created_at'])) . "</td>
+          </tr>";
+    $i++;
+}
     echo '</tbody></table></div>';
 } else {
     echo '<div class="alert alert-info text-center p-4">

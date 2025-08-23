@@ -180,11 +180,6 @@ foreach ($requests as &$req) {
   $req['attachments'] = $file_stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-$file_stmt = $conn->prepare("SELECT * FROM request_attachments WHERE service_request_id = ?");
-foreach ($requests as &$req) {
-  $file_stmt->execute([$req['id']]);
-  $req['attachments'] = $file_stmt->fetchAll(PDO::FETCH_ASSOC);
-}
 
 
 
