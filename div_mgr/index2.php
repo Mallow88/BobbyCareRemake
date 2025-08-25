@@ -694,66 +694,61 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="request-card">
                   <div class="">
                     <!-- บรรทัดแรก: เลขที่เอกสาร + วันที่ -->
-                    <div class="d-flex justify-content-between text-muted mb-2 flex-wrap">
+                    <div class="d-flex justify-content-between mb-2 flex-wrap">
 
                       <div>
                         <?php if (!empty($req['service_name'])): ?>
-                          <div class="text-secondary">
+                          <div class="text-dark fw-bold fs-4">
                             <?php if ($req['service_category'] === 'development'): ?>
                               <i class="fas fa-code me-1"></i>
                             <?php else: ?>
                               <i class="fas fa-tools me-1"></i>
                             <?php endif; ?>
-                            <strong>ประเภทคำขอ: <?= htmlspecialchars($req['service_name']) ?></strong>
+                            ประเภทคำขอ: <?= htmlspecialchars($req['service_name']) ?>
                           </div>
                         <?php endif; ?>
 
-
-                        <span class="me-3">
+                        <span class="me-3 fw-bold text-dark fs-5">
                           <i class="fas fa-file-alt me-1"></i>
                           เลขที่: <?= htmlspecialchars($req['document_number'] ?? '-') ?>
                         </span>
                       </div>
 
-
                     </div>
-
-
-
-
                   </div>
 
 
-                  <h6 class="fw-bold text-info mb-3">
-                    <i class=""></i>ข้อมูลผู้ขอ
-                  </h6>
+                  <h5 class="fw-bold text-info mb-3">
+                    <i class="fas fa-user me-2"></i> ข้อมูลผู้ขอ
+                  </h5>
+
                   <!-- ข้อมูลผู้ขอ -->
                   <div class="row g-3">
                     <div class="col-6">
                       <small class="text-muted">รหัสพนักงาน</small>
-                      <div class="fw-bold"><?= htmlspecialchars($req['employee_id'] ?? 'ไม่ระบุ') ?></div>
+                      <div class="fw-bold fs-5"><?= htmlspecialchars($req['employee_id'] ?? 'ไม่ระบุ') ?></div>
                     </div>
                     <div class="col-6">
                       <small class="text-muted">ชื่อ-นามสกุล</small>
-                      <div class="fw-bold"><?= htmlspecialchars($req['name'] . ' ' . $req['lastname']) ?></div>
+                      <div class="fw-bold fs-5"><?= htmlspecialchars($req['name'] . ' ' . $req['lastname']) ?></div>
                     </div>
 
                     <div class="col-6">
                       <small class="text-muted">ตำแหน่ง</small>
-                      <div class="fw-bold"><?= htmlspecialchars($req['position'] ?? 'ไม่ระบุ') ?></div>
+                      <div class="fw-bold fs-5"><?= htmlspecialchars($req['position'] ?? 'ไม่ระบุ') ?></div>
                     </div>
                     <div class="col-6">
                       <small class="text-muted">หน่วยงาน</small>
-                      <div class="fw-bold"><?= htmlspecialchars($req['department'] ?? 'ไม่ระบุ') ?></div>
+                      <div class="fw-bold fs-5"><?= htmlspecialchars($req['department'] ?? 'ไม่ระบุ') ?></div>
                     </div>
 
                     <div class="col-6">
                       <small class="text-muted">เบอร์โทร</small>
-                      <div class="fw-bold"><?= htmlspecialchars($req['phone'] ?? 'ไม่ระบุ') ?></div>
+                      <div class="fw-bold fs-5"><?= htmlspecialchars($req['phone'] ?? 'ไม่ระบุ') ?></div>
                     </div>
                     <div class="col-6">
                       <small class="text-muted">อีเมล</small>
-                      <div class="fw-bold"><?= htmlspecialchars($req['email'] ?? 'ไม่ระบุ') ?></div>
+                      <div class="fw-bold fs-5"><?= htmlspecialchars($req['email'] ?? 'ไม่ระบุ') ?></div>
                     </div>
                   </div>
                   <br>
@@ -761,16 +756,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                   <?php if ($req['service_category'] === 'development'): ?>
 
-
-                    <!-- <h6 class="fw-bold text-info mb-3">
-                      <i class="fas fa-code me-2"></i>ข้อมูล Development
-                    </h6> -->
-
-                    <h5 class="fw-bold text-dark mb-2">
+                    <!-- หัวข้อ -->
+                    <h4 class="fw-bold text-dark mb-3">
+                      <i class="fas fa-code text-primary me-2"></i>
                       หัวข้อ: <?= htmlspecialchars($req['title'] ?? '-') ?>
-                    </h5>
+                    </h4>
 
-
+                    <!-- รายละเอียดฟิลด์ -->
                     <div class="row">
                       <?php
                       $fields = [
@@ -805,30 +797,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         if (!empty($req[$key])):
                       ?>
                           <div class="col-md-6 mb-3">
-                            <strong><?= $label ?>:</strong><br>
-                            <?= nl2br(htmlspecialchars($req[$key])) ?>
+                            <div class="p-3 border rounded bg-light h-100">
+                              <strong class="text-secondary"><?= $label ?>:</strong><br>
+                              <span class="fw-bold"><?= nl2br(htmlspecialchars($req[$key])) ?></span>
+                            </div>
                           </div>
                       <?php
                         endif;
                       endforeach;
                       ?>
-
                     </div>
                   <?php endif; ?>
 
+                  <!-- ประโยชน์ที่คาดว่าจะได้รับ -->
                   <?php if ($req['expected_benefits']): ?>
-
-                    <h6 class="fw-bold text-success mb-2">
-                      <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
-                       <p class="mb-0"><?= nl2br(htmlspecialchars($req['expected_benefits'])) ?></p>
-                    </h6>
-
+                    <div class="mt-3 p-3 border-start border-4 border-success bg-light rounded">
+                      <h5 class="fw-bold text-success mb-2">
+                        <i class="fas fa-bullseye me-2"></i>ประโยชน์ที่คาดว่าจะได้รับ
+                      </h5>
+                      <p class="mb-0"><?= nl2br(htmlspecialchars($req['expected_benefits'])) ?></p>
+                    </div>
                   <?php endif; ?>
 
-                  <div>
+                  <!-- วันที่ -->
+                  <div class="mt-3 text-muted">
                     <i class="fas fa-calendar me-1"></i>
-                    วันที่ขอดำเนินเรื่อง: <?= date('d/m/Y H:i', strtotime($req['created_at'])) ?>
+                    วันที่ขอดำเนินเรื่อง:
+                    <span class="fw-bold"><?= date('d/m/Y H:i', strtotime($req['created_at'])) ?></span>
                   </div>
+
 
                   <?php if ($req['attachment_count'] > 0): ?>
                     <div class="mt-3">
@@ -961,27 +958,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
   <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
 
-<script>
-  document.querySelectorAll(".approval-form").forEach(form => {
-    form.addEventListener("submit", function(e) {
-      e.preventDefault(); // กันไม่ให้ฟอร์ม submit ทันที
+  <script>
+    document.querySelectorAll(".approval-form").forEach(form => {
+      form.addEventListener("submit", function(e) {
+        e.preventDefault(); // กันไม่ให้ฟอร์ม submit ทันที
 
-      swal("Good job!", "ขอบคุณที่ใช้บริการ BobbyCare", {
-        icon: "success",
-        buttons: {
-          confirm: {
-            text: "ตกลง",
-            className: "btn btn-success",
+        swal("Good job!", "ขอบคุณที่ใช้บริการ BobbyCare", {
+          icon: "success",
+          buttons: {
+            confirm: {
+              text: "ตกลง",
+              className: "btn btn-success",
+            },
           },
-        },
-      }).then((willSubmit) => {
-        if (willSubmit) {
-          form.submit(); // ส่งฟอร์มจริงเมื่อกด ตกลง
-        }
+        }).then((willSubmit) => {
+          if (willSubmit) {
+            form.submit(); // ส่งฟอร์มจริงเมื่อกด ตกลง
+          }
+        });
       });
     });
-  });
-</script>
+  </script>
 
 
 

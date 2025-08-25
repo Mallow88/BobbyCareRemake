@@ -349,6 +349,7 @@ if ($deadlineFlag !== 'all') {
     $params[] = $deadlineFlag;
 }
 
+
 /* ==== คำสั่ง SQL หลัก (ลบ comma เกินจากโค้ดเดิมให้แล้ว) ==== */
 $sql = "
   SELECT 
@@ -422,6 +423,7 @@ $sql = "
     END,
     t.created_at DESC
 ";
+
 $stmt = $conn->prepare($sql);
 $stmt->execute($params);
 $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -474,6 +476,35 @@ $codeNames = $conn->query("
 
 
 
+
+$sql_pending_dev = "
+    SELECT 
+        sr.id,
+        sr.title,
+        sr.created_at AS request_created_at,
+        sr.status,
+        sr.current_step,
+        dn.document_number,
+        requester.name AS requester_name,
+        requester.lastname AS requester_lastname,
+        divmgr.name AS divmgr_name,
+        divmgr.lastname AS divmgr_lastname
+    FROM service_requests sr
+    LEFT JOIN document_numbers dn ON sr.id = dn.service_request_id
+    LEFT JOIN users requester ON sr.user_id = requester.id
+    LEFT JOIN users divmgr ON sr.assigned_div_mgr_id = divmgr.id
+    LEFT JOIN services s ON sr.service_id = s.id
+    WHERE s.category = 'development'
+      AND (sr.status IS NULL OR LOWER(sr.status) IN ('pending','assignor_review','user_submitted'))
+      AND LOWER(sr.status) NOT LIKE '%approved%'
+      AND LOWER(sr.current_step) NOT LIKE '%approved%'
+      AND LOWER(sr.status) NOT IN ('completed','rejected')
+    ORDER BY sr.created_at DESC
+";
+
+$stmtDev = $conn->prepare($sql_pending_dev);
+$stmtDev->execute();
+$pendingDevRequests = $stmtDev->fetchAll(PDO::FETCH_ASSOC);
 
 
 
@@ -637,7 +668,7 @@ if (isset($_GET['popup'])) {
             } elseif ($t['task_status'] === 'overdue') {
                 $statusClass = 'danger';
             }
-        
+
 
 
             $categoryLabel = '-';
@@ -680,42 +711,41 @@ if (isset($_GET['popup'])) {
         // --------------------
         // Pagination UI
         // --------------------
-      if ($total_pages > 1) {
-    echo '<nav aria-label="Page navigation" class="mt-3">
+        if ($total_pages > 1) {
+            echo '<nav aria-label="Page navigation" class="mt-3">
     <ul class="pagination justify-content-center">';
 
-    // ปุ่มก่อนหน้า
-    if ($page > 1) {
-        echo '<li class="page-item">
+            // ปุ่มก่อนหน้า
+            if ($page > 1) {
+                echo '<li class="page-item">
         <a class="page-link pagination-link" href="#" 
            data-page="' . ($page - 1) . '" 
            data-status="' . htmlspecialchars($popup_status) . '">ก่อนหน้า</a>
       </li>';
-    }
+            }
 
-    // เลขหน้า
-    for ($p = 1; $p <= $total_pages; $p++) {
-        $active = ($p == $page) ? 'active' : '';
-        echo '<li class="page-item ' . $active . '">
+            // เลขหน้า
+            for ($p = 1; $p <= $total_pages; $p++) {
+                $active = ($p == $page) ? 'active' : '';
+                echo '<li class="page-item ' . $active . '">
           <a class="page-link pagination-link" href="#" 
              data-page="' . $p . '" 
              data-status="' . htmlspecialchars($popup_status) . '">' . $p . '</a>
         </li>';
-    }
+            }
 
-    // ปุ่มถัดไป
-    if ($page < $total_pages) {
-        echo '<li class="page-item">
+            // ปุ่มถัดไป
+            if ($page < $total_pages) {
+                echo '<li class="page-item">
         <a class="page-link pagination-link" href="#" 
            data-page="' . ($page + 1) . '" 
            data-status="' . htmlspecialchars($popup_status) . '">ถัดไป</a>
       </li>';
-    }
+            }
 
-    echo '   </ul>
+            echo '   </ul>
       </nav>';
-}
-
+        }
     }
 
     exit;
@@ -784,8 +814,6 @@ if (isset($_GET['popup'])) {
                 /* เต็มจอแบบแอพมือถือ */
             }
         }
-
-        
     </style>
 
 </head>
@@ -1412,6 +1440,57 @@ if (isset($_GET['popup'])) {
                         </div>
 
 
+                      <div class="card shadow-sm rounded-3">
+    <div class="card-header bg-light">
+        <h6 class="card-title mb-0 fw-semibold">
+            <i class="fas fa-tasks me-2"></i> รายการที่ยังไม่ได้อนุมัติจากผู้จัดการฝ่าย
+        </h6>
+    </div>
+
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover mb-0 align-middle">
+                <thead class="table-light text-center">
+                    <tr>
+                          <th class="text-nowrap">#</th>
+                        <th class="text-nowrap">เลขที่เอกสาร</th>
+                        <th class="text-nowrap">ผู้จัดการฝ่าย</th>
+                        <th class="text-nowrap">หัวข้อ</th>
+                        <th class="text-nowrap">ผู้ขอบริการ</th>
+                        <th class="text-nowrap">วันที่ขอบริการ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php if (empty($pendingDevRequests)): ?>
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                <i class="fas fa-check-circle me-2"></i> ไม่มีงานพัฒนาที่ยังไม่อนุมัติ
+                            </td>
+                        </tr>
+                    <?php else: ?>
+                        <?php $i = 1;
+                        foreach ($pendingDevRequests as $t): ?>
+                            <tr>
+                                <td class="text-center"><?= $i++ ?></td>
+                                <td class="fw-semibold text-primary"><?= htmlspecialchars($t['document_number'] ?? '-') ?></td>
+                                <td><?= htmlspecialchars($t['divmgr_name'] . ' ' . $t['divmgr_lastname']) ?></td>
+                                <td class="text-wrap">
+                                    <?= htmlspecialchars($t['title']) ?>
+                                </td>
+                                <td><?= htmlspecialchars($t['requester_name'] . ' ' . $t['requester_lastname']) ?></td>
+                                <td class="text-nowrap small text-muted">
+                                    <?= date('d/m/Y H:i', strtotime($t['request_created_at'])) ?>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
 
 
                     </div>
@@ -1470,8 +1549,6 @@ if (isset($_GET['popup'])) {
     </div>
 
 
-
-
     <!--   Core JS Files   -->
     <script src="../assets/js/core/jquery-3.7.1.min.js"></script>
     <script src="../assets/js/core/popper.min.js"></script>
@@ -1490,22 +1567,21 @@ if (isset($_GET['popup'])) {
 
 
     <script>
-       document.addEventListener("DOMContentLoaded", function() {
-    // เวลาเปิด approvalModal → โหลดข้อมูลจาก PHP
-    const approvalModal = document.getElementById('approvalModal');
-    approvalModal.addEventListener('show.bs.modal', function () {
-        let params = new URLSearchParams();
-        params.set("popup", "1");
-        params.set("status", "approval_pending"); // ตั้งชื่อเฉพาะไว้
+        document.addEventListener("DOMContentLoaded", function() {
+            // เวลาเปิด approvalModal → โหลดข้อมูลจาก PHP
+            const approvalModal = document.getElementById('approvalModal');
+            approvalModal.addEventListener('show.bs.modal', function() {
+                let params = new URLSearchParams();
+                params.set("popup", "1");
+                params.set("status", "approval_pending"); // ตั้งชื่อเฉพาะไว้
 
-        fetch("pending_list.php?" + params.toString())
-            .then(res => res.text())
-            .then(html => {
-                document.getElementById("approvalList").innerHTML = html;
+                fetch("pending_list.php?" + params.toString())
+                    .then(res => res.text())
+                    .then(html => {
+                        document.getElementById("approvalList").innerHTML = html;
+                    });
             });
-    });
-});
-
+        });
     </script>
 
 
@@ -1555,26 +1631,25 @@ if (isset($_GET['popup'])) {
         });
 
         // ⭐ เพิ่มตรงนี้: ดักคลิก pagination ที่โหลดเข้ามาใหม่
-    document.addEventListener("click", function(e) {
-    if (e.target.classList.contains("pagination-link")) {
-        e.preventDefault();
+        document.addEventListener("click", function(e) {
+            if (e.target.classList.contains("pagination-link")) {
+                e.preventDefault();
 
-        let page   = e.target.getAttribute("data-page");
-        let status = e.target.getAttribute("data-status"); // ⭐ ดึงจาก data-status แทน
+                let page = e.target.getAttribute("data-page");
+                let status = e.target.getAttribute("data-status"); // ⭐ ดึงจาก data-status แทน
 
-        let params = new URLSearchParams(window.location.search);
-        params.set("popup", "1");
-        params.set("status", status);  // จะเป็น completed / pending / ฯลฯ ถูกต้องแล้ว
-        params.set("page", page);
+                let params = new URLSearchParams(window.location.search);
+                params.set("popup", "1");
+                params.set("status", status); // จะเป็น completed / pending / ฯลฯ ถูกต้องแล้ว
+                params.set("page", page);
 
-        fetch("export_report.php?" + params.toString())
-            .then(res => res.text())
-            .then(html => {
-                document.getElementById("taskList").innerHTML = html;
-            });
-    }
-});
-
+                fetch("export_report.php?" + params.toString())
+                    .then(res => res.text())
+                    .then(html => {
+                        document.getElementById("taskList").innerHTML = html;
+                    });
+            }
+        });
     </script>
 
 
