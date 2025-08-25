@@ -814,6 +814,19 @@ if (isset($_GET['popup'])) {
                 /* เต็มจอแบบแอพมือถือ */
             }
         }
+
+            .btn-print {
+        background: linear-gradient(45deg, #007bff, #00c6ff);
+        color: #fff;
+        border: none;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+    .btn-print:hover {
+        background: linear-gradient(45deg, #0056b3, #0099cc);
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    }
     </style>
 
 </head>
@@ -1440,19 +1453,24 @@ if (isset($_GET['popup'])) {
                         </div>
 
 
-                      <div class="card shadow-sm rounded-3">
-    <div class="card-header bg-light">
+                      <div class="card shadow-sm rounded-3"> 
+    <div class="card-header bg-light d-flex justify-content-between align-items-center">
         <h6 class="card-title mb-0 fw-semibold">
             <i class="fas fa-tasks me-2"></i> รายการที่ยังไม่ได้อนุมัติจากผู้จัดการฝ่าย
         </h6>
+        <!-- ปุ่มปริ้น -->
+      <button class="btn btn-primary btn-lg shadow-sm px-4" onclick="printTable()">
+    <i class="fas fa-print fa-lg me-2"></i> ปริ้น
+</button>
+
     </div>
 
-    <div class="card-body p-0">
+    <div class="card-body p-0" id="printArea">
         <div class="table-responsive">
             <table class="table table-bordered table-hover mb-0 align-middle">
                 <thead class="table-light text-center">
                     <tr>
-                          <th class="text-nowrap">#</th>
+                        <th class="text-nowrap">#</th>
                         <th class="text-nowrap">เลขที่เอกสาร</th>
                         <th class="text-nowrap">ผู้จัดการฝ่าย</th>
                         <th class="text-nowrap">หัวข้อ</th>
@@ -1565,6 +1583,17 @@ if (isset($_GET['popup'])) {
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
+
+<script>
+function printTable() {
+    var printContents = document.getElementById("printArea").innerHTML;
+    var originalContents = document.body.innerHTML;
+    document.body.innerHTML = printContents;
+    window.print();
+    document.body.innerHTML = originalContents;
+    location.reload(); // รีเฟรชเพื่อให้ปุ่มกลับมา
+}
+</script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {
