@@ -136,23 +136,44 @@ if ($tasks) {
         ? date('d/m/Y', strtotime($t['deadline'])) 
         : '-';
 
-    // Badge สถานะงาน
-    $status_badge = match($t['task_status']) {
-        'pending'     => '<span class="badge bg-secondary">รอดำเนินการ</span>',
-        'received'    => '<span class="badge bg-info text-dark">รับงานแล้ว</span>',
-        'in_progress' => '<span class="badge bg-warning text-dark">กำลังทำ</span>',
-        'on_hold'     => '<span class="badge bg-dark">พักงาน</span>',
-        'completed'   => '<span class="badge bg-success">เสร็จสิ้น</span>',
-        'accepted'    => '<span class="badge bg-primary">ผู้ใช้รับงานแล้ว</span>',
-        default       => '<span class="badge bg-light text-dark">'.$t['task_status'].'</span>',
-    };
+   // Badge สถานะงาน
+switch ($t['task_status']) {
+    case 'pending':
+        $status_badge = '<span class="badge bg-secondary">รอดำเนินการ</span>';
+        break;
+    case 'received':
+        $status_badge = '<span class="badge bg-info text-dark">รับงานแล้ว</span>';
+        break;
+    case 'in_progress':
+        $status_badge = '<span class="badge bg-warning text-dark">กำลังทำ</span>';
+        break;
+    case 'on_hold':
+        $status_badge = '<span class="badge bg-dark">พักงาน</span>';
+        break;
+    case 'completed':
+        $status_badge = '<span class="badge bg-success">เสร็จสิ้น</span>';
+        break;
+    case 'accepted':
+        $status_badge = '<span class="badge bg-primary">ผู้ใช้รับงานแล้ว</span>';
+        break;
+    default:
+        $status_badge = '<span class="badge bg-light text-dark">' . $t['task_status'] . '</span>';
+        break;
+}
 
-    // Badge deadline
-    $deadline_badge = match($t['deadline_status']) {
-        'overdue'  => '<span class="badge bg-danger"><i class="fas fa-exclamation-circle"></i> เลยกำหนด</span>',
-        'due_soon' => '<span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> ใกล้ครบกำหนด</span>',
-        default    => '<span class="badge bg-success"><i class="fas fa-check-circle"></i> ปกติ</span>',
-    };
+// Badge deadline
+switch ($t['deadline_status']) {
+    case 'overdue':
+        $deadline_badge = '<span class="badge bg-danger"><i class="fas fa-exclamation-circle"></i> เลยกำหนด</span>';
+        break;
+    case 'due_soon':
+        $deadline_badge = '<span class="badge bg-warning text-dark"><i class="fas fa-clock"></i> ใกล้ครบกำหนด</span>';
+        break;
+    default:
+        $deadline_badge = '<span class="badge bg-success"><i class="fas fa-check-circle"></i> ปกติ</span>';
+        break;
+}
+
 
     echo "<tr>
             <td class='text-center'>{$i}</td>

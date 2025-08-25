@@ -7,6 +7,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'gmapprover') {
   exit();
 }
 
+
 /* ==== ดึงรายชื่อ Developer ==== */
 $dev_stmt = $conn->prepare("SELECT id, name, lastname FROM users WHERE role = 'developer' AND is_active = 1 ORDER BY name");
 $dev_stmt->execute();
@@ -581,7 +582,7 @@ if (isset($_GET['popup'])) {
 
 
 
-    $limit = 5; // จำนวนต่อหน้า
+    $limit = 20; // จำนวนต่อหน้า
     $page = isset($_GET['page']) && is_numeric($_GET['page']) ? (int) $_GET['page'] : 1;
     $start = ($page - 1) * $limit;
 
@@ -627,15 +628,16 @@ if (isset($_GET['popup'])) {
                 $statusClass = 'warning';
             } elseif ($t['task_status'] === 'received') {
                 $statusClass = 'info';
-            } elseif ($t['task_status'] === 'in_progress ') {
+            } elseif ($t['task_status'] === 'in_progress') {
                 $statusClass = 'primary';
             } elseif ($t['task_status'] === 'completed') {
                 $statusClass = 'success';
             } elseif ($t['task_status'] === 'accepted') {
                 $statusClass = 'success';
-            } elseif ($t['task_status'] === 'overdue ') {
+            } elseif ($t['task_status'] === 'overdue') {
                 $statusClass = 'danger';
             }
+        
 
 
             $categoryLabel = '-';
@@ -678,42 +680,48 @@ if (isset($_GET['popup'])) {
         // --------------------
         // Pagination UI
         // --------------------
-        if ($total_pages > 1) {
-            echo '<nav aria-label="Page navigation" class="mt-3">
-            <ul class="pagination justify-content-center">';
+      if ($total_pages > 1) {
+    echo '<nav aria-label="Page navigation" class="mt-3">
+    <ul class="pagination justify-content-center">';
 
-            // ปุ่มก่อนหน้า
-            if ($page > 1) {
-                echo '<li class="page-item">
-                <a class="page-link pagination-link" href="#" data-page="' . ($page - 1) . '">ก่อนหน้า</a>
-              </li>';
-            }
+    // ปุ่มก่อนหน้า
+    if ($page > 1) {
+        echo '<li class="page-item">
+        <a class="page-link pagination-link" href="#" 
+           data-page="' . ($page - 1) . '" 
+           data-status="' . htmlspecialchars($popup_status) . '">ก่อนหน้า</a>
+      </li>';
+    }
 
-            // เลขหน้า
-            for ($p = 1; $p <= $total_pages; $p++) {
-                $active = ($p == $page) ? 'active' : '';
-                echo '<li class="page-item ' . $active . '">
-                <a class="page-link pagination-link" href="#" data-page="' . $p . '">' . $p . '</a>
-              </li>';
-            }
+    // เลขหน้า
+    for ($p = 1; $p <= $total_pages; $p++) {
+        $active = ($p == $page) ? 'active' : '';
+        echo '<li class="page-item ' . $active . '">
+          <a class="page-link pagination-link" href="#" 
+             data-page="' . $p . '" 
+             data-status="' . htmlspecialchars($popup_status) . '">' . $p . '</a>
+        </li>';
+    }
 
-            // ปุ่มถัดไป
-            if ($page < $total_pages) {
-                echo '<li class="page-item">
-                <a class="page-link pagination-link" href="#" data-page="' . ($page + 1) . '">ถัดไป</a>
-              </li>';
-            }
+    // ปุ่มถัดไป
+    if ($page < $total_pages) {
+        echo '<li class="page-item">
+        <a class="page-link pagination-link" href="#" 
+           data-page="' . ($page + 1) . '" 
+           data-status="' . htmlspecialchars($popup_status) . '">ถัดไป</a>
+      </li>';
+    }
 
-            echo '   </ul>
-          </nav>';
-        }
+    echo '   </ul>
+      </nav>';
+}
+
     }
 
     exit;
 }
 
 ?>
-
 
 
 <!DOCTYPE html>
@@ -945,6 +953,7 @@ if (isset($_GET['popup'])) {
 
 
 
+        
             <div class="container">
 
 
@@ -1486,18 +1495,22 @@ if (isset($_GET['popup'])) {
 
 
     <script>
-        document.getElementById('approvalModal').addEventListener('show.bs.modal', function() {
-            // โหลดข้อมูลจาก pending_list.php
-            fetch("pending_list.php")
-                .then(res => res.text())
-                .then(html => {
-                    document.getElementById('approvalList').innerHTML = html;
-                })
-                .catch(err => {
-                    document.getElementById('approvalList').innerHTML =
-                        "<p class='text-danger text-center py-3'>โหลดข้อมูลไม่สำเร็จ</p>";
-                });
-        });
+       document.addEventListener("DOMContentLoaded", function() {
+    // เวลาเปิด approvalModal → โหลดข้อมูลจาก PHP
+    const approvalModal = document.getElementById('approvalModal');
+    approvalModal.addEventListener('show.bs.modal', function () {
+        let params = new URLSearchParams();
+        params.set("popup", "1");
+        params.set("status", "approval_pending"); // ตั้งชื่อเฉพาะไว้
+
+        fetch("pending_list.php?" + params.toString())
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("approvalList").innerHTML = html;
+            });
+    });
+});
+
     </script>
 
 
@@ -1516,7 +1529,7 @@ if (isset($_GET['popup'])) {
                 params.set("popup", "1");
                 params.set("status", type);
 
-                fetch("export_report.php?" + params.toString())
+                fetch("developer_dashboard2.php?" + params.toString())
                     .then(res => res.text())
                     .then(html => {
                         document.getElementById('taskList').innerHTML = html;
@@ -1547,25 +1560,26 @@ if (isset($_GET['popup'])) {
         });
 
         // ⭐ เพิ่มตรงนี้: ดักคลิก pagination ที่โหลดเข้ามาใหม่
-        document.addEventListener("click", function(e) {
-            if (e.target.classList.contains("pagination-link")) {
-                e.preventDefault();
+    document.addEventListener("click", function(e) {
+    if (e.target.classList.contains("pagination-link")) {
+        e.preventDefault();
 
-                let page = e.target.getAttribute("data-page");
+        let page   = e.target.getAttribute("data-page");
+        let status = e.target.getAttribute("data-status"); // ⭐ ดึงจาก data-status แทน
 
-                // ใช้ params เดิมจาก URL
-                let params = new URLSearchParams(window.location.search);
-                params.set("popup", "1");
-                params.set("status", "<?= $_GET['status'] ?? 'all' ?>"); // ส่งค่า status ปัจจุบัน
-                params.set("page", page);
+        let params = new URLSearchParams(window.location.search);
+        params.set("popup", "1");
+        params.set("status", status);  // จะเป็น completed / pending / ฯลฯ ถูกต้องแล้ว
+        params.set("page", page);
 
-                fetch("developer_dashboard2.php?" + params.toString())
-                    .then(res => res.text())
-                    .then(html => {
-                        document.getElementById("taskList").innerHTML = html;
-                    });
-            }
-        });
+        fetch("developer_dashboard2.php?" + params.toString())
+            .then(res => res.text())
+            .then(html => {
+                document.getElementById("taskList").innerHTML = html;
+            });
+    }
+});
+
     </script>
 
 
