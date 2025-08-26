@@ -1,4 +1,9 @@
 <?php
+// ตั้ง session ให้อยู่ได้นาน 10 ชั่วโมง (36000 วินาที)
+ini_set('session.gc_maxlifetime', 36000);
+ini_set('session.cookie_lifetime', 36000);
+
+session_set_cookie_params(36000);
 session_start();
 require_once __DIR__ . '/../config/database.php';
 
@@ -49,11 +54,16 @@ foreach ($developers as $dev) {
         $params[] = $type;
     }
 
-    // สถานะงาน
+    // กรองสถานะงาน (รวม on_hold กับ in_progress)
     if ($status !== 'all') {
-        $where[] = "t.task_status = ?";
-        $params[] = $status;
+        if ($status === 'in_progress') {
+            $where[] = "t.task_status IN ('in_progress','on_hold')";
+        } else {
+            $where[]  = "t.task_status = ?";
+            $params[] = $status;
+        }
     }
+
 
     // สถานะกำหนดส่ง
     if ($deadlineFlag === 'overdue') {
@@ -294,11 +304,17 @@ if ($selected_dev !== 'all') {
     $params[] = $selected_dev;
 }
 
-// กรองสถานะงาน
+// กรองสถานะงาน (รวม on_hold กับ in_progress)
 if ($status !== 'all') {
-    $where[]  = "t.task_status = ?";
-    $params[] = $status;
+    if ($status === 'in_progress') {
+        $where[] = "t.task_status IN ('in_progress','on_hold')";
+        // ไม่ต้องเพิ่ม $params
+    } else {
+        $where[]  = "t.task_status = ?";
+        $params[] = $status;
+    }
 }
+
 
 // กรองความสำคัญ
 if ($priority !== 'all') {
@@ -439,13 +455,14 @@ $countResult = $countStmt->fetch(PDO::FETCH_ASSOC);
 $totalDocuments = $countResult['total_documents'] ?? 0;
 
 
-// จำนวนคำขอที่ยังอยู่ในขั้นตอนอนุมัติ (ยังไม่ approved )
+// จำนวนคำขอที่ยังอยู่ในขั้นตอนอนุมัติ (ไม่รวม approved และ rejected)
 $pendingStmt = $conn->query("
     SELECT COUNT(*) 
     FROM service_requests 
-    WHERE status NOT IN ('approved' )
+    WHERE status NOT IN ('approved', 'rejected')
 ");
 $totalPendingApprovals = $pendingStmt->fetchColumn();
+
 
 
 
@@ -505,6 +522,17 @@ $sql_pending_dev = "
 $stmtDev = $conn->prepare($sql_pending_dev);
 $stmtDev->execute();
 $pendingDevRequests = $stmtDev->fetchAll(PDO::FETCH_ASSOC);
+
+
+// จำนวนรายการที่ "ไม่ผ่าน" (ถูกปฏิเสธ)
+$rejectedStmt = $conn->query("
+    SELECT COUNT(*)
+    FROM service_requests
+    WHERE status IS NOT NULL
+      AND LOWER(status) LIKE '%reject%'  -- ครอบคลุมทั้ง rejected, gm_rejected ฯลฯ
+");
+$totalRejected = (int) $rejectedStmt->fetchColumn();
+
 
 
 
@@ -654,21 +682,26 @@ if (isset($_GET['popup'])) {
         $i = $start + 1;
         foreach ($pagedData as $t) {
             // กำหนดสี Badge ของสถานะ
-            $statusClass = 'secondary';
+            $statusText = $t['task_status'];
             if ($t['task_status'] === 'pending') {
                 $statusClass = 'warning';
+                $statusText = 'รอรับ';
             } elseif ($t['task_status'] === 'received') {
                 $statusClass = 'info';
+                $statusText = 'รับแล้ว';
             } elseif ($t['task_status'] === 'in_progress') {
                 $statusClass = 'primary';
+                $statusText = 'กำลังทำ';
+            } elseif ($t['task_status'] === 'on_hold') {
+                $statusClass = 'warning';
+                $statusText = 'พักงาน';
             } elseif ($t['task_status'] === 'completed') {
                 $statusClass = 'success';
+                $statusText = 'เสร็จสิ้น';
             } elseif ($t['task_status'] === 'accepted') {
                 $statusClass = 'success';
-            } elseif ($t['task_status'] === 'overdue') {
-                $statusClass = 'danger';
+                $statusText = 'ปิดงาน';
             }
-
 
 
             $categoryLabel = '-';
@@ -694,7 +727,8 @@ if (isset($_GET['popup'])) {
                 <td><span class='badge bg-{$categoryClass} px-3 py-2'>{$categoryLabel}</span></td>
     <td>{$t['requester_name']} {$t['requester_lastname']} </td>
      <td>{$t['requester_department']}</td>
-                <td><span class='badge bg-{$statusClass} px-3 py-2'>{$t['task_status']}</span></td>
+              <td><span class='badge bg-{$statusClass} px-3 py-2'>{$statusText}</span></td>
+
                 <td>" . ($t['deadline'] ?? '-') . "</td>
                   <td>" . ($t['created_at'] ?? '-') . "</td>
             </tr>";
@@ -815,18 +849,19 @@ if (isset($_GET['popup'])) {
             }
         }
 
-            .btn-print {
-        background: linear-gradient(45deg, #007bff, #00c6ff);
-        color: #fff;
-        border: none;
-        font-weight: 600;
-        transition: 0.3s;
-    }
-    .btn-print:hover {
-        background: linear-gradient(45deg, #0056b3, #0099cc);
-        transform: scale(1.05);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-    }
+        .btn-print {
+            background: linear-gradient(45deg, #007bff, #00c6ff);
+            color: #fff;
+            border: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .btn-print:hover {
+            background: linear-gradient(45deg, #0056b3, #0099cc);
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
     </style>
 
 </head>
@@ -1232,8 +1267,13 @@ if (isset($_GET['popup'])) {
 
 
                                             <div class="h1 fw-bold text-primary mb-1">
-                                                <?= count(array_filter($tasks, fn($t) => $t['task_status'] === 'in_progress')) ?>
+                                                <?= count(array_filter(
+                                                    $tasks,
+                                                    fn($t) =>
+                                                    $t['task_status'] === 'in_progress' || $t['task_status'] === 'on_hold'
+                                                )) ?>
                                             </div>
+
 
                                         </div>
                                     </div>
@@ -1326,16 +1366,15 @@ if (isset($_GET['popup'])) {
                     <br>
 
 
-                    <div class="row">
-                        <div class="col-sm-6 col-lg-3">
-                            <div class="card p-3">
+                    <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-5 g-3">
+                        <div class="col">
+                            <div class="card  p-3">
                                 <div class="d-flex align-items-center">
                                     <span class="stamp stamp-md bg-secondary me-3">
                                         <i class="fa fa-file-alt"></i>
                                     </span>
                                     <div>
                                         <h5 class="mb-1">
-
                                             <span class="fw-bold text-dark fs-3"><?= number_format($totalServiceRequests) ?></span>
                                         </h5>
                                         <small class="text-muted"><strong>รายการเอกสารที่ขอเข้าทั้งหมด</strong></small>
@@ -1344,15 +1383,14 @@ if (isset($_GET['popup'])) {
                             </div>
                         </div>
 
-                        <div class="col-sm-6 col-lg-3">
-                            <div class="card p-3">
+                        <div class="col">
+                            <div class="card  p-3">
                                 <div class="d-flex align-items-center">
                                     <span class="stamp stamp-md bg-success me-3">
                                         <i class="fa fa-warehouse"></i>
                                     </span>
                                     <div>
                                         <h5 class="mb-1">
-
                                             <span class="fw-bold text-dark fs-3"><?= number_format($totalDocuments) ?></span>
                                         </h5>
                                         <small class="text-muted"><strong>จำนวนเแผนกทั้งหหมดที่ใช้บริการ</strong></small>
@@ -1361,10 +1399,8 @@ if (isset($_GET['popup'])) {
                             </div>
                         </div>
 
-
-
-                        <div class="col-sm-6 col-lg-3">
-                            <div class="card p-3">
+                        <div class="col">
+                            <div class="card  p-3">
                                 <div class="d-flex align-items-center">
                                     <span class="stamp stamp-md bg-warning me-3">
                                         <i class="fa fa-hourglass-half"></i>
@@ -1373,13 +1409,8 @@ if (isset($_GET['popup'])) {
                                         <h5 class="mb-1">
                                             <span class="fw-bold text-dark fs-3"><?= number_format($totalPendingApprovals) ?></span>
                                         </h5>
-                                        <small class="text-muted d-block">
-                                            <strong>จำนวนรายการที่ยังอยู่ในขั้นตอนอนุมัติ</strong>
-                                        </small>
-                                        <!-- ปุ่มเปิด Modal -->
-                                        <button class="btn btn-sm btn-outline-primary mt-2 w-100"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#approvalModal">
+                                        <small class="text-muted d-block"><strong>จำนวนรายการที่ยังอยู่ในขั้นตอนอนุมัติ</strong></small>
+                                        <button class="btn btn-sm btn-outline-primary mt-2 w-100" data-bs-toggle="modal" data-bs-target="#approvalModal">
                                             ดูรายละเอียด
                                         </button>
                                     </div>
@@ -1387,9 +1418,7 @@ if (isset($_GET['popup'])) {
                             </div>
                         </div>
 
-
-
-                        <div class="col-sm-6 col-lg-3">
+                        <div class="col">
                             <div class="card p-3">
                                 <div class="d-flex align-items-center">
                                     <span class="stamp stamp-md bg-success me-3">
@@ -1405,9 +1434,25 @@ if (isset($_GET['popup'])) {
                             </div>
                         </div>
 
+                        <div class="col">
+                            <div class="card  p-3">
+                                <div class="d-flex align-items-center">
+                                    <span class="stamp stamp-md bg-danger me-3">
+                                        <i class="fa fa-times-circle"></i>
+                                    </span>
+
+                                    <div>
+                                        <h5 class="mb-1">
+                                            <span class="fw-bold text-danger fs-3"><?= number_format($totalRejected) ?></span>
+
+                                        </h5>
+                                        <small class="text-muted"><strong>จำนวนรายการที่ไม่ผ่าน</strong></small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
-
-
 
 
 
@@ -1453,60 +1498,60 @@ if (isset($_GET['popup'])) {
                         </div>
 
 
-                      <div class="card shadow-sm rounded-3"> 
-    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-        <h6 class="card-title mb-0 fw-semibold">
-            <i class="fas fa-tasks me-2"></i> รายการที่ยังไม่ได้อนุมัติจากผู้จัดการฝ่าย
-        </h6>
-        <!-- ปุ่มปริ้น -->
-      <button class="btn btn-primary btn-lg shadow-sm px-4" onclick="printTable()">
-    <i class="fas fa-print fa-lg me-2"></i> ปริ้น
-</button>
+                        <div class="card shadow-sm rounded-3">
+                            <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                                <h6 class="card-title mb-0 fw-semibold">
+                                    <i class="fas fa-tasks me-2"></i> รายการที่ยังไม่ได้อนุมัติจากผู้จัดการฝ่าย
+                                </h6>
+                                <!-- ปุ่มปริ้น -->
+                                <button class="btn btn-primary btn-lg shadow-sm px-4" onclick="printTable()">
+                                    <i class="fas fa-print fa-lg me-2"></i> ปริ้น
+                                </button>
 
-    </div>
+                            </div>
 
-    <div class="card-body p-0" id="printArea">
-        <div class="table-responsive">
-            <table class="table table-bordered table-hover mb-0 align-middle">
-                <thead class="table-light text-center">
-                    <tr>
-                        <th class="text-nowrap">#</th>
-                        <th class="text-nowrap">เลขที่เอกสาร</th>
-                        <th class="text-nowrap">ผู้จัดการฝ่าย</th>
-                        <th class="text-nowrap">หัวข้อ</th>
-                        <th class="text-nowrap">ผู้ขอบริการ</th>
-                        <th class="text-nowrap">วันที่ขอบริการ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php if (empty($pendingDevRequests)): ?>
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">
-                                <i class="fas fa-check-circle me-2"></i> ไม่มีงานพัฒนาที่ยังไม่อนุมัติ
-                            </td>
-                        </tr>
-                    <?php else: ?>
-                        <?php $i = 1;
-                        foreach ($pendingDevRequests as $t): ?>
-                            <tr>
-                                <td class="text-center"><?= $i++ ?></td>
-                                <td class="fw-semibold text-primary"><?= htmlspecialchars($t['document_number'] ?? '-') ?></td>
-                                <td><?= htmlspecialchars($t['divmgr_name'] . ' ' . $t['divmgr_lastname']) ?></td>
-                                <td class="text-wrap">
-                                    <?= htmlspecialchars($t['title']) ?>
-                                </td>
-                                <td><?= htmlspecialchars($t['requester_name'] . ' ' . $t['requester_lastname']) ?></td>
-                                <td class="text-nowrap small text-muted">
-                                    <?= date('d/m/Y H:i', strtotime($t['request_created_at'])) ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-</div>
+                            <div class="card-body p-0" id="printArea">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-hover mb-0 align-middle">
+                                        <thead class="table-light text-center">
+                                            <tr>
+                                                <th class="text-nowrap">#</th>
+                                                <th class="text-nowrap">เลขที่เอกสาร</th>
+                                                <th class="text-nowrap">ผู้จัดการฝ่าย</th>
+                                                <th class="text-nowrap">หัวข้อ</th>
+                                                <th class="text-nowrap">ผู้ขอบริการ</th>
+                                                <th class="text-nowrap">วันที่ขอบริการ</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php if (empty($pendingDevRequests)): ?>
+                                                <tr>
+                                                    <td colspan="6" class="text-center text-muted py-4">
+                                                        <i class="fas fa-check-circle me-2"></i> ไม่มีงานพัฒนาที่ยังไม่อนุมัติ
+                                                    </td>
+                                                </tr>
+                                            <?php else: ?>
+                                                <?php $i = 1;
+                                                foreach ($pendingDevRequests as $t): ?>
+                                                    <tr>
+                                                        <td class="text-center"><?= $i++ ?></td>
+                                                        <td class="fw-semibold text-primary"><?= htmlspecialchars($t['document_number'] ?? '-') ?></td>
+                                                        <td><?= htmlspecialchars($t['divmgr_name'] . ' ' . $t['divmgr_lastname']) ?></td>
+                                                        <td class="text-wrap">
+                                                            <?= htmlspecialchars($t['title']) ?>
+                                                        </td>
+                                                        <td><?= htmlspecialchars($t['requester_name'] . ' ' . $t['requester_lastname']) ?></td>
+                                                        <td class="text-nowrap small text-muted">
+                                                            <?= date('d/m/Y H:i', strtotime($t['request_created_at'])) ?>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            <?php endif; ?>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
 
 
 
@@ -1584,16 +1629,16 @@ if (isset($_GET['popup'])) {
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels"></script>
 
 
-<script>
-function printTable() {
-    var printContents = document.getElementById("printArea").innerHTML;
-    var originalContents = document.body.innerHTML;
-    document.body.innerHTML = printContents;
-    window.print();
-    document.body.innerHTML = originalContents;
-    location.reload(); // รีเฟรชเพื่อให้ปุ่มกลับมา
-}
-</script>
+    <script>
+        function printTable() {
+            var printContents = document.getElementById("printArea").innerHTML;
+            var originalContents = document.body.innerHTML;
+            document.body.innerHTML = printContents;
+            window.print();
+            document.body.innerHTML = originalContents;
+            location.reload(); // รีเฟรชเพื่อให้ปุ่มกลับมา
+        }
+    </script>
 
     <script>
         document.addEventListener("DOMContentLoaded", function() {

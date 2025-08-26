@@ -157,7 +157,9 @@ LEFT JOIN (
 LEFT JOIN users dev ON aa.assigned_developer_id = dev.id
 
 WHERE s.category = 'development'
-  AND (sgma.status IS NULL OR sgma.status != 'approved')
+  AND (sgma.status IS NULL OR sgma.status = 'pending')
+  AND sr.status != 'rejected'
+
 
 ORDER BY sr.created_at DESC
 ";

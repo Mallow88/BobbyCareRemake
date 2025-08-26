@@ -3,14 +3,16 @@ session_start();
 require_once __DIR__ . '/../config/database.php';
 
 
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'gmapprover') {
+if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'assignor') {
     header("Location: ../index.php");
     exit();
 }
 
+
 $user_id = $_SESSION['user_id'];
 $picture_url = $_SESSION['picture_url'] ?? null;
 
+// ===== สร้างเงื่อนไข =====
 // ===== สร้างเงื่อนไข =====
 // ไม่กรองตาม user_id แล้ว → จะเห็นทุกคำขอ
 $conditions = ["s.category = 'development'"];
@@ -155,6 +157,7 @@ LEFT JOIN (
 ) t ON sr.id = t.service_request_id
 
 LEFT JOIN users dev ON aa.assigned_developer_id = dev.id
+
 WHERE s.category = 'development'
   AND (sgma.status IS NULL OR sgma.status = 'pending')
   AND sr.status != 'rejected'
