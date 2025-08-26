@@ -1,5 +1,11 @@
 <?php
+// ตั้ง session ให้อยู่ได้นาน 10 ชั่วโมง (36000 วินาที)
+ini_set('session.gc_maxlifetime', 36000);
+ini_set('session.cookie_lifetime', 36000);
+
+session_set_cookie_params(36000);
 session_start();
+
 require_once __DIR__ . '/../config/database.php';
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'developer') {
