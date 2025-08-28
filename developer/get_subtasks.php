@@ -1,4 +1,4 @@
-<?php
+<?php 
 session_start();
 require_once __DIR__ . '/../config/database.php';
 
@@ -7,7 +7,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'developer') {
     exit('Unauthorized');
 }
 
-$task_id = $_GET['task_id'] ?? null;
+// ใช้ isset() แทน ??
+$task_id = isset($_GET['task_id']) ? $_GET['task_id'] : null;
 if (!$task_id) {
     http_response_code(400);
     exit('Missing task_id');
@@ -23,7 +24,7 @@ $task_check = $conn->prepare("
     LEFT JOIN services s ON sr.service_id = s.id
     WHERE t.id = ? AND t.developer_user_id = ?
 ");
-$task_check->execute([$task_id, $developer_id]);
+$task_check->execute(array($task_id, $developer_id));
 $task = $task_check->fetch(PDO::FETCH_ASSOC);
 
 if (!$task) {
@@ -37,17 +38,17 @@ $subtasks_stmt = $conn->prepare("
     WHERE task_id = ? 
     ORDER BY step_order
 ");
-$subtasks_stmt->execute([$task_id]);
+$subtasks_stmt->execute(array($task_id));
 $subtasks = $subtasks_stmt->fetchAll(PDO::FETCH_ASSOC);
 
 // ถ้ายังไม่มี subtask ใดเลย → สร้างขั้นแรก
-if (empty($subtasks) && $task['service_name']) {
+if (empty($subtasks) && !empty($task['service_name'])) {
     $template_stmt = $conn->prepare("
         SELECT * FROM subtask_templates 
         WHERE service_type = ? AND is_active = 1 
         ORDER BY step_order
     ");
-    $template_stmt->execute([$task['service_name']]);
+    $template_stmt->execute(array($task['service_name']));
     $templates = $template_stmt->fetchAll(PDO::FETCH_ASSOC);
 
     if (!empty($templates)) {
@@ -56,19 +57,20 @@ if (empty($subtasks) && $task['service_name']) {
             INSERT INTO task_subtasks (task_id, step_order, step_name, step_description, percentage, status)
             VALUES (?, ?, ?, ?, ?, 'pending')
         ");
-        $insert_stmt->execute([
+        $insert_stmt->execute(array(
             $task_id,
             $first_step['step_order'],
             $first_step['step_name'],
             $first_step['step_description'],
             $first_step['percentage']
-        ]);
+        ));
     }
 
     // โหลดใหม่
-    $subtasks_stmt->execute([$task_id]);
+    $subtasks_stmt->execute(array($task_id));
     $subtasks = $subtasks_stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
 
 // ถ้ามีขั้นเสร็จแล้ว → สร้างขั้นถัดไปจาก template
 if (!empty($subtasks) && $task['service_name']) {
