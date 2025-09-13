@@ -2,6 +2,144 @@
 session_start();
 require_once __DIR__ . '/../config/database.php';
 
+
+
+function sendLinePushCarousel($toUserId, $requests)
+{
+    $access_token = "hAfRJZ7KyjncT3I2IB6UhHqU/DmP1qPxW2PbeDE7KtUUveyiSKgLvJxrahWyrFUmlrta4MAnw8V3QRr5b7LwoKYh4hv1ATfX8yrJOMFQ+zdQxm3rScAAGNaJTEN1mJxHN93jHbqLoK8dQ080ja5BFAdB04t89/1O/w1cDnyilFU="; // ใส่ Channel access token (long-lived)
+
+
+    $url = "https://api.line.me/v2/bot/message/push";
+
+    $bubbles = [];
+    foreach ($requests as $req) {
+        $bubbles[] = [
+            "type" => "bubble",
+            "size" => "mega",
+            "header" => [
+                "type" => "box",
+                "layout" => "vertical",
+                "contents" => [
+                    [
+                        "type" => "text",
+                        "text" => "📑 มีเอกสารเดิมเเก้ไข", 
+                        "weight" => "bold",
+                        "size" => "lg",
+                        "align" => "center",
+                        "color" => "#ffffffff"
+                    ],
+                    [
+                        "type" => "text",
+                        "text" => $req['document_number'],
+                        "size" => "md",
+                        "align" => "center",
+                        "color" => "#FFFFFF",
+                        "margin" => "md"
+                    ]
+                ],
+                "backgroundColor" => "#5677fc",
+                "paddingAll" => "20px"
+            ],
+            "body" => [
+                "type" => "box",
+                "layout" => "vertical",
+                "spacing" => "md",
+                "contents" => [
+                    [
+                        "type" => "text",
+                        "text" => "📌 เรื่อง: {$req['title']}",
+                        "wrap" => true,
+                        "weight" => "bold",
+                        "size" => "sm",
+                        "color" => "#333333"
+                    ],
+                    // [
+                    //     "type" => "text",
+                    //     "text" => "📝 {$req['description']}",
+                    //     "wrap" => true,
+                    //     "size" => "sm",
+                    //     "color" => "#666666"
+                    // ],
+                    // [
+                    //     "type" => "text",
+                    //     "text" => "✨ ประโยชน์: {$req['expected_benefits']}",
+                    //     "wrap" => true,
+                    //     "size" => "sm",
+                    //     "color" => "#32CD32"
+                    // ],
+                    ["type" => "separator", "margin" => "md"],
+                    [
+                        "type" => "text",
+                        "text" => "ผู้ขอบริการ : {$req['user_name']} {$req['user_lastname']}",
+                        "size" => "sm",
+                        "color" => "#000000"
+                    ],
+                    [
+                        "type" => "text",
+                        "text" => "🆔 {$req['employee_id']} | 🏢 {$req['department']}",
+                        "size" => "sm",
+                        "color" => "#444444"
+                    ]
+                ]
+            ],
+            "footer" => [
+                "type" => "box",
+                "layout" => "vertical",
+                "contents" => [
+                    [
+                        "type" => "button",
+                        "style" => "primary",
+                        "color" => "#d0d9ff",
+                        "action" => [
+                            "type" => "uri",
+                            "label" => "🔎 ดูรายละเอียดเพิ่มเติม",
+                            // "uri" => "http://yourdomain/index2.php?id={$req['request_id']}"
+                            "uri" => "http://localhost/BobbyCareRemake/div_mgr/index2.php?id=" . $req['request_id']
+                        ]
+                    ]
+                ],
+                "backgroundColor" => "#5677fc"
+            ],
+            "styles" => [
+                "header" => ["separator" => true],
+                "body"   => ["separator" => true],
+                "footer" => ["separator" => true]
+            ]
+        ];
+    }
+
+
+    $flexMessage = [
+        "type" => "flex",
+        "altText" => "📑 มีคำขอหลายรายการใหม่",
+        "contents" => [
+            "type" => "carousel",
+            "contents" => $bubbles
+        ]
+    ];
+
+    $data = [
+        "to" => $toUserId,
+        "messages" => [$flexMessage]
+    ];
+
+    $post = json_encode($data, JSON_UNESCAPED_UNICODE);
+    $headers = [
+        'Content-Type: application/json',
+        'Authorization: Bearer ' . $access_token
+    ];
+
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+    $result = curl_exec($ch);
+    curl_close($ch);
+
+    return $result;
+}
+
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../index.php");
     exit();
@@ -11,9 +149,10 @@ $user_id = $_SESSION['user_id'];
 $request_id = $_GET['id'] ?? null;
 
 if (!$request_id) {
-    header("Location: index.php");
+    header("Location: index2.php");
     exit();
 }
+
 
 // ดึงข้อมูลคำขอ
 $stmt = $conn->prepare("
@@ -27,14 +166,14 @@ $request = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$request) {
     $_SESSION['error'] = "ไม่พบคำขอที่ระบุ หรือคุณไม่มีสิทธิ์แก้ไข";
-    header("Location: index.php");
+    header("Location: index2.php");
     exit();
 }
 
 // ตรวจสอบว่าสามารถแก้ไขได้หรือไม่ (เฉพาะสถานะ pending หรือ div_mgr_review)
-if (!in_array($request['status'], ['pending', 'div_mgr_review'])) {
+if (!in_array($request['status'], ['pending', 'div_mgr_review', 'rejected'])) {
     $_SESSION['error'] = "ไม่สามารถแก้ไขคำขอที่ผ่านการอนุมัติแล้ว";
-    header("Location: index.php");
+    header("Location: index2.php");
     exit();
 }
 
@@ -62,6 +201,11 @@ $div_managers = $divmgr_stmt->fetchAll(PDO::FETCH_ASSOC);
 $files_stmt = $conn->prepare("SELECT * FROM request_attachments WHERE service_request_id = ? ORDER BY uploaded_at");
 $files_stmt->execute([$request_id]);
 $attachments = $files_stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$doc_stmt = $conn->prepare("SELECT document_number FROM document_numbers WHERE service_request_id = ?");
+$doc_stmt->execute([$request_id]);
+$doc = $doc_stmt->fetch(PDO::FETCH_ASSOC);
+$document_number = $doc['document_number'] ?? '-';
 
 // ประมวลผลการส่งฟอร์ม
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -107,6 +251,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $program_name_decorate = trim($_POST['program_name_decorate'] ?? '');
     $decoration_type = trim($_POST['decoration_type'] ?? '');
     $reference_examples = trim($_POST['reference_examples'] ?? '');
+
+    // ==== สร้าง description ใหม่ (เหมือน create) ====
+$description_parts = [];
+$service_stmt = $conn->prepare("SELECT * FROM services WHERE id = ?");
+$service_stmt->execute([$service_id]);
+$service = $service_stmt->fetch(PDO::FETCH_ASSOC);
+
+if ($service) {
+    $description_parts[] = "ประเภทบริการ: " . $service['name'];
+    $description_parts[] = "หัวข้องานคลัง: " . $work_category;
+
+    if ($service['category'] === 'development') {
+        switch ($service['name']) {
+            case 'โปรแกรมใหม่':
+                if ($program_purpose) $description_parts[] = "วัตถุประสงค์: " . $program_purpose;
+                if ($target_users) $description_parts[] = "กลุ่มผู้ใช้: " . $target_users;
+                if ($main_functions) $description_parts[] = "ฟังก์ชันหลัก: " . $main_functions;
+                if ($data_requirements) $description_parts[] = "ข้อมูลที่ต้องใช้: " . $data_requirements;
+                if ($current_workflow) $description_parts[] = "ขั้นตอนการทำงานเดิม: " . $current_workflow;
+                if ($related_programs) $description_parts[] = "โปรแกรมที่เกี่ยวข้อง: " . $related_programs;
+                break;
+
+            case 'โปรแกรมเดิม (แก้ปัญหา)':
+                if ($current_program_name) $description_parts[] = "โปรแกรม: " . $current_program_name;
+                if ($problem_description) $description_parts[] = "รายละเอียด: " . $problem_description;
+                if ($error_frequency) $description_parts[] = "ความถี่: " . $error_frequency;
+                if ($steps_to_reproduce) $description_parts[] = "ขั้นตอน: " . $steps_to_reproduce;
+                break;
+
+            case 'โปรแกรมเดิม (เปลี่ยนข้อมูล)':
+                if ($program_name_change) $description_parts[] = "โปรแกรม: " . $program_name_change;
+                if ($data_to_change) $description_parts[] = "ข้อมูลที่ต้องเปลี่ยน: " . $data_to_change;
+                if ($new_data_value) $description_parts[] = "ข้อมูลใหม่: " . $new_data_value;
+                if ($change_reason) $description_parts[] = "เหตุผล: " . $change_reason;
+                break;
+
+            case 'โปรแกรมเดิม (เพิ่มฟังก์ชั่น)':
+                if ($program_name_function) $description_parts[] = "โปรแกรม: " . $program_name_function;
+                if ($new_functions) $description_parts[] = "ฟังก์ชั่นใหม่: " . $new_functions;
+                if ($integration_requirements) $description_parts[] = "ระบบที่เกี่ยวข้อง: " . $integration_requirements;
+                if ($function_benefits) $description_parts[] = "ประโยชน์: " . $function_benefits;
+                break;
+
+            case 'โปรแกรมเดิม (ตกแต่ง)':
+                if ($program_name_decorate) $description_parts[] = "โปรแกรม: " . $program_name_decorate;
+                if ($decoration_type) $description_parts[] = "ประเภทการตกแต่ง: " . $decoration_type;
+                if ($reference_examples) $description_parts[] = "ตัวอย่าง: " . $reference_examples;
+                break;
+        }
+    }
+}
+
+$description = implode("\n", $description_parts);
+
     
     // Validation
     if (empty($title)) {
@@ -120,35 +318,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $conn->beginTransaction();
             
             // อัปเดตข้อมูลคำขอ
-            $update_stmt = $conn->prepare("
-                UPDATE service_requests SET 
-                    title = ?, service_id = ?, work_category = ?, assigned_div_mgr_id = ?,
-                    expected_benefits = ?, current_workflow = ?, approach_ideas = ?, 
-                    related_programs = ?, current_tools = ?, system_impact = ?, 
-                    related_documents = ?, program_purpose = ?, target_users = ?, 
-                    main_functions = ?, data_requirements = ?, current_program_name = ?, 
-                    problem_description = ?, error_frequency = ?, steps_to_reproduce = ?, 
-                    program_name_change = ?, data_to_change = ?, new_data_value = ?, 
-                    change_reason = ?, program_name_function = ?, new_functions = ?, 
-                    function_benefits = ?, integration_requirements = ?, 
-                    program_name_decorate = ?, decoration_type = ?, reference_examples = ?,
-                    updated_at = NOW()
-                WHERE id = ? AND user_id = ?
-            ");
-            
-            $update_stmt->execute([
-                $title, $service_id, $work_category, $assigned_div_mgr_id,
-                $expected_benefits, $current_workflow, $approach_ideas, 
-                $related_programs, $current_tools, $system_impact, 
-                $related_documents, $program_purpose, $target_users, 
-                $main_functions, $data_requirements, $current_program_name, 
-                $problem_description, $error_frequency, $steps_to_reproduce, 
-                $program_name_change, $data_to_change, $new_data_value, 
-                $change_reason, $program_name_function, $new_functions, 
-                $function_benefits, $integration_requirements, 
-                $program_name_decorate, $decoration_type, $reference_examples,
-                $request_id, $user_id
-            ]);
+     // ==== เตรียม params ==== 
+$params = [
+    $title, $service_id, $work_category, $assigned_div_mgr_id,
+    $description,
+    $expected_benefits, $current_workflow, $approach_ideas,
+    $related_programs, $current_tools, $system_impact,
+    $related_documents, $program_purpose, $target_users,
+    $main_functions, $data_requirements, $current_program_name,
+    $problem_description, $error_frequency, $steps_to_reproduce,
+    $program_name_change, $data_to_change, $new_data_value,
+    $change_reason, $program_name_function, $new_functions,
+    $function_benefits, $integration_requirements,
+    $program_name_decorate, $decoration_type, $reference_examples,
+    $request_id, $user_id
+];
+
+// ==== อัปเดตคำขอ ==== 
+if ($request['status'] === 'rejected') {
+    // reset workflow
+    $update_stmt = $conn->prepare("
+        UPDATE service_requests SET 
+            title = ?, service_id = ?, work_category = ?, assigned_div_mgr_id = ?,
+            description = ?, expected_benefits = ?, current_workflow = ?, approach_ideas = ?, 
+            related_programs = ?, current_tools = ?, system_impact = ?, 
+            related_documents = ?, program_purpose = ?, target_users = ?, 
+            main_functions = ?, data_requirements = ?, current_program_name = ?, 
+            problem_description = ?, error_frequency = ?, steps_to_reproduce = ?, 
+            program_name_change = ?, data_to_change = ?, new_data_value = ?, 
+            change_reason = ?, program_name_function = ?, new_functions = ?, 
+            function_benefits = ?, integration_requirements = ?, 
+            program_name_decorate = ?, decoration_type = ?, reference_examples = ?,
+            status = 'pending',                -- รีเซ็ตสถานะ
+            current_step = 'div_mgr_review',   -- เริ่มใหม่ที่ผู้จัดการฝ่าย
+            updated_at = NOW()
+        WHERE id = ? AND user_id = ?
+    ");
+    $update_stmt->execute($params);
+
+    // Reset approvals
+    $reset_tables = ["div_mgr_approvals","assignor_approvals","gm_approvals","senior_gm_approvals"];
+  foreach ($reset_tables as $table) {
+    $reset_stmt = $conn->prepare("DELETE FROM $table WHERE service_request_id = ?");
+    $reset_stmt->execute([$request_id]);
+}
+
+
+} else {
+    // update ปกติ
+    $update_stmt = $conn->prepare("
+        UPDATE service_requests SET 
+            title = ?, service_id = ?, work_category = ?, assigned_div_mgr_id = ?,
+            description = ?, expected_benefits = ?, current_workflow = ?, approach_ideas = ?, 
+            related_programs = ?, current_tools = ?, system_impact = ?, 
+            related_documents = ?, program_purpose = ?, target_users = ?, 
+            main_functions = ?, data_requirements = ?, current_program_name = ?, 
+            problem_description = ?, error_frequency = ?, steps_to_reproduce = ?, 
+            program_name_change = ?, data_to_change = ?, new_data_value = ?, 
+            change_reason = ?, program_name_function = ?, new_functions = ?, 
+            function_benefits = ?, integration_requirements = ?, 
+            program_name_decorate = ?, decoration_type = ?, reference_examples = ?,
+            updated_at = NOW()
+        WHERE id = ? AND user_id = ?
+    ");
+    $update_stmt->execute($params);
+}
+
             
             // จัดการไฟล์แนบใหม่
             if (isset($_FILES['attachments']) && !empty($_FILES['attachments']['name'][0])) {
@@ -190,9 +425,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             $conn->commit();
-            $_SESSION['success'] = "แก้ไขคำขอเรียบร้อยแล้ว";
-            header("Location: index.php");
-            exit();
+           $user_stmt = $conn->prepare("SELECT name, lastname, employee_id, department FROM users WHERE id = ?");
+        $user_stmt->execute([$user_id]);
+        $user_info = $user_stmt->fetch(PDO::FETCH_ASSOC);
+        $user_name = $user_info['name'] ?? '';
+        $user_lastname = $user_info['lastname'] ?? '';
+        $employee_id = $user_info['employee_id'] ?? '';
+        $department = $user_info['department'] ?? '';
+        $divmgr_stmt = $conn->prepare("SELECT line_id FROM users WHERE id = ?");
+       $description = $_POST['description'] ?? '-';
+$expected_benefits = $_POST['expected_benefits'] ?? '-';
+
+        $divmgr_stmt->execute([$assigned_div_mgr_id]);
+        $divmgr = $divmgr_stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($divmgr && !empty($divmgr['line_id'])) {
+            sendLinePushCarousel($divmgr['line_id'], [[
+                'document_number' => $document_number,
+                'title' => $title,
+                'description' => $description,
+                'expected_benefits' => $expected_benefits,
+                'user_name' => $user_name,
+                'user_lastname' => $user_lastname,
+                'employee_id' => $employee_id,
+                'department' => $department,
+                'request_id' => $request_id
+            ]]);
+        }
+
+$_SESSION['success'] = "แก้ไขคำขอเรียบร้อยแล้ว และส่งไปหาผู้จัดการฝ่าย";
+header("Location: index2.php");
+exit();
+            
             
         } catch (Exception $e) {
             $conn->rollBack();
@@ -521,7 +785,6 @@ if (isset($_GET['delete_file'])) {
                 <i class="fas fa-exclamation-triangle me-2"></i>ข้อควรระวัง
             </h5>
             <ul class="mb-0">
-                <li>สามารถแก้ไขได้เฉพาะคำขอที่ยังไม่ผ่านการอนุมัติ</li>
                 <li>การแก้ไขจะส่งผลต่อการพิจารณาของผู้อนุมัติ</li>
                 <li>ตรวจสอบข้อมูลให้ถูกต้องก่อนบันทึก</li>
             </ul>
@@ -544,7 +807,7 @@ if (isset($_GET['delete_file'])) {
 
                     <div class="col-md-6 mb-3">
                         <label for="service_id" class="form-label">ประเภทบริการ <span class="required">*</span></label>
-                        <select class="form-select" id="service_id" name="service_id" required>
+                        <select class="form-select" id="service_id" name="service_id" required disabled>
                             <option value="">-- เลือกประเภทบริการ --</option>
                             <?php
                             $current_category = '';
@@ -568,7 +831,7 @@ if (isset($_GET['delete_file'])) {
 
                     <div class="col-md-6 mb-3">
                         <label for="work_category" class="form-label">หัวข้องานคลัง</label>
-                        <select class="form-select" id="work_category" name="work_category">
+                        <select class="form-select" id="work_category" name="work_category" disabled>
                             <option value="">-- เลือกหัวข้องานคลัง --</option>
                             <?php
                             $current_warehouse = '';
@@ -659,10 +922,10 @@ if (isset($_GET['delete_file'])) {
                         <label for="error_frequency" class="form-label">ความถี่ของปัญหา</label>
                         <select class="form-select" id="error_frequency" name="error_frequency">
                             <option value="">-- เลือกความถี่ --</option>
-                            <option value="ทุกครั้ง" <?= $request['error_frequency'] === 'ทุกครั้ง' ? 'selected' : '' ?>>ทุกครั้ง</option>
-                            <option value="บ่อยครั้ง" <?= $request['error_frequency'] === 'บ่อยครั้ง' ? 'selected' : '' ?>>บ่อยครั้ง</option>
-                            <option value="บางครั้ง" <?= $request['error_frequency'] === 'บางครั้ง' ? 'selected' : '' ?>>บางครั้ง</option>
-                            <option value="นานๆครั้ง" <?= $request['error_frequency'] === 'นานๆครั้ง' ? 'selected' : '' ?>>นานๆครั้ง</option>
+                            <option value="เกิดขึ้น1-5ครั้ง" <?= $request['error_frequency'] === 'เกิดขึ้น1-5ครั้ง' ? 'selected' : '' ?>>เกิดขึ้น1-5ครั้ง</option>
+                            <option value="เกิดขึ้น5-10ครั้ง" <?= $request['error_frequency'] === 'เกิดขึ้น5-10ครั้ง' ? 'selected' : '' ?>>เกิดขึ้น5-10ครั้ง</option>
+                            <option value="เกิดขึ้น10-15ครั้ง" <?= $request['error_frequency'] === 'เกิดขึ้น10-15ครั้ง' ? 'selected' : '' ?>>เกิดขึ้น10-15ครั้ง</option>
+                            <option value="เกิดขึ้นมากกว่า20ครั้ง" <?= $request['error_frequency'] === 'เกิดขึ้นมากกว่า20ครั้ง' ? 'selected' : '' ?>>เกิดขึ้นมากกว่า20ครั้ง</option>
                         </select>
                     </div>
                     <div class="col-md-12 mb-3">
@@ -836,6 +1099,7 @@ if (isset($_GET['delete_file'])) {
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+
         // แสดง/ซ่อนฟิลด์ตามประเภทบริการ
         function toggleServiceFields() {
             const serviceSelect = document.getElementById('service_id');
@@ -898,9 +1162,9 @@ if (isset($_GET['delete_file'])) {
         });
 
         // คลิกเพื่อเลือกไฟล์
-        fileUploadArea.addEventListener('click', function() {
-            fileInput.click();
-        });
+        // fileUploadArea.addEventListener('click', function() {
+        //     fileInput.click();
+        // });
 
         // เมื่อเลือกไฟล์
         fileInput.addEventListener('change', displaySelectedFiles);

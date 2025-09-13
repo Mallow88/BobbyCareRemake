@@ -48,7 +48,7 @@ if (!empty($_GET['document_number'])) {
 $sql = "
 SELECT 
     sr.*, 
-    COUNT(DISTINCT ra.id) AS attachment_count,   
+  COALESCE(ra.attachment_count, 0) AS attachment_count, 
     dn.document_number,
     dn.warehouse_number,
     dn.code_name,
@@ -109,7 +109,15 @@ SELECT
     ur.reviewed_at AS user_reviewed_at
 
 FROM service_requests sr
-LEFT JOIN request_attachments ra ON sr.id = ra.service_request_id
+LEFT JOIN (
+    SELECT 
+        service_request_id, 
+        COUNT(*) AS attachment_count,
+        GROUP_CONCAT(CONCAT(original_filename, ':', stored_filename) SEPARATOR '||') AS attachment_files
+    FROM request_attachments
+    GROUP BY service_request_id
+) ra ON sr.id = ra.service_request_id
+
 LEFT JOIN document_numbers dn ON sr.id = dn.service_request_id
 LEFT JOIN services s ON sr.service_id = s.id
 
@@ -159,6 +167,8 @@ $stmt = $conn->prepare($sql);
 $stmt->execute($params);
 $requests = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+
+
 // เตรียม statement สำหรับ subtasks ล่วงหน้า
 $sub_stmt = $conn->prepare("SELECT * FROM task_subtasks WHERE task_id = ? ORDER BY step_order ASC");
 
@@ -174,13 +184,12 @@ foreach ($requests as &$request) {
   }
 }
 
-$file_stmt = $conn->prepare("SELECT * FROM request_attachments WHERE service_request_id = ?");
-foreach ($requests as &$req) {
-  $file_stmt->execute([$req['id']]);
-  $req['attachments'] = $file_stmt->fetchAll(PDO::FETCH_ASSOC);
-}
 
-
+// $file_stmt = $conn->prepare("SELECT * FROM request_attachments WHERE service_request_id = ?");
+// foreach ($requests as &$req) {
+//   $file_stmt->execute([$req['id']]);
+//   $req['attachments'] = $file_stmt->fetchAll(PDO::FETCH_ASSOC);
+// }
 
 
 ?>
@@ -498,36 +507,36 @@ foreach ($requests as &$req) {
                       </div>
 
                       <!-- ไฟล์แนบ -->
-                      <?php if (!empty($req['attachments'])): ?>
-                        <div class="mt-3">
-                          <div class="row g-3">
-                            <?php foreach ($req['attachments'] as $file): ?>
-                              <?php
-                              $ext = strtolower(pathinfo($file['original_filename'], PATHINFO_EXTENSION));
-                              $isImage = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
-                              ?>
-                              <div class="col-6"> <!-- 2 รูปต่อแถว -->
-                                <div class="border rounded p-2 text-center">
-                                  <?php if ($isImage): ?>
-                                    <a href="../uploads/<?= htmlspecialchars($file['stored_filename']) ?>" target="_blank">
-                                      <img src="../uploads/<?= htmlspecialchars($file['stored_filename']) ?>"
-                                        alt="<?= htmlspecialchars($file['original_filename']) ?>"
-                                        class="img-fluid rounded mb-2" style="max-height:100px; object-fit:cover;">
-                                    </a>
-                                  <?php else: ?>
-                                    <i class="fas fa-file-alt fa-3x text-muted mb-2"></i>
-                                  <?php endif; ?>
-                                  <div class="small text-truncate"><?= htmlspecialchars($file['original_filename']) ?></div>
-                                  <a href="../uploads/<?= htmlspecialchars($file['stored_filename']) ?>"
-                                    class="btn btn-sm btn-success mt-1" download>
-                                    <i class="fas fa-download"></i>
-                                  </a>
-                                </div>
-                              </div>
-                            <?php endforeach; ?>
-                          </div>
-                        </div>
-                      <?php endif; ?> 
+                     <div>
+   <i class="fas fa-paperclip"></i>
+   ไฟล์แนบ: <?= $req['attachment_count'] ?> ไฟล์
+</div>
+
+<?php if (!empty($req['attachments'])): ?>
+   <div class="row g-3">
+      <?php foreach ($req['attachments'] as $file): ?>
+         <?php
+           $ext = strtolower(pathinfo($file['original_filename'], PATHINFO_EXTENSION));
+           $isImage = in_array($ext, ['jpg','jpeg','png','gif','webp']);
+         ?>
+         <div class="col-6">
+            <div class="border rounded p-2 text-center">
+               <?php if ($isImage): ?>
+                 <a href="../uploads/<?= htmlspecialchars($file['stored_filename']) ?>" target="_blank">
+                   <img src="../uploads/<?= htmlspecialchars($file['stored_filename']) ?>" 
+                        alt="<?= htmlspecialchars($file['original_filename']) ?>" 
+                        class="img-fluid rounded mb-2" style="max-height:100px;object-fit:cover;">
+                 </a>
+               <?php else: ?>
+                 <i class="fas fa-file-alt fa-3x text-muted mb-2"></i>
+               <?php endif; ?>
+               <div class="small text-truncate"><?= htmlspecialchars($file['original_filename']) ?></div>
+            </div>
+         </div>
+      <?php endforeach; ?>
+   </div>
+<?php endif; ?>
+
                       <br>
 
 

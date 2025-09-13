@@ -1051,10 +1051,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     <textarea name="reason" id="reason" class="form-control" rows="3" placeholder="ระบุเหตุผลหรือข้อเสนอแนะ"></textarea>
                                 </div>
 
-                                <div class="form-group">
+                                <!-- <div class="form-group">
                                     <label for="final_notes">หมายเหตุสำหรับผู้พัฒนา:</label>
                                     <textarea name="final_notes" id="final_notes" class="form-control" rows="3" placeholder="ข้อแนะนำหรือคำแนะนำพิเศษสำหรับผู้พัฒนา"></textarea>
-                                </div>
+                                </div> -->
 
                             </div>
 
